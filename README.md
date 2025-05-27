@@ -91,7 +91,7 @@ The frontend will be available at [http://localhost:3000](http://localhost:3000)
 - All panes are resizable for a flexible UI.
 
 ## License
-MIT
+This project is open for public contribution and free to use for community benefit. Contributions, suggestions, and improvements are welcome from everyone. See the LICENSE file for details.
 
 ---
 
