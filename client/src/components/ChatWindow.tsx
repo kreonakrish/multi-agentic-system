@@ -4,6 +4,9 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Paper from '@mui/material/Paper';
 import CircularProgress from '@mui/material/CircularProgress';
+import BarChartComponent from './BarChartComponent';
+import LineChartComponent from './LineChartComponent';
+import PieChartComponent from './PieChartComponent';
 
 interface Message {
   sender: 'user' | 'bot';
@@ -26,21 +29,79 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your questi
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Mock backend call for Node API
+  const mockBackend = async (question: string) => {
+    // Simulate network delay
+    await new Promise(res => setTimeout(res, 900));
+    // Simple mock: if question contains 'bar', return bar chart data; if 'line', return line chart data; if 'pie', return pie chart data; else text only
+    if (/bar/i.test(question)) {
+      return {
+        text: 'Here is a bar chart based on your question.',
+        data: {
+          type: 'bar',
+          labels: ['A', 'B', 'C', 'D'],
+          values: [12, 19, 3, 5]
+        }
+      };
+    } else if (/line/i.test(question)) {
+      return {
+        text: 'Here is a line chart based on your question.',
+        data: {
+          type: 'line',
+          labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+          values: [5, 9, 7, 14]
+        }
+      };
+    } else if (/pie/i.test(question)) {
+      return {
+        text: 'Here is a pie chart based on your question.',
+        data: {
+          type: 'pie',
+          labels: ['X', 'Y', 'Z'],
+          values: [30, 50, 20]
+        }
+      };
+    } else {
+      return {
+        text: 'This is a text response. Ask about a bar, line, or pie chart to see a chart.',
+        data: null
+      };
+    }
+  };
+
+  // Helper to convert mock data to recharts format
+  function toBarChartData(labels: string[], values: number[]): any[] {
+    return labels.map((name, i) => ({ name, uv: values[i] ?? 0, pv: Math.round(Math.random() * 20) }));
+  }
+  function toLineChartData(labels: string[], values: number[]): any[] {
+    return labels.map((name, i) => ({ name, sent: values[i] ?? 0, received: Math.round(Math.random() * 20) }));
+  }
+  function toPieChartData(labels: string[], values: number[]): any[] {
+    return labels.map((name, i) => ({ name, value: values[i] ?? 0 }));
+  }
+
+  // Group consecutive messages from the same sender
+  function groupMessages(msgs: Message[]) {
+    const groups: { sender: 'user' | 'bot'; items: Message[] }[] = [];
+    for (const msg of msgs) {
+      if (groups.length && groups[groups.length - 1].sender === msg.sender) {
+        groups[groups.length - 1].items.push(msg);
+      } else {
+        groups.push({ sender: msg.sender, items: [msg] });
+      }
+    }
+    return groups;
+  }
+
   const handleSend = async () => {
     if (!input.trim()) return;
     const userMsg: Message = { sender: 'user', text: input };
     setMessages(msgs => [...msgs, userMsg]);
     setInput('');
     setLoading(true);
-    // Simulate backend call
     try {
-      // Replace this with your real backend call
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: input })
-      });
-      const result = await response.json();
+      // Use mock backend for now
+      const result = await mockBackend(input);
       const botMsg: Message = { sender: 'bot', text: result.text, data: result.data };
       setMessages(msgs => [...msgs, botMsg]);
       if (result.data && onDataResponse) onDataResponse(result.data);
@@ -58,29 +119,48 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your questi
   };
 
   return (
-    <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column', height: 220, mt: 1 }}>
-      <Box sx={{ flex: 1, overflowY: 'auto', p: 1, background: '#f7f7fa' }}>
-        {messages.map((msg, idx) => (
-          <Box key={idx} sx={{
-            display: 'flex',
-            justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-            mb: 0.5
-          }}>
-            <Box sx={{
-              bgcolor: msg.sender === 'user' ? '#1877f2' : '#e0e0e0',
-              color: msg.sender === 'user' ? '#fff' : '#222',
-              px: 1.5, py: 0.7, borderRadius: 2, maxWidth: '80%',
-              fontSize: '0.98rem',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-            }}>
-              {msg.text}
+    <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 220, mt: 1 }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', p: 1, background: '#f7f7fa', display: 'flex', flexDirection: 'column' }}>
+        {/* Chat messages */}
+        <Box sx={{ flex: 1 }}>
+          {groupMessages(messages).map((group, gIdx) => (
+            <Box key={gIdx} sx={{ mb: 1 }}>
+              {/* Grouped message bubbles */}
+              {group.items.map((msg, idx) => (
+                <React.Fragment key={idx}>
+                  <Box sx={{
+                    display: 'flex',
+                    justifyContent: group.sender === 'user' ? 'flex-end' : 'flex-start',
+                    mb: 0.5
+                  }}>
+                    <Box sx={{
+                      bgcolor: group.sender === 'user' ? '#1877f2' : '#e0e0e0',
+                      color: group.sender === 'user' ? '#fff' : '#222',
+                      px: 1.5, py: 0.7, borderRadius: 2, maxWidth: '80%',
+                      fontSize: '0.98rem',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                    }}>
+                      {msg.text}
+                    </Box>
+                  </Box>
+                  {/* Render chart if data is present and from bot */}
+                  {group.sender === 'bot' && msg.data && (
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1, mt: 0.5 }}>
+                      {msg.data.type === 'bar' && <BarChartComponent data={toBarChartData(msg.data.labels, msg.data.values)} />}
+                      {msg.data.type === 'line' && <LineChartComponent data={toLineChartData(msg.data.labels, msg.data.values)} />}
+                      {msg.data.type === 'pie' && <PieChartComponent data={toPieChartData(msg.data.labels, msg.data.values)} />}
+                    </Box>
+                  )}
+                </React.Fragment>
+              ))}
             </Box>
-          </Box>
-        ))}
-        <div ref={chatEndRef} />
+          ))}
+          <div ref={chatEndRef} />
+        </Box>
       </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', p: 1, borderTop: '1px solid #eee', gap: 1 }}>
+      {/* Input box always at the bottom */}
+      <Box sx={{ display: 'flex', alignItems: 'center', p: 1, borderTop: '1px solid #eee', gap: 1, bgcolor: '#fff' }}>
         <TextField
           value={input}
           onChange={e => setInput(e.target.value)}

@@ -157,67 +157,20 @@ const App: React.FC = () => {
 
           {/* Main Panels */}
           <div style={{ flex: 1, display: "flex", minHeight: 0, gap: "0.5rem" }}>
-            {/* Center Panels */}
-            <section style={{ flex: 3, display: "flex", flexDirection: "column", gap: "0.8rem" }}>
-              {/* First Chart Panel (Bar Chart) */}
-              <div style={{ background: "#fff", border: "2px solid #222", borderRadius: 5, minHeight: 320, padding: "0.7rem", position: "relative", display: "flex", flexDirection: "column" }}>
-                {/* Bar Chart Image - fill area but keep aspect ratio */}
-                <div style={{
-                  height: 260,
-                  width: "100%",
-                  background: "#e3eef8",
-                  borderRadius: 4,
-                  overflow: "hidden",
-                  marginBottom: "1rem",
-                  padding: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}>
-                  <img
-                    src={barChartImg}
-                    alt="Bar Chart"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      width: "auto",
-                      height: "auto",
-                      objectFit: "contain",
-                      display: "block"
-                    }}
-                  />
-                </div>
-                <ChatWindow placeholder="Ask about this bar chart..." />
-              </div>
-              {/* Second Chart Panel (Line Chart) */}
-              <div style={{ background: "#fff", border: "2px solid #222", borderRadius: 5, minHeight: 260, padding: "0.7rem", position: "relative", display: "flex", flexDirection: "column" }}>
-                {/* Line Chart Image - fill area but keep aspect ratio */}
-                <div style={{
-                  height: 200,
-                  width: "100%",
-                  background: "#e5fbe1",
-                  borderRadius: 4,
-                  overflow: "hidden",
-                  marginBottom: "1rem",
-                  padding: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}>
-                  <img
-                    src={lineChartImg}
-                    alt="Line Chart"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      width: "auto",
-                      height: "auto",
-                      objectFit: "contain",
-                      display: "block"
-                    }}
-                  />
-                </div>
-                <ChatWindow placeholder="Ask about this line chart..." />
+            {/* Center Panels - now a single chat panel with scrollable chat and chart responses */}
+            <section style={{ flex: 3, display: "flex", flexDirection: "column", gap: "0.8rem", height: '100%' }}>
+              <div style={{
+                background: "#fff",
+                border: "2px solid #222",
+                borderRadius: 5,
+                minHeight: 320,
+                padding: "0.7rem",
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+                height: '100%'
+              }}>
+                <ChatWindow placeholder="Ask your analytics questions..." />
               </div>
             </section>
 
