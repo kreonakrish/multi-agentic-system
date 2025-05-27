@@ -7,11 +7,20 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
-
-const agentList = [
-  "Nifi Agents", "DBx Agents", "Confluence Agents", "AWS Agents",
-  "RDS Agents", "Alteryx Agents", "Qlik Agents", "Thoughtspot Agents"
-];
+import ToolConfigModal from './components/ToolConfigModal';
+import AgentConfigModal from './components/AgentConfigModal';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import ConversationSettingsModal from './components/ConversationSettingsModal';
+import TeamSettingsModal from './components/TeamSettingsModal';
+import ExecutionPlanModal from './components/ExecutionPlanModal';
+import IconButton from '@mui/material/IconButton';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
+import TextField from '@mui/material/TextField';
 
 const agentColors = [
   '#1877f2', // Nifi Agents - Facebook blue
@@ -26,10 +35,89 @@ const agentColors = [
 
 const rightPanelItems = [
   "Conversation Settings",
-  "Agent Priorities",
+  "Team Settings",
   "Execution Plan",
   "Connected Sources"
 ];
+
+const defaultAgentConfigs = [
+  {
+    name: "Nifi Agents",
+    memoryType: "Graph",
+    foundationModel: "OpenAI",
+    tools: ["Sample DB Tool"]
+  },
+  {
+    name: "DBx Agents",
+    memoryType: "JSON",
+    foundationModel: "Claude",
+    tools: ["Sample API Tool"]
+  },
+  {
+    name: "Confluence Agents",
+    memoryType: "Short Term",
+    foundationModel: "GPT",
+    tools: ["Sample DB Tool", "Sample API Tool"]
+  },
+  {
+    name: "AWS Agents",
+    memoryType: "Long Term",
+    foundationModel: "Gemini",
+    tools: ["Sample API Tool"]
+  },
+  {
+    name: "RDS Agents",
+    memoryType: "Graph",
+    foundationModel: "OpenAI",
+    tools: ["Sample DB Tool"]
+  },
+  {
+    name: "Alteryx Agents",
+    memoryType: "JSON",
+    foundationModel: "Claude",
+    tools: ["Sample API Tool"]
+  },
+  {
+    name: "Qlik Agents",
+    memoryType: "Short Term",
+    foundationModel: "GPT",
+    tools: ["Sample DB Tool"]
+  },
+  {
+    name: "Thoughtspot Agents",
+    memoryType: "Long Term",
+    foundationModel: "Gemini",
+    tools: ["Sample API Tool"]
+  }
+];
+
+const defaultToolConfigs = [
+  {
+    toolName: "Sample DB Tool",
+    toolType: "Database",
+    hostname: "db.example.com",
+    username: "dbuser",
+    password: "********",
+    authMethod: "Basic"
+  },
+  {
+    toolName: "Sample API Tool",
+    toolType: "API",
+    hostname: "api.example.com",
+    username: "apiuser",
+    password: "********",
+    authMethod: "API Key"
+  }
+];
+
+// Enhanced conversation step type
+export type ConversationStep = {
+  role: 'user' | 'agent' | 'tool' | 'bot';
+  content: string;
+  agentName?: string;
+  toolName?: string;
+  parentIdx?: number; // for hierarchy
+};
 
 const App: React.FC = () => {
   const [tabIndex, setTabIndex] = useState(0);
@@ -37,6 +125,118 @@ const App: React.FC = () => {
   const [isResizing, setIsResizing] = useState(false);
   const [rightSidebarWidth, setRightSidebarWidth] = useState(220);
   const [isRightResizing, setIsRightResizing] = useState(false);
+  const [toolModalOpen, setToolModalOpen] = useState(false);
+  const [agentModalOpen, setAgentModalOpen] = useState(false);
+  const [editAgentModalOpen, setEditAgentModalOpen] = useState(false);
+  const [editToolModalOpen, setEditToolModalOpen] = useState(false);
+  const [agents, setAgents] = useState<any[]>([...defaultAgentConfigs]);
+  const [selectedAgent, setSelectedAgent] = useState<any | null>(null);
+  const [agentToEdit, setAgentToEdit] = useState<any | null>(null);
+  const [tools, setTools] = useState<any[]>([...defaultToolConfigs]);
+  const [selectedTool, setSelectedTool] = useState<any | null>(null);
+  const [toolToEdit, setToolToEdit] = useState<any | null>(null);
+  const [sidebarTab, setSidebarTab] = useState(0);
+  const [conversationSettingsOpen, setConversationSettingsOpen] = useState(false);
+  const [conversationSettings, setConversationSettings] = useState({
+    temperature: 0.7,
+    tokenLimit: 512,
+    startPrompt: '',
+    endPrompt: '',
+    style: ''
+  });
+  const [teamSettingsOpen, setTeamSettingsOpen] = useState(false);
+  const [teams, setTeams] = useState<any[]>([]);
+  const [selectedTeam, setSelectedTeam] = useState<any | null>(null);
+  const [executionPlanOpen, setExecutionPlanOpen] = useState(false);
+  const [executionPlanDefinition] = useState<string>(
+    `graph TD
+      A[User Query] --> B[Intent Detection]
+      B --> C[Agent 1: Data Retrieval]
+      B --> D[Agent 2: Data Processing]
+      C --> E[Result Aggregation]
+      D --> E
+      E --> F[Response Generation]
+      F --> G[User]
+    `
+  );
+  const [conversationHistory, setConversationHistory] = useState<ConversationStep[]>([]);
+  const [conversationHistoryList, setConversationHistoryList] = useState<any[]>([]);
+  // Toggle for showing conversation history in right sidebar
+  const [showConversationHistory, setShowConversationHistory] = useState(false);
+
+  // For renaming conversation
+  const [renamingIdx, setRenamingIdx] = useState<number | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+
+  const canChat = selectedTeam && selectedTeam.agents && selectedTeam.agents.length > 0;
+
+  function generateMermaidFromConversation(history: ConversationStep[]) {
+    if (!history.length) {
+      return `graph TD\nA[No conversation yet]`;
+    }
+    let mermaid = 'graph TD\n';
+    let nodeIds: string[] = [];
+    // Create nodes
+    history.forEach((step, idx) => {
+      let label = '';
+      if (step.role === 'user') label = `User: ${step.content}`;
+      else if (step.role === 'agent') label = `Agent: ${step.agentName || ''}`;
+      else if (step.role === 'tool') label = `Tool: ${step.toolName || ''}`;
+      else label = `Bot: ${step.content}`;
+      label = label.replace(/\n/g, ' ').slice(0, 40) + (label.length > 40 ? '...' : '');
+      mermaid += `N${idx}[${label}]\n`;
+      nodeIds.push(`N${idx}`);
+    });
+    // Create edges (hierarchy: user->agent->tool->bot)
+    history.forEach((step, idx) => {
+      if (step.parentIdx !== undefined && step.parentIdx >= 0) {
+        mermaid += `N${step.parentIdx} --> N${idx}\n`;
+      } else if (idx > 0) {
+        mermaid += `N${idx - 1} --> N${idx}\n`;
+      }
+    });
+    return mermaid;
+  }
+
+  // Helper to generate a random summary title
+  function generateRandomSummary(history: ConversationStep[]) {
+    if (!history.length) return 'Empty Conversation';
+    // Try to use the first user message as a summary, or fallback
+    const firstUser = history.find(h => h.role === 'user');
+    if (firstUser && firstUser.content) {
+      return firstUser.content.slice(0, 30) + (firstUser.content.length > 30 ? '...' : '');
+    }
+    return 'Conversation ' + (conversationHistoryList.length + 1);
+  }
+
+  // Delete conversation
+  const handleDeleteConversation = (timestamp: number) => {
+    setConversationHistoryList(prev => prev.filter(conv => conv.timestamp !== timestamp));
+  };
+
+  // Start renaming
+  const handleStartRename = (idx: number, currentTitle: string) => {
+    setRenamingIdx(idx);
+    setRenameValue(currentTitle);
+  };
+
+  // Save rename
+  const handleSaveRename = (timestamp: number) => {
+    setConversationHistoryList(prev => prev.map((conv, idx) => idx === renamingIdx ? { ...conv, title: renameValue } : conv));
+    setRenamingIdx(null);
+    setRenameValue('');
+  };
+
+  // Export conversation as JSON
+  const handleExportConversation = (conv: any) => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(conv, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `${conv.title.replace(/[^a-z0-9]/gi, '_') || 'conversation'}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
 
   // Mouse event handlers for resizing
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -85,6 +285,49 @@ const App: React.FC = () => {
     };
   }, [isRightResizing]);
 
+  const handleAddAgent = (agent: any) => {
+    setAgents(prev => [...prev, agent]);
+  };
+
+  const handleEditAgent = (agent: any) => {
+    setAgentToEdit(agent);
+    setEditAgentModalOpen(true);
+  };
+
+  const handleUpdateAgent = (updatedAgent: any) => {
+    setAgents(prev => prev.map(a => a.name === agentToEdit.name ? updatedAgent : a));
+    setEditAgentModalOpen(false);
+    setAgentToEdit(null);
+    setSelectedAgent(null);
+  };
+
+  const handleEditTool = (tool: any) => {
+    setToolToEdit(tool);
+    setEditToolModalOpen(true);
+  };
+
+  const handleUpdateTool = (updatedTool: any) => {
+    setTools(prev => prev.map(t => t.toolName === toolToEdit.toolName ? updatedTool : t));
+    setEditToolModalOpen(false);
+    setToolToEdit(null);
+    setSelectedTool(null);
+  };
+
+  // Handler for New Chat
+  const handleNewChat = () => {
+    if (conversationHistory.length > 0) {
+      setConversationHistoryList(prev => [
+        {
+          title: generateRandomSummary(conversationHistory),
+          history: conversationHistory,
+          timestamp: Date.now(),
+        },
+        ...prev
+      ]);
+    }
+    setConversationHistory([]); // Always clear center pane
+  };
+
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: "#f9f9f9" }}>
       {/* Header */}
@@ -96,42 +339,124 @@ const App: React.FC = () => {
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
         {/* Left Sidebar with resizable pane */}
         <aside style={{ width: sidebarWidth, minWidth: 160, maxWidth: 400, background: "#e6e9ed", padding: "1rem 0", borderRight: "2px solid #bfc5c9", display: "flex", flexDirection: "column", gap: "0.7rem", position: 'relative' }}>
-          {/* Add Agents / Add Tools */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", margin: "0 1rem 0.7rem 1rem" }}>
-            <Button variant="contained" color="primary" fullWidth size="medium">Add Agents</Button>
-            <Button variant="contained" color="primary" fullWidth size="medium">Add Tools</Button>
-          </div>
-          <Divider sx={{ margin: '0.5rem 0' }} />
-          {/* Agent List - scrollable if needed */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1, overflowY: 'auto', marginBottom: '1rem' }}>
-            {agentList.map((agent, idx) => (
-              <Button
-                key={agent}
-                variant="contained"
-                fullWidth
-                size="small"
-                sx={{
-                  backgroundColor: agentColors[idx],
-                  color: '#fff',
-                  fontWeight: 'bold',
-                  border: '2px solid #222',
-                  borderRadius: 2,
-                  boxShadow: 'none',
-                  '&:hover': {
-                    backgroundColor: agentColors[idx],
-                    opacity: 0.9,
-                  },
-                  textAlign: 'left',
-                  minHeight: 32,
-                  fontSize: '0.95rem',
-                  padding: '0.2rem 0.7rem',
-                }}
-                onClick={() => {/* TODO: Show existing agent details */}}
-              >
-                {agent}
-              </Button>
-            ))}
-          </div>
+          {/* Agents/Tools Tabs */}
+          <Tabs value={sidebarTab} onChange={(_, v) => setSidebarTab(v)} variant="fullWidth" sx={{ mb: 1 }}>
+            <Tab label="Agents" />
+            <Tab label="Tools" />
+          </Tabs>
+          {/* Add + List for Agents */}
+          {sidebarTab === 0 && (
+            <>
+              <Button variant="contained" color="primary" fullWidth size="medium" sx={{ mb: 1 }} onClick={() => setAgentModalOpen(true)}>Add Agent</Button>
+              <Divider sx={{ margin: '0.5rem 0' }} />
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1, overflowY: 'auto', marginBottom: '1rem' }}>
+                {agents.map((agent, idx) => (
+                  <Button
+                    key={agent.name}
+                    variant="contained"
+                    fullWidth
+                    size="small"
+                    sx={{
+                      backgroundColor: agentColors[idx % agentColors.length],
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      border: '2px solid #222',
+                      borderRadius: 2,
+                      boxShadow: 'none',
+                      '&:hover': {
+                        backgroundColor: agentColors[idx % agentColors.length],
+                        opacity: 0.9,
+                      },
+                      textAlign: 'left',
+                      minHeight: 32,
+                      fontSize: '0.95rem',
+                      padding: '0.2rem 0.7rem',
+                    }}
+                    onClick={() => setSelectedAgent(agent)}
+                  >
+                    {agent.name}
+                  </Button>
+                ))}
+              </div>
+              {/* Agent details modal */}
+              {selectedAgent && (
+                <Dialog open={!!selectedAgent} onClose={() => setSelectedAgent(null)} maxWidth="xs" fullWidth>
+                  <DialogTitle>Agent Details</DialogTitle>
+                  <DialogContent>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                      <Box><b>Name:</b> {selectedAgent.name}</Box>
+                      <Box><b>Type of Memory:</b> {selectedAgent.memoryType}</Box>
+                      <Box><b>Foundation Model:</b> {selectedAgent.foundationModel}</Box>
+                      <Box><b>Tools:</b> {selectedAgent.tools && selectedAgent.tools.length > 0 ? selectedAgent.tools.join(', ') : 'None'}</Box>
+                    </Box>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setSelectedAgent(null)}>Close</Button>
+                    <Button onClick={() => handleEditAgent(selectedAgent)} color="primary" variant="contained">Edit</Button>
+                  </DialogActions>
+                </Dialog>
+              )}
+              <AgentConfigModal open={agentModalOpen} onClose={() => setAgentModalOpen(false)} onSave={handleAddAgent} toolsList={tools.map(tool => tool.toolName)} />
+              <AgentConfigModal open={editAgentModalOpen} onClose={() => setEditAgentModalOpen(false)} onSave={handleUpdateAgent} toolsList={tools.map(tool => tool.toolName)} initialValues={agentToEdit || {}} mode="edit" />
+            </>
+          )}
+          {/* Add + List for Tools */}
+          {sidebarTab === 1 && (
+            <>
+              <Button variant="contained" color="primary" fullWidth size="medium" sx={{ mb: 1 }} onClick={() => setToolModalOpen(true)}>Add Tool</Button>
+              <Divider sx={{ margin: '0.5rem 0' }} />
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1, overflowY: 'auto', marginBottom: '1rem' }}>
+                {tools.map((tool, idx) => (
+                  <Button
+                    key={tool.toolName}
+                    variant="contained"
+                    fullWidth
+                    size="small"
+                    sx={{
+                      backgroundColor: agentColors[idx % agentColors.length],
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      border: '2px solid #222',
+                      borderRadius: 2,
+                      boxShadow: 'none',
+                      '&:hover': {
+                        backgroundColor: agentColors[idx % agentColors.length],
+                        opacity: 0.9,
+                      },
+                      textAlign: 'left',
+                      minHeight: 32,
+                      fontSize: '0.95rem',
+                      padding: '0.2rem 0.7rem',
+                    }}
+                    onClick={() => setSelectedTool(tool)}
+                  >
+                    {tool.toolName}
+                  </Button>
+                ))}
+              </div>
+              {/* Tool details modal */}
+              {selectedTool && (
+                <Dialog open={!!selectedTool} onClose={() => setSelectedTool(null)} maxWidth="xs" fullWidth>
+                  <DialogTitle>Tool Details</DialogTitle>
+                  <DialogContent>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                      <Box><b>Name:</b> {selectedTool.toolName}</Box>
+                      <Box><b>Type:</b> {selectedTool.toolType}</Box>
+                      <Box><b>Hostname:</b> {selectedTool.hostname}</Box>
+                      <Box><b>Username:</b> {selectedTool.username}</Box>
+                      <Box><b>Authentication:</b> {selectedTool.authMethod}</Box>
+                    </Box>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setSelectedTool(null)}>Close</Button>
+                    <Button onClick={() => handleEditTool(selectedTool)} color="primary" variant="contained">Edit</Button>
+                  </DialogActions>
+                </Dialog>
+              )}
+              <ToolConfigModal open={toolModalOpen} onClose={() => setToolModalOpen(false)} onSave={tool => setTools(prev => [...prev, tool])} />
+              <ToolConfigModal open={editToolModalOpen} onClose={() => setEditToolModalOpen(false)} onSave={handleUpdateTool} initialValues={toolToEdit || {}} mode="edit" />
+            </>
+          )}
           {/* Resizer handle */}
           <div
             style={{
@@ -151,8 +476,10 @@ const App: React.FC = () => {
         <main style={{ flex: 1, padding: "1rem 0.5rem", display: "flex", flexDirection: "column", minWidth: 0 }}>
           {/* Top Controls - right justified */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.7rem", justifyContent: "flex-end" }}>
-            <Button variant="contained" color="primary">+ NEW CHAT</Button>
-            <Button variant="outlined" color="primary">Conversation History</Button>
+            <Button variant="contained" color="primary" onClick={handleNewChat}>+ NEW CHAT</Button>
+            <Button variant="outlined" color="primary" onClick={() => setShowConversationHistory(v => !v)}>
+              Conversation History
+            </Button>
           </div>
 
           {/* Main Panels */}
@@ -170,54 +497,186 @@ const App: React.FC = () => {
                 flexDirection: "column",
                 height: '100%'
               }}>
-                <ChatWindow placeholder="Ask your analytics questions..." />
+                <ChatWindow
+                  placeholder="Ask your analytics questions..."
+                  conversationHistory={conversationHistory}
+                  setConversationHistory={setConversationHistory}
+                  selectedTeam={selectedTeam}
+                  canChat={canChat}
+                />
               </div>
             </section>
 
             {/* Right Sidebar with resizable pane */}
             <aside style={{ width: rightSidebarWidth, minWidth: 160, maxWidth: 400, background: "#fff", display: "flex", flexDirection: "column", gap: "0.7rem", position: 'relative' }}>
-              <Box sx={{ width: '100%' }}>
-                <Tabs
-                  value={tabIndex}
-                  onChange={(_, v) => setTabIndex(v)}
-                  textColor="primary"
-                  indicatorColor="primary"
-                  variant="fullWidth"
-                  sx={{ width: '100%' }}
-                >
-                  <Tab label="Settings" sx={{ flex: 1, minWidth: 0 }} />
-                  <Tab label="Documents" sx={{ flex: 1, minWidth: 0 }} />
-                </Tabs>
-              </Box>
-              {tabIndex === 0 && (
-                rightPanelItems.map(item => (
-                  <Button
-                    key={item}
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      backgroundColor: '#e0e0e0',
-                      color: '#222',
-                      fontWeight: 'bold',
-                      border: '2px solid #222',
-                      borderRadius: 2,
-                      boxShadow: 'none',
-                      '&:hover': {
-                        backgroundColor: '#bdbdbd',
-                      },
-                      margin: '0 0.5rem',
-                      padding: '0.7rem 0.7rem',
-                      textAlign: 'left',
-                    }}
-                    onClick={() => {/* TODO: Show panel details */}}
-                  >
-                    {item}
-                  </Button>
-                ))
+              {/* Show only conversation history when toggled */}
+              {showConversationHistory ? (
+                <Box sx={{ mt: 2, background: '#f5f5f5', borderRadius: 2, p: 1, flex: 1, overflowY: 'auto' }}>
+                  <b>Conversation History</b>
+                  {conversationHistoryList.length === 0 && (
+                    <Box sx={{ color: '#888', mt: 2 }}>No conversations yet.</Box>
+                  )}
+                  {conversationHistoryList.map((conv, idx) => (
+                    <Box key={conv.timestamp} sx={{ mt: 1, p: 1, border: '1px solid #ccc', borderRadius: 1, background: '#fff', display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {/* Title or rename field */}
+                      <Box sx={{ flex: 1, cursor: renamingIdx === idx ? 'auto' : 'pointer' }}
+                        onClick={() => {
+                          if (renamingIdx !== idx) {
+                            setConversationHistory(conv.history);
+                            setShowConversationHistory(false);
+                          }
+                        }}
+                      >
+                        {renamingIdx === idx ? (
+                          <TextField
+                            value={renameValue}
+                            onChange={e => setRenameValue(e.target.value)}
+                            size="small"
+                            onBlur={() => handleSaveRename(conv.timestamp)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleSaveRename(conv.timestamp); }}
+                            autoFocus
+                            sx={{ minWidth: 120 }}
+                          />
+                        ) : (
+                          <span>{conv.title}</span>
+                        )}
+                        <div style={{ fontSize: '0.8rem', color: '#888' }}>{new Date(conv.timestamp).toLocaleString()}</div>
+                      </Box>
+                      {/* Action buttons */}
+                      <IconButton size="small" onClick={() => handleStartRename(idx, conv.title)} title="Rename"><EditIcon fontSize="small" /></IconButton>
+                      <IconButton size="small" onClick={() => handleDeleteConversation(conv.timestamp)} title="Delete"><DeleteIcon fontSize="small" /></IconButton>
+                      <IconButton size="small" onClick={() => handleExportConversation(conv)} title="Export"><DownloadIcon fontSize="small" /></IconButton>
+                    </Box>
+                  ))}
+                </Box>
+              ) : (
+                <>
+                  <Box sx={{ width: '100%' }}>
+                    <Tabs
+                      value={tabIndex}
+                      onChange={(_, v) => setTabIndex(v)}
+                      textColor="primary"
+                      indicatorColor="primary"
+                      variant="fullWidth"
+                      sx={{ width: '100%' }}
+                    >
+                      <Tab label="Settings" sx={{ flex: 1, minWidth: 0 }} />
+                      <Tab label="Documents" sx={{ flex: 1, minWidth: 0 }} />
+                    </Tabs>
+                  </Box>
+                  {tabIndex === 0 && !showConversationHistory && (
+                    <>
+                      {/* Team Settings button first */}
+                      <Button
+                        key="Team Settings"
+                        variant="contained"
+                        fullWidth
+                        sx={{
+                          backgroundColor: '#e0e0e0',
+                          color: '#222',
+                          fontWeight: 'bold',
+                          border: '2px solid #222',
+                          borderRadius: 2,
+                          boxShadow: 'none',
+                          '&:hover': {
+                            backgroundColor: '#bdbdbd',
+                          },
+                          margin: '0 0.5rem',
+                          padding: '0.7rem 0.7rem',
+                          textAlign: 'left',
+                        }}
+                        onClick={() => setTeamSettingsOpen(true)}
+                      >
+                        Team Settings
+                      </Button>
+                      {/* Conversation Settings button second */}
+                      <Button
+                        key="Conversation Settings"
+                        variant="contained"
+                        fullWidth
+                        sx={{
+                          backgroundColor: '#e0e0e0',
+                          color: '#222',
+                          fontWeight: 'bold',
+                          border: '2px solid #222',
+                          borderRadius: 2,
+                          boxShadow: 'none',
+                          '&:hover': {
+                            backgroundColor: '#bdbdbd',
+                          },
+                          margin: '0 0.5rem',
+                          padding: '0.7rem 0.7rem',
+                          textAlign: 'left',
+                        }}
+                        onClick={() => setConversationSettingsOpen(true)}
+                      >
+                        Conversation Settings
+                      </Button>
+                      {/* The rest of the rightPanelItems */}
+                      {rightPanelItems.filter(item => item !== 'Team Settings' && item !== 'Conversation Settings').map(item => (
+                        <Button
+                          key={item}
+                          variant="contained"
+                          fullWidth
+                          sx={{
+                            backgroundColor: '#e0e0e0',
+                            color: '#222',
+                            fontWeight: 'bold',
+                            border: '2px solid #222',
+                            borderRadius: 2,
+                            boxShadow: 'none',
+                            '&:hover': {
+                              backgroundColor: '#bdbdbd',
+                            },
+                            margin: '0 0.5rem',
+                            padding: '0.7rem 0.7rem',
+                            textAlign: 'left',
+                          }}
+                          onClick={() => {
+                            if (item === 'Execution Plan') setExecutionPlanOpen(true);
+                            // TODO: Show panel details for other items
+                          }}
+                        >
+                          {item}
+                        </Button>
+                      ))}
+                    </>
+                  )}
+                  {tabIndex === 1 && (
+                    <Box sx={{ margin: '1rem', color: '#888', textAlign: 'center' }}>No documents.</Box>
+                  )}
+                </>
               )}
-              {tabIndex === 1 && (
-                <Box sx={{ margin: '1rem', color: '#888', textAlign: 'center' }}>No documents.</Box>
-              )}
+              <ConversationSettingsModal
+                open={conversationSettingsOpen}
+                onClose={() => setConversationSettingsOpen(false)}
+                onSave={(settings, selectedTeamId) => {
+                  setConversationSettings(settings);
+                  const team = teams.find(t => (t.id || t.name) === selectedTeamId);
+                  setSelectedTeam(team || null);
+                }}
+                initialValues={conversationSettings}
+                teams={teams}
+                selectedTeamId={selectedTeam ? (selectedTeam.id || selectedTeam.name) : ''}
+                onTeamChange={teamId => {
+                  const team = teams.find(t => (t.id || t.name) === teamId);
+                  setSelectedTeam(team || null);
+                }}
+              />
+              <TeamSettingsModal
+                open={teamSettingsOpen}
+                onClose={() => setTeamSettingsOpen(false)}
+                agents={agents}
+                teams={teams}
+                setTeams={setTeams}
+                selectedTeam={selectedTeam}
+                setSelectedTeam={setSelectedTeam}
+              />
+              <ExecutionPlanModal
+                open={executionPlanOpen}
+                onClose={() => setExecutionPlanOpen(false)}
+                mermaidDefinition={generateMermaidFromConversation(conversationHistory)}
+              />
               {/* Resizer handle for right sidebar */}
               <div
                 style={{

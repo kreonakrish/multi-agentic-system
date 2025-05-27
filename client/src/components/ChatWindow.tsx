@@ -7,6 +7,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import BarChartComponent from './BarChartComponent';
 import LineChartComponent from './LineChartComponent';
 import PieChartComponent from './PieChartComponent';
+import { ConversationStep } from '../App';
 
 interface Message {
   sender: 'user' | 'bot';
@@ -14,12 +15,16 @@ interface Message {
   data?: any; // If present, this is chart data
 }
 
-interface ChatWindowProps {
+export interface ChatWindowProps {
   placeholder?: string;
   onDataResponse?: (data: any) => void; // Callback to show chart if data is present
+  conversationHistory?: ConversationStep[];
+  setConversationHistory?: (history: ConversationStep[]) => void;
+  selectedTeam?: any;
+  canChat?: boolean;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your question...", onDataResponse }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your question...", onDataResponse, conversationHistory, setConversationHistory, selectedTeam, canChat }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,6 +33,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your questi
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Sync messages with conversationHistory
+  useEffect(() => {
+    if (conversationHistory && conversationHistory.length === 0) {
+      setMessages([]);
+    }
+  }, [conversationHistory]);
 
   // Mock backend call for Node API
   const mockBackend = async (question: string) => {
@@ -94,9 +106,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your questi
   }
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !canChat || !selectedTeam || !selectedTeam.agents || selectedTeam.agents.length === 0) return;
     const userMsg: Message = { sender: 'user', text: input };
     setMessages(msgs => [...msgs, userMsg]);
+    let newHistory = conversationHistory ? [...conversationHistory] : [];
+    const userIdx = newHistory.length;
+    // Add user step
+    newHistory.push({ role: 'user', content: input });
+    // Use first agent in priority order
+    const agentObj = selectedTeam.agents[0];
+    const agentName = agentObj?.name || 'Unknown Agent';
+    const agentIdx = newHistory.length;
+    newHistory.push({ role: 'agent', content: `Processing: ${input}`, agentName, parentIdx: userIdx });
+    // Use first tool of the agent if available
+    const toolName = agentObj?.tools && agentObj.tools.length > 0 ? agentObj.tools[0] : undefined;
+    const toolIdx = newHistory.length;
+    if (toolName) {
+      newHistory.push({ role: 'tool', content: `Querying: ${input}`, toolName, parentIdx: agentIdx });
+    }
     setInput('');
     setLoading(true);
     try {
@@ -104,9 +131,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your questi
       const result = await mockBackend(input);
       const botMsg: Message = { sender: 'bot', text: result.text, data: result.data };
       setMessages(msgs => [...msgs, botMsg]);
+      // Add bot step
+      newHistory.push({ role: 'bot', content: result.text, parentIdx: toolName ? toolIdx : agentIdx });
+      if (setConversationHistory) setConversationHistory(newHistory);
       if (result.data && onDataResponse) onDataResponse(result.data);
     } catch (e) {
       setMessages(msgs => [...msgs, { sender: 'bot', text: 'Sorry, there was an error.' }]);
+      newHistory.push({ role: 'bot', content: 'Sorry, there was an error.', parentIdx: toolName ? toolIdx : agentIdx });
+      if (setConversationHistory) setConversationHistory(newHistory);
     }
     setLoading(false);
   };
@@ -168,9 +200,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your questi
           placeholder={placeholder}
           size="small"
           fullWidth
-          disabled={loading}
+          disabled={loading || !canChat}
         />
-        <Button onClick={handleSend} variant="contained" color="primary" disabled={loading || !input.trim()} size="small">
+        <Button onClick={handleSend} variant="contained" color="primary" disabled={loading || !input.trim() || !canChat} size="small">
           {loading ? <CircularProgress size={20} /> : 'Send'}
         </Button>
       </Box>
