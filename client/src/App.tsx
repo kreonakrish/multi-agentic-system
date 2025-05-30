@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import barChartImg from "./assets/graph.png";
 import lineChartImg from "./assets/bar_charts.jpg";
 import Button from '@mui/material/Button';
@@ -16,6 +16,7 @@ import DialogActions from '@mui/material/DialogActions';
 import ConversationSettingsModal from './components/ConversationSettingsModal';
 import TeamSettingsModal from './components/TeamSettingsModal';
 import ExecutionPlanModal from './components/ExecutionPlanModal';
+import ConnectedSourcesModal from './components/ConnectedSourcesModal';
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -119,6 +120,30 @@ export type ConversationStep = {
   parentIdx?: number; // for hierarchy
 };
 
+// Save the current conversation to the backend
+type ConversationRecord = {
+  id?: number;
+  team_id?: number;
+  started_at?: string;
+  ended_at?: string;
+  title: string;
+  temperature?: number;
+  token_limit?: number;
+  start_prompt?: string;
+  end_prompt?: string;
+  style?: string;
+  conversation_data: any;
+};
+
+async function saveConversationToBackend(conv: any) {
+  const res = await fetch('/api/conversations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(conv)
+  });
+  return res.json();
+}
+
 const App: React.FC = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(220);
@@ -148,6 +173,7 @@ const App: React.FC = () => {
   const [teams, setTeams] = useState<any[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<any | null>(null);
   const [executionPlanOpen, setExecutionPlanOpen] = useState(false);
+  const [connectedSourcesOpen, setConnectedSourcesOpen] = useState(false);
   const [executionPlanDefinition] = useState<string>(
     `graph TD
       A[User Query] --> B[Intent Detection]
@@ -172,7 +198,9 @@ const App: React.FC = () => {
 
   function generateMermaidFromConversation(history: ConversationStep[]) {
     if (!history.length) {
-      return `graph TD\nA[No conversation yet]`;
+      const defaultMermaid = `graph TD\nA[No conversation yet]\nA --> B[Sample Step 1]\nB --> C[Sample Step 2]\nC --> D[Sample Step 3]`;
+      console.log('Mermaid (default):', defaultMermaid);
+      return defaultMermaid;
     }
     let mermaid = 'graph TD\n';
     let nodeIds: string[] = [];
@@ -195,6 +223,13 @@ const App: React.FC = () => {
         mermaid += `N${idx - 1} --> N${idx}\n`;
       }
     });
+    // If the generated diagram is empty or invalid, fallback to sample
+    if (mermaid.trim() === 'graph TD') {
+      const defaultMermaid = `graph TD\nA[No conversation yet]\nA --> B[Sample Step 1]\nB --> C[Sample Step 2]\nC --> D[Sample Step 3]`;
+      console.log('Mermaid (fallback):', defaultMermaid);
+      return defaultMermaid;
+    }
+    console.log('Mermaid (generated):', mermaid);
     return mermaid;
   }
 
@@ -236,6 +271,68 @@ const App: React.FC = () => {
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
+  };
+
+  // Save conversation to backend
+  const handleSaveConversation = async () => {
+    if (conversationHistory.length > 0) {
+      const conv = {
+        title: generateRandomSummary(conversationHistory),
+        conversation_data: conversationHistory,
+        settings: {
+          team_id: selectedTeam?.id,
+          temperature: conversationSettings.temperature,
+          token_limit: conversationSettings.tokenLimit,
+          start_prompt: conversationSettings.startPrompt,
+          end_prompt: conversationSettings.endPrompt,
+          style: conversationSettings.style
+        }
+      };
+      await saveConversationToBackend(conv);
+      // Refresh conversation list from backend
+      fetch('/api/conversations').then(res => res.json()).then(setConversationHistoryList);
+    }
+  };
+
+  // Load conversation from history
+  const handleLoadConversation = async (conv: any) => {
+    console.log('handleLoadConversation called with:', conv);
+    // If the conversation has an id, fetch from backend for latest data
+    if (conv.id) {
+      try {
+        const res = await fetch(`/api/conversations/${conv.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          console.log('Fetched conversation from backend:', data);
+          setConversationHistory(data.conversation_data || []);
+          setConversationSettings({
+            temperature: data.temperature,
+            tokenLimit: data.token_limit,
+            startPrompt: data.start_prompt,
+            endPrompt: data.end_prompt,
+            style: data.style
+          });
+          return;
+        } else {
+          console.error('Failed to fetch conversation from backend:', res.status);
+        }
+      } catch (e) {
+        console.error('Error fetching conversation from backend:', e);
+      }
+    }
+    // fallback to local data if no id or fetch fails
+    if (conv.conversation_data) {
+      setConversationHistory(conv.conversation_data);
+    } else if (conv.history) {
+      setConversationHistory(conv.history);
+    }
+    setConversationSettings({
+      temperature: conv.temperature,
+      tokenLimit: conv.token_limit,
+      startPrompt: conv.start_prompt,
+      endPrompt: conv.end_prompt,
+      style: conv.style
+    });
   };
 
   // Mouse event handlers for resizing
@@ -285,8 +382,29 @@ const App: React.FC = () => {
     };
   }, [isRightResizing]);
 
+  // Fetch agents, tools, teams, conversations from backend
+  useEffect(() => {
+    fetch('/api/agents').then(res => res.json()).then(setAgents);
+    fetch('/api/tools').then(res => res.json()).then(data => {
+      // Map snake_case to camelCase for tools
+      setTools(data.map((tool: any) => ({
+        ...tool,
+        toolName: tool.tool_name,
+        toolType: tool.tool_type,
+        authMethod: tool.auth_method,
+        // keep other fields as is
+      })));
+    });
+    fetch('/api/teams').then(res => res.json()).then(setTeams);
+    fetch('/api/conversations').then(res => res.json()).then(setConversationHistoryList);
+  }, []);
+
+  const fetchAgents = () => {
+    fetch('/api/agents').then(res => res.json()).then(setAgents);
+  };
+
   const handleAddAgent = (agent: any) => {
-    setAgents(prev => [...prev, agent]);
+    fetchAgents();
   };
 
   const handleEditAgent = (agent: any) => {
@@ -295,7 +413,7 @@ const App: React.FC = () => {
   };
 
   const handleUpdateAgent = (updatedAgent: any) => {
-    setAgents(prev => prev.map(a => a.name === agentToEdit.name ? updatedAgent : a));
+    fetchAgents();
     setEditAgentModalOpen(false);
     setAgentToEdit(null);
     setSelectedAgent(null);
@@ -314,16 +432,23 @@ const App: React.FC = () => {
   };
 
   // Handler for New Chat
-  const handleNewChat = () => {
+  const handleNewChat = async () => {
     if (conversationHistory.length > 0) {
-      setConversationHistoryList(prev => [
-        {
-          title: generateRandomSummary(conversationHistory),
-          history: conversationHistory,
-          timestamp: Date.now(),
-        },
-        ...prev
-      ]);
+      const conv = {
+        title: generateRandomSummary(conversationHistory),
+        conversation_data: conversationHistory,
+        settings: {
+          team_id: selectedTeam?.id,
+          temperature: conversationSettings.temperature,
+          token_limit: conversationSettings.tokenLimit,
+          start_prompt: conversationSettings.startPrompt,
+          end_prompt: conversationSettings.endPrompt,
+          style: conversationSettings.style
+        }
+      };
+      await saveConversationToBackend(conv);
+      // Refresh conversation list from backend
+      fetch('/api/conversations').then(res => res.json()).then(setConversationHistoryList);
     }
     setConversationHistory([]); // Always clear center pane
   };
@@ -396,8 +521,8 @@ const App: React.FC = () => {
                   </DialogActions>
                 </Dialog>
               )}
-              <AgentConfigModal open={agentModalOpen} onClose={() => setAgentModalOpen(false)} onSave={handleAddAgent} toolsList={tools.map(tool => tool.toolName)} />
-              <AgentConfigModal open={editAgentModalOpen} onClose={() => setEditAgentModalOpen(false)} onSave={handleUpdateAgent} toolsList={tools.map(tool => tool.toolName)} initialValues={agentToEdit || {}} mode="edit" />
+              <AgentConfigModal open={agentModalOpen} onClose={() => setAgentModalOpen(false)} onSave={handleAddAgent} tools={tools} />
+              <AgentConfigModal open={editAgentModalOpen} onClose={() => setEditAgentModalOpen(false)} onSave={handleUpdateAgent} tools={tools} initialValues={agentToEdit || {}} mode="edit" />
             </>
           )}
           {/* Add + List for Tools */}
@@ -522,7 +647,7 @@ const App: React.FC = () => {
                       <Box sx={{ flex: 1, cursor: renamingIdx === idx ? 'auto' : 'pointer' }}
                         onClick={() => {
                           if (renamingIdx !== idx) {
-                            setConversationHistory(conv.history);
+                            handleLoadConversation(conv);
                             setShowConversationHistory(false);
                           }
                         }}
@@ -634,6 +759,7 @@ const App: React.FC = () => {
                           }}
                           onClick={() => {
                             if (item === 'Execution Plan') setExecutionPlanOpen(true);
+                            if (item === 'Connected Sources') setConnectedSourcesOpen(true);
                             // TODO: Show panel details for other items
                           }}
                         >
@@ -650,10 +776,18 @@ const App: React.FC = () => {
               <ConversationSettingsModal
                 open={conversationSettingsOpen}
                 onClose={() => setConversationSettingsOpen(false)}
-                onSave={(settings, selectedTeamId) => {
+                onSave={async (settings, selectedTeamId) => {
                   setConversationSettings(settings);
-                  const team = teams.find(t => (t.id || t.name) === selectedTeamId);
-                  setSelectedTeam(team || null);
+                  // Always fetch the latest team with agents from backend after saving settings
+                  try {
+                    const res = await fetch(`/api/teams`);
+                    const allTeams = await res.json();
+                    const team = allTeams.find((t: any) => (t.id || t.name) === selectedTeamId);
+                    console.log('DEBUG selectedTeam after save:', team);
+                    setSelectedTeam(team || null);
+                  } catch {
+                    setSelectedTeam(null);
+                  }
                 }}
                 initialValues={conversationSettings}
                 teams={teams}
@@ -676,6 +810,11 @@ const App: React.FC = () => {
                 open={executionPlanOpen}
                 onClose={() => setExecutionPlanOpen(false)}
                 mermaidDefinition={generateMermaidFromConversation(conversationHistory)}
+              />
+              <ConnectedSourcesModal
+                open={connectedSourcesOpen}
+                onClose={() => setConnectedSourcesOpen(false)}
+                teamId={selectedTeam?.id}
               />
               {/* Resizer handle for right sidebar */}
               <div

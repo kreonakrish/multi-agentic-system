@@ -10,6 +10,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import axios from 'axios';
 
 interface ConversationSettings {
   temperature: number;
@@ -46,9 +47,41 @@ const ConversationSettingsModal: React.FC<ConversationSettingsModalProps> = ({ o
     }
   }, [open, initialValues]);
 
-  const handleSave = () => {
-    onSave({ temperature, tokenLimit, startPrompt, endPrompt, style }, selectedTeamId);
-    onClose();
+  const handleSave = async () => {
+    try {
+      // Save all conversation settings to backend
+      const settingsPayload = {
+        team_id: selectedTeamId,
+        temperature,
+        token_limit: tokenLimit,
+        start_prompt: startPrompt,
+        end_prompt: endPrompt,
+        style,
+        started_at: new Date().toISOString(),
+        ended_at: null,
+        title: startPrompt
+      };
+      const payload = { settings: settingsPayload };
+      if (initialValues && (initialValues as any).id) {
+        await axios.put(`/api/conversations/${(initialValues as any).id}`, payload);
+      } else {
+        await axios.post('/api/conversations', payload);
+      }
+      onSave({ temperature, tokenLimit, startPrompt, endPrompt, style }, selectedTeamId);
+      onClose();
+    } catch (err) {
+      alert('Failed to save conversation');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!initialValues || !(initialValues as any).id) return;
+    try {
+      await axios.delete(`/api/conversations/${(initialValues as any).id}`);
+      onClose();
+    } catch (err) {
+      alert('Failed to delete conversation');
+    }
   };
 
   return (

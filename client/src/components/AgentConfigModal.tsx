@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -16,12 +17,18 @@ import ListItemText from '@mui/material/ListItemText';
 const MEMORY_TYPES = ['Graph', 'JSON', 'Short Term', 'Long Term'];
 const FOUNDATION_MODELS = ['OpenAI', 'Claude', 'GPT', 'Gemini'];
 
+interface Tool {
+  id: number;
+  toolName: string;
+}
+
 interface AgentConfigModalProps {
   open: boolean;
   onClose: () => void;
   onSave?: (agent: any) => void;
-  toolsList: string[];
+  tools: Tool[];
   initialValues?: {
+    id?: string;
     name: string;
     memoryType: string;
     foundationModel: string;
@@ -30,7 +37,7 @@ interface AgentConfigModalProps {
   mode?: 'create' | 'edit';
 }
 
-const AgentConfigModal: React.FC<AgentConfigModalProps> = ({ open, onClose, onSave, toolsList, initialValues, mode = 'create' }) => {
+const AgentConfigModal: React.FC<AgentConfigModalProps> = ({ open, onClose, onSave, tools, initialValues, mode = 'create' }) => {
   const [name, setName] = useState(initialValues?.name || '');
   const [memoryType, setMemoryType] = useState(initialValues?.memoryType || MEMORY_TYPES[0]);
   const [foundationModel, setFoundationModel] = useState(initialValues?.foundationModel || FOUNDATION_MODELS[0]);
@@ -45,11 +52,74 @@ const AgentConfigModal: React.FC<AgentConfigModalProps> = ({ open, onClose, onSa
     }
   }, [open, initialValues]);
 
-  const handleSave = () => {
-    if (onSave) {
-      onSave({ name, memoryType, foundationModel, tools: selectedTools });
+  const handleSave = async () => {
+    try {
+      let agentId = initialValues?.id;
+      let agentData: any = {};
+      if (mode === 'create') {
+        const res = await axios.post('/api/agents', {
+          name,
+          memory_type: memoryType,
+          foundation_model: foundationModel
+        });
+        agentId = res.data.id;
+        agentData = res.data;
+      } else if (mode === 'edit' && agentId) {
+        await axios.put(`/api/agents/${agentId}`, {
+          name,
+          memory_type: memoryType,
+          foundation_model: foundationModel
+        });
+        agentData = { id: agentId, name, memory_type: memoryType, foundation_model: foundationModel };
+      }
+      // Map selected tool names to IDs
+      const selectedToolIds = selectedTools.map(toolName => {
+        const tool = tools.find(t => t.toolName === toolName);
+        return tool ? tool.id : null;
+      }).filter(Boolean);
+      // Assign tools to agent
+      if (agentId) {
+        if (mode === 'edit' && initialValues?.tools) {
+          for (const toolName of initialValues.tools) {
+            const tool = tools.find(t => t.toolName === toolName);
+            if (tool && !selectedToolIds.includes(tool.id)) {
+              await axios.delete('/api/agent-tools', { data: { agent_id: agentId, tool_id: tool.id } });
+            }
+          }
+        }
+        for (const toolId of selectedToolIds) {
+          if (!initialValues?.tools || !initialValues.tools.some(name => {
+            const tool = tools.find(t => t.toolName === name);
+            return tool && tool.id === toolId;
+          })) {
+            await axios.post('/api/agent-tools', { agent_id: agentId, tool_id: toolId });
+          }
+        }
+      }
+      // Map backend fields to frontend format
+      const mappedAgent = {
+        id: agentId,
+        name: agentData.name,
+        memoryType: agentData.memory_type || memoryType,
+        foundationModel: agentData.foundation_model || foundationModel,
+        tools: selectedTools
+      };
+      if (onSave) onSave(mappedAgent);
+      onClose();
+    } catch (err: any) {
+      console.error('Failed to save agent:', err?.response?.data || err);
+      alert('Failed to save agent');
     }
-    onClose();
+  };
+
+  const handleDelete = async () => {
+    if (!initialValues?.id) return;
+    try {
+      await axios.delete(`/api/agents/${initialValues.id}`);
+      onClose();
+    } catch (err) {
+      alert('Failed to delete agent');
+    }
   };
 
   return (
@@ -90,10 +160,10 @@ const AgentConfigModal: React.FC<AgentConfigModalProps> = ({ open, onClose, onSa
               onChange={e => setSelectedTools(typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value as string[])}
               renderValue={selected => (selected as string[]).join(', ')}
             >
-              {toolsList.map(tool => (
-                <MenuItem key={tool} value={tool}>
-                  <Checkbox checked={selectedTools.indexOf(tool) > -1} />
-                  <ListItemText primary={tool} />
+              {tools.map(tool => (
+                <MenuItem key={tool.id} value={tool.toolName}>
+                  <Checkbox checked={selectedTools.indexOf(tool.toolName) > -1} />
+                  <ListItemText primary={tool.toolName} />
                 </MenuItem>
               ))}
             </Select>
@@ -103,6 +173,7 @@ const AgentConfigModal: React.FC<AgentConfigModalProps> = ({ open, onClose, onSa
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSave} variant="contained" color="primary">{mode === 'edit' ? 'Update' : 'Save'}</Button>
+        {mode === 'edit' && <Button onClick={handleDelete} variant="outlined" color="secondary">Delete</Button>}
       </DialogActions>
     </Dialog>
   );

@@ -10,6 +10,7 @@ import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import Box from '@mui/material/Box';
+import axios from 'axios';
 
 const TOOL_TYPES = ['Database', 'API', 'WebService'];
 const AUTH_METHODS = ['Basic', 'OAuth', 'API Key', 'None'];
@@ -19,6 +20,7 @@ interface ToolConfigModalProps {
   onClose: () => void;
   onSave?: (tool: any) => void;
   initialValues?: {
+    id?: string;
     toolName: string;
     toolType: string;
     hostname: string;
@@ -48,11 +50,42 @@ const ToolConfigModal: React.FC<ToolConfigModalProps> = ({ open, onClose, onSave
     }
   }, [open, initialValues]);
 
-  const handleSave = () => {
-    if (onSave) {
-      onSave({ toolName, toolType, hostname, username, password, authMethod });
+  const handleSave = async () => {
+    try {
+      if (mode === 'create') {
+        await axios.post('/api/tools', {
+          tool_name: toolName,
+          tool_type: toolType,
+          hostname,
+          username,
+          password,
+          auth_method: authMethod
+        });
+      } else if (mode === 'edit' && initialValues?.id) {
+        await axios.put(`/api/tools/${initialValues.id}`, {
+          tool_name: toolName,
+          tool_type: toolType,
+          hostname,
+          username,
+          password,
+          auth_method: authMethod
+        });
+      }
+      if (onSave) onSave({ toolName, toolType, hostname, username, password, authMethod });
+      onClose();
+    } catch (err) {
+      alert('Failed to save tool');
     }
-    onClose();
+  };
+
+  const handleDelete = async () => {
+    if (!initialValues?.id) return;
+    try {
+      await axios.delete(`/api/tools/${initialValues.id}`);
+      onClose();
+    } catch (err) {
+      alert('Failed to delete tool');
+    }
   };
 
   return (
@@ -93,6 +126,7 @@ const ToolConfigModal: React.FC<ToolConfigModalProps> = ({ open, onClose, onSave
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSave} variant="contained" color="primary">{mode === 'edit' ? 'Update' : 'Save'}</Button>
+        {mode === 'edit' && <Button onClick={handleDelete} variant="outlined" color="secondary">Delete</Button>}
       </DialogActions>
     </Dialog>
   );
