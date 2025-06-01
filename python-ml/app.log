@@ -1,0 +1,268 @@
+2025-06-01 00:29:56,725 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 00:29:56,725 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 00:29:56,732 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:29:57,616 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:29:57,627 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:30:19,648 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/ml/agent/10/initialize
+2025-06-01 00:30:19,648 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:30:19] "[33mPOST /api/ml/agent/10/initialize HTTP/1.1[0m" 404 -
+2025-06-01 00:30:21,693 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:30:21] "[35m[1mPOST /api/ml/agent/10/send HTTP/1.1[0m" 500 -
+2025-06-01 00:30:23,726 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:30:23] "[35m[1mPOST /api/ml/agent/11/receive/1 HTTP/1.1[0m" 500 -
+2025-06-01 00:30:25,809 - multi_agent_system.agent.10 - INFO - Sending message to agent
+2025-06-01 00:30:25,826 - multi_agent_system.agent.10 - ERROR - Failed to send message: 1054 (42S22): Unknown column 'message' in 'field list'
+2025-06-01 00:30:25,827 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:30:25] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 00:30:29,083 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2025-06-01 00:30:29,084 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:30:29] "POST /api/ml/agent/10/execute_all HTTP/1.1" 200 -
+2025-06-01 00:30:31,136 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:30:31] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 00:30:33,172 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:30:33] "[35m[1mPUT /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 00:30:35,218 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:30:35] "[35m[1mGET /api/ml/team/1/metrics?time_range=24h HTTP/1.1[0m" 500 -
+2025-06-01 00:37:13,128 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:37:13,257 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:37:14,147 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:37:14,147 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:37:40,297 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:37:40,394 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:37:41,170 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:37:41,187 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:37:59,305 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:37:59,410 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:38:00,171 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:38:00,171 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:38:52,475 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:38:52,569 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:38:53,303 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:38:53,319 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:39:55,651 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:39:55] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 00:39:57,707 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:39:57] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 00:39:59,739 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:39:59] "[35m[1mPOST /api/ml/agent/11/receive/1 HTTP/1.1[0m" 500 -
+2025-06-01 00:40:01,818 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:40:01] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 00:40:03,851 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/ml/agent/10/execute_all
+2025-06-01 00:40:03,851 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:40:03] "[33mPOST /api/ml/agent/10/execute_all HTTP/1.1[0m" 404 -
+2025-06-01 00:40:05,883 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:40:05] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 00:40:07,983 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:40:07] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 00:40:10,033 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:40:10] "[35m[1mGET /api/ml/team/1/metrics?time_range=24h HTTP/1.1[0m" 500 -
+2025-06-01 00:44:55,509 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:44:55,830 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:47:22,888 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 00:47:22,888 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 00:47:22,888 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:47:23,722 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:47:23,742 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:48:11,153 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:48:11] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 00:48:13,236 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:48:13] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 00:48:15,274 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:48:15] "[35m[1mPOST /api/ml/agent/11/receive/1 HTTP/1.1[0m" 500 -
+2025-06-01 00:48:17,329 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:48:17] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 00:48:19,356 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/ml/agent/10/execute_all
+2025-06-01 00:48:19,356 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:48:19] "[33mPOST /api/ml/agent/10/execute_all HTTP/1.1[0m" 404 -
+2025-06-01 00:48:21,409 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:48:21] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 00:48:23,442 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:48:23] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 00:48:25,488 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:48:25] "[35m[1mGET /api/ml/team/1/metrics?time_range=24h HTTP/1.1[0m" 500 -
+2025-06-01 00:49:11,327 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:49:11,455 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:49:12,307 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:49:12,310 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:49:28,119 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:49:28] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 00:49:30,171 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:49:30] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 00:49:32,204 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:49:32] "[35m[1mPOST /api/ml/agent/11/receive/1 HTTP/1.1[0m" 500 -
+2025-06-01 00:49:34,240 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:49:34] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 00:49:36,291 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/ml/agent/10/execute_all
+2025-06-01 00:49:36,291 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:49:36] "[33mPOST /api/ml/agent/10/execute_all HTTP/1.1[0m" 404 -
+2025-06-01 00:49:38,343 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:49:38] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 00:49:40,369 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:49:40] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 00:49:42,419 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:49:42] "[35m[1mGET /api/ml/team/1/metrics?time_range=24h HTTP/1.1[0m" 500 -
+2025-06-01 00:50:14,627 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:50:14,791 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:50:16,138 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:50:16,138 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:50:32,227 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:50:32,338 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:50:33,233 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:50:33,251 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:50:43,109 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:50:43] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 00:50:45,159 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:50:45] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 00:50:47,174 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:50:47] "[35m[1mPOST /api/ml/agent/11/receive/1 HTTP/1.1[0m" 500 -
+2025-06-01 00:50:49,235 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:50:49] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 00:50:51,275 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/ml/agent/10/execute_all
+2025-06-01 00:50:51,275 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:50:51] "[33mPOST /api/ml/agent/10/execute_all HTTP/1.1[0m" 404 -
+2025-06-01 00:50:53,326 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:50:53] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 00:50:55,403 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:50:55] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 00:50:57,439 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:50:57] "[35m[1mGET /api/ml/team/1/metrics?time_range=24h HTTP/1.1[0m" 500 -
+2025-06-01 00:51:34,617 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:51:34,732 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:51:35,515 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:51:35,515 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:51:48,751 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:51:48] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 00:51:50,815 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:51:50] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 00:51:52,874 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:51:52] "[35m[1mPOST /api/ml/agent/11/receive/1 HTTP/1.1[0m" 500 -
+2025-06-01 00:51:54,900 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:51:54] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 00:51:56,931 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/ml/agent/10/execute_all
+2025-06-01 00:51:56,931 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:51:56] "[33mPOST /api/ml/agent/10/execute_all HTTP/1.1[0m" 404 -
+2025-06-01 00:51:58,965 - __main__ - ERROR - Error managing team 1 configuration: Unread result found
+2025-06-01 00:51:58,981 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:51:58] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 00:52:01,037 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:52:01] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 00:52:03,081 - __main__ - ERROR - Error getting team metrics: 1054 (42S22): Unknown column 'ai.status' in 'field list'
+2025-06-01 00:52:03,081 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:52:03] "[35m[1mGET /api/ml/team/1/metrics?time_range=24h HTTP/1.1[0m" 500 -
+2025-06-01 00:52:27,796 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:52:27,900 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:52:28,730 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:52:28,730 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:52:41,568 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:52:41] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 00:52:43,621 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:52:43] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 00:52:45,670 - __main__ - ERROR - Error receiving message: 1054 (42S22): Unknown column 'message' in 'field list'
+2025-06-01 00:52:45,670 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:52:45] "[35m[1mPOST /api/ml/agent/11/receive/1 HTTP/1.1[0m" 500 -
+2025-06-01 00:52:47,731 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:52:47] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 00:52:49,770 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/ml/agent/10/execute_all
+2025-06-01 00:52:49,774 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:52:49] "[33mPOST /api/ml/agent/10/execute_all HTTP/1.1[0m" 404 -
+2025-06-01 00:52:51,804 - __main__ - ERROR - Error managing team 1 configuration: Unread result found
+2025-06-01 00:52:51,818 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:52:51] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 00:52:53,866 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:52:53] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 00:52:55,917 - __main__ - ERROR - Error getting team metrics: 1054 (42S22): Unknown column 'ai.processed_message' in 'field list'
+2025-06-01 00:52:55,917 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:52:55] "[35m[1mGET /api/ml/team/1/metrics?time_range=24h HTTP/1.1[0m" 500 -
+2025-06-01 00:53:36,073 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:53:36,295 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:53:37,136 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:53:37,136 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:54:10,399 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:54:10] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 00:54:12,453 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:54:12] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 00:54:14,500 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:54:14] "POST /api/ml/agent/11/receive/1 HTTP/1.1" 200 -
+2025-06-01 00:54:16,547 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:54:16] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 00:54:18,582 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/ml/agent/10/execute_all
+2025-06-01 00:54:18,582 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:54:18] "[33mPOST /api/ml/agent/10/execute_all HTTP/1.1[0m" 404 -
+2025-06-01 00:54:20,615 - __main__ - ERROR - Error managing team 1 configuration: Unread result found
+2025-06-01 00:54:20,619 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:54:20] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 00:54:22,668 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:54:22] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 00:54:24,703 - __main__ - ERROR - Error getting team metrics: 1054 (42S22): Unknown column 'a.team_id' in 'on clause'
+2025-06-01 00:54:24,703 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:54:24] "[35m[1mGET /api/ml/team/1/metrics?time_range=24h HTTP/1.1[0m" 500 -
+2025-06-01 00:54:55,610 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:54:55,737 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:54:56,559 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:54:56,559 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:55:31,742 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:55:31,844 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:55:32,666 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:55:32,675 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:55:53,791 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 00:55:53,892 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 00:55:54,725 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 00:55:54,725 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 00:58:56,343 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:58:56] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 00:58:58,395 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:58:58] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 00:59:00,452 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:59:00] "POST /api/ml/agent/11/receive/1 HTTP/1.1" 200 -
+2025-06-01 00:59:02,503 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:59:02] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 00:59:04,558 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/ml/agent/10/execute_all
+2025-06-01 00:59:04,558 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:59:04] "[33mPOST /api/ml/agent/10/execute_all HTTP/1.1[0m" 404 -
+2025-06-01 00:59:06,609 - __main__ - ERROR - Error managing team 1 configuration: Unread result found
+2025-06-01 00:59:06,609 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:59:06] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 00:59:08,672 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:59:08] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 00:59:10,723 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 00:59:10] "GET /api/ml/team/1/metrics?time_range=24h HTTP/1.1" 200 -
+2025-06-01 01:00:10,167 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:00:10,273 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:00:11,086 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:00:11,086 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 01:00:26,189 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:00:26,284 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:00:27,084 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:00:27,084 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 01:00:40,920 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:00:40] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 01:00:42,953 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:00:42] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 01:00:45,002 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:00:45] "POST /api/ml/agent/11/receive/1 HTTP/1.1" 200 -
+2025-06-01 01:00:47,054 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:00:47] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 01:00:49,126 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:00:49] "[35m[1mPOST /api/ml/agent/10/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 01:00:51,182 - __main__ - ERROR - Error managing team 1 configuration: Unread result found
+2025-06-01 01:00:51,186 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:00:51] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 01:00:53,242 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:00:53] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 01:00:55,271 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:00:55] "GET /api/ml/team/1/metrics?time_range=24h HTTP/1.1" 200 -
+2025-06-01 01:01:12,344 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:01:12,466 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:01:13,333 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:01:13,333 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 01:01:36,489 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:01:36,604 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:01:37,417 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:01:37,419 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 01:01:50,497 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:01:50,582 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:01:51,434 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:01:51,434 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 01:02:11,891 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:11] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 01:02:13,916 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:13] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 01:02:15,965 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:15] "POST /api/ml/agent/11/receive/1 HTTP/1.1" 200 -
+2025-06-01 01:02:17,998 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:17] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 01:02:20,047 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:20] "[35m[1mPOST /api/ml/agent/10/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 01:02:22,081 - __main__ - ERROR - Error managing team 1 configuration: Unread result found
+2025-06-01 01:02:22,081 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:22] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 01:02:24,131 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:24] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 01:02:26,165 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:26] "GET /api/ml/team/1/metrics?time_range=24h HTTP/1.1" 200 -
+2025-06-01 01:02:34,064 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:34] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 01:02:36,136 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:36] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 01:02:38,172 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:38] "POST /api/ml/agent/11/receive/1 HTTP/1.1" 200 -
+2025-06-01 01:02:40,231 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:40] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 01:02:42,297 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:42] "[35m[1mPOST /api/ml/agent/10/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 01:02:44,334 - __main__ - ERROR - Error managing team 1 configuration: Unread result found
+2025-06-01 01:02:44,334 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:44] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 01:02:46,404 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:46] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 01:02:48,449 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:02:48] "GET /api/ml/team/1/metrics?time_range=24h HTTP/1.1" 200 -
+2025-06-01 01:05:07,648 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:05:07,764 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:05:08,676 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:05:08,676 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 01:05:25,809 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:05:26,020 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:05:26,841 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:05:26,841 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 01:06:14,008 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:06:14] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 01:06:16,043 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:06:16] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 01:06:18,101 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:06:18] "POST /api/ml/agent/11/receive/1 HTTP/1.1" 200 -
+2025-06-01 01:06:20,154 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:06:20] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 01:06:22,195 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 01:06:24,431 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 01:06:24,449 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 01:06:24,450 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:06:24] "POST /api/ml/agent/10/execute_all HTTP/1.1" 200 -
+2025-06-01 01:06:26,501 - __main__ - ERROR - Error managing team 1 configuration: Unread result found
+2025-06-01 01:06:26,509 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:06:26] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 01:06:28,545 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:06:28] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 01:06:30,590 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:06:30] "GET /api/ml/team/1/metrics?time_range=24h HTTP/1.1" 200 -
+2025-06-01 01:06:53,425 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:06:53,565 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:06:54,557 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:06:54,573 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 01:07:20,691 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:07:20,791 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:07:21,589 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:07:21,606 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 01:07:37,685 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:07:37,805 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:07:38,639 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:07:38,639 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 01:09:58,517 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:09:58,619 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:09:59,385 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:09:59,385 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 01:12:23,732 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:12:23] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 01:12:25,771 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:12:25] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 01:12:27,801 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:12:27] "POST /api/ml/agent/11/receive/1 HTTP/1.1" 200 -
+2025-06-01 01:12:29,831 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:12:29] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 01:12:31,865 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 01:12:33,475 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 01:12:33,487 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 01:12:33,487 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:12:33] "POST /api/ml/agent/10/execute_all HTTP/1.1" 200 -
+2025-06-01 01:12:35,532 - __main__ - ERROR - Error managing team 1 configuration: Unread result found
+2025-06-01 01:12:35,532 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:12:35] "[35m[1mGET /api/ml/team/1/config HTTP/1.1[0m" 500 -
+2025-06-01 01:12:37,582 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:12:37] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 01:12:39,682 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:12:39] "GET /api/ml/team/1/metrics?time_range=24h HTTP/1.1" 200 -
+2025-06-01 01:13:08,482 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:13:08,604 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:13:09,421 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:13:09,426 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 01:13:21,130 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:13:21] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 01:13:23,183 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:13:23] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 01:13:25,230 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:13:25] "POST /api/ml/agent/11/receive/1 HTTP/1.1" 200 -
+2025-06-01 01:13:27,267 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:13:27] "POST /api/ml/agent/10/workflow HTTP/1.1" 200 -
+2025-06-01 01:13:29,318 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 01:13:30,887 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 01:13:30,903 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 01:13:30,903 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:13:30] "POST /api/ml/agent/10/execute_all HTTP/1.1" 200 -
+2025-06-01 01:13:32,938 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:13:32] "GET /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 01:13:34,998 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:13:34] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
+2025-06-01 01:13:37,016 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:13:37] "GET /api/ml/team/1/metrics?time_range=24h HTTP/1.1" 200 -

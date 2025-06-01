@@ -25,6 +25,19 @@ CREATE TABLE IF NOT EXISTS conversations (
     FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL
 );
 
+-- Create agent_memory table if not exists
+CREATE TABLE IF NOT EXISTS agent_memory (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    agent_id INT NOT NULL,
+    memory_type VARCHAR(50) NOT NULL,
+    start_prompt TEXT,
+    end_prompt TEXT,
+    context TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE CASCADE
+);
+
 -- Create agent_interactions table if not exists
 CREATE TABLE IF NOT EXISTS agent_interactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -46,4 +59,5 @@ CREATE INDEX idx_settings_id ON conversations(settings_id);
 CREATE INDEX idx_conversations_team_id ON conversations(team_id);
 CREATE INDEX idx_agent_interactions_team ON agent_interactions(team_id);
 CREATE INDEX idx_agent_interactions_source ON agent_interactions(source_agent_id);
-CREATE INDEX idx_agent_interactions_target ON agent_interactions(target_agent_id); 
+CREATE INDEX idx_agent_interactions_target ON agent_interactions(target_agent_id);
+CREATE INDEX idx_agent_memory_agent ON agent_memory(agent_id); 
