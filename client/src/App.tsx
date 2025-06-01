@@ -126,6 +126,13 @@ const defaultToolConfigs = [
   }
 ];
 
+const toolColors = {
+  'Database': '#4caf50',  // Green
+  'API': '#2196f3',       // Blue
+  'WebService': '#ff9800', // Orange
+  'default': '#e0e0e0'    // Default gray
+};
+
 // Helper function to display tool names robustly
 function getToolDisplayNames(agentTools: any[], allTools: any[]): string {
   if (!Array.isArray(agentTools) || !agentTools.length) return 'None';
@@ -460,7 +467,7 @@ const App = () => {
         startPrompt: conv.start_prompt || '',
         endPrompt: conv.end_prompt || '',
         style: conv.style || ''
-      });
+    });
       
       // Close conversation history panel
       setShowConversationHistory(false);
@@ -680,6 +687,11 @@ const App = () => {
     setSelectedTool(null);
   };
 
+  const handleAddTool = (tool: any) => {
+    setTools(prev => [...prev, tool]);
+    setToolModalOpen(false);
+  };
+
   // Handle file upload
   const handleFileUpload = async (file: File): Promise<Document> => {
     try {
@@ -782,8 +794,8 @@ const App = () => {
     } catch (error) {
       console.error('Error saving conversation settings:', error);
       alert('Failed to save conversation settings. Please try again.');
-    }
-  };
+        }
+      };
 
   const handleTeamChange = async (teamId: string) => {
     try {
@@ -813,7 +825,7 @@ const App = () => {
           endPrompt: settings.end_prompt || '',
           style: settings.style || ''
         });
-      }
+    }
 
       // Fetch team-specific documents
       const docsResponse = await fetch(`/api/documents?team_id=${numericTeamId}`);
@@ -839,9 +851,79 @@ const App = () => {
           {/* Left Sidebar with resizable pane */}
           <aside style={{ width: sidebarWidth, minWidth: 160, maxWidth: 400, background: "#e6e9ed", padding: "1rem 0", borderRight: "2px solid #bfc5c9", display: "flex", flexDirection: "column", gap: "0.7rem", position: 'relative' }}>
             {/* Agents/Tools Tabs */}
-            <Tabs value={sidebarTab} onChange={(_, v) => setSidebarTab(v)} variant="fullWidth" sx={{ mb: 1 }}>
-              <Tab label="Agents" />
-              <Tab label="Tools" />
+            <Tabs 
+              value={sidebarTab} 
+              onChange={(_, v) => setSidebarTab(v)} 
+              variant="fullWidth" 
+              sx={{ 
+                mb: 1,
+                position: 'relative',
+                '& .MuiTabs-flexContainer': {
+                  height: '48px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  position: 'relative',
+                },
+                '& .MuiTab-root': {
+                  minHeight: '48px',
+                  height: '48px',
+                  padding: '12px 16px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  width: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  },
+                },
+                '& .MuiTouchRipple-root': {
+                  display: 'none',
+                },
+                '& .MuiTabs-indicator': {
+                  height: '3px',
+                  borderRadius: '3px 3px 0 0',
+                  zIndex: 0,
+                },
+                borderBottom: '1px solid rgba(0, 0, 0, 0.12)'
+              }}
+            >
+              <Tab 
+                label="Agents" 
+                sx={{
+                  '&.Mui-selected': {
+                    color: '#1976d2',
+                    fontWeight: 700,
+                  },
+                  '& .MuiTab-wrapper': {
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  },
+                  zIndex: 1,
+                }}
+              />
+              <Tab 
+                label="Tools" 
+                sx={{
+                  '&.Mui-selected': {
+                    color: '#1976d2',
+                    fontWeight: 700,
+                  },
+                  '& .MuiTab-wrapper': {
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  },
+                  zIndex: 2,
+                  position: 'relative',
+                }}
+              />
             </Tabs>
             {/* Add + List for Agents */}
             {sidebarTab === 0 && (
@@ -866,10 +948,11 @@ const App = () => {
                                 backgroundColor: agentColors[idx % agentColors.length],
                                 opacity: 0.9,
                               },
-                              textAlign: 'left',
                               minHeight: 32,
                               fontSize: '0.95rem',
                               padding: '0.2rem 0.7rem',
+                              justifyContent: 'flex-start', // Add left alignment
+                              textAlign: 'left'
                             }}
                             onClick={() => setSelectedAgent(agent)}
                         >
@@ -914,20 +997,21 @@ const App = () => {
                             fullWidth
                             size="small"
                             sx={{
-                              backgroundColor: agentColors[idx % agentColors.length],
-                              color: '#fff',
+                              backgroundColor: toolColors[tool.toolType as keyof typeof toolColors] || toolColors.default,
+                              color: tool.toolType === 'default' ? '#222' : '#fff',
                               fontWeight: 'bold',
                               border: '2px solid #222',
                               borderRadius: 2,
                               boxShadow: 'none',
                               '&:hover': {
-                                backgroundColor: agentColors[idx % agentColors.length],
+                                backgroundColor: toolColors[tool.toolType as keyof typeof toolColors] || toolColors.default,
                                 opacity: 0.9,
                               },
-                              textAlign: 'left',
                               minHeight: 32,
                               fontSize: '0.95rem',
                               padding: '0.2rem 0.7rem',
+                              justifyContent: 'flex-start', // Align text to left
+                              textAlign: 'left'
                             }}
                             onClick={() => setSelectedTool(tool)}
                         >
@@ -944,8 +1028,7 @@ const App = () => {
                             <Box><b>Name:</b> {selectedTool.toolName}</Box>
                             <Box><b>Type:</b> {selectedTool.toolType}</Box>
                             <Box><b>Hostname:</b> {selectedTool.hostname}</Box>
-                            <Box><b>Username:</b> {selectedTool.username}</Box>
-                            <Box><b>Authentication:</b> {selectedTool.authMethod}</Box>
+                            <Box><b>Auth Method:</b> {selectedTool.authMethod}</Box>
                           </Box>
                         </DialogContent>
                         <DialogActions>
@@ -954,7 +1037,7 @@ const App = () => {
                         </DialogActions>
                       </Dialog>
                   )}
-                  <ToolConfigModal open={toolModalOpen} onClose={() => setToolModalOpen(false)} onSave={tool => setTools(prev => [...prev, tool])} />
+                  <ToolConfigModal open={toolModalOpen} onClose={() => setToolModalOpen(false)} onSave={handleAddTool} />
                   <ToolConfigModal open={editToolModalOpen} onClose={() => setEditToolModalOpen(false)} onSave={handleUpdateTool} initialValues={toolToEdit || {}} mode="edit" />
                 </>
             )}
@@ -1147,7 +1230,7 @@ const App = () => {
                               </IconButton>
                             </div>
                           </ListItem>
-                        </Box>
+                          </Box>
                       ))
                     )}
                   </List>
@@ -1330,7 +1413,7 @@ const App = () => {
         open={agentSettingsOpen}
         onClose={() => setAgentSettingsOpen(false)}
         teams={teams}
-      />
+                />
       </div>
   );
 };

@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
 import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
 
 interface Tool {
     id: number;
@@ -29,47 +27,37 @@ function LeftSidebar() {
                     setAgents([]);
                 }
             })
-            .catch(err => {
-                console.error('Failed to fetch agents:', err);
+            .catch(error => {
+                console.error('Error fetching agents:', error);
                 setAgents([]);
             });
     }, []);
-
-    // 🟢 Helper for safe tool name display
-    function renderToolNames(tools: any[]): string {
-        if (!Array.isArray(tools) || !tools.length) return '';
-        return tools
-            .map((tool: any) =>
-                typeof tool === 'object' && tool !== null
-                    ? tool.toolName || tool.tool_name || JSON.stringify(tool)
-                    : String(tool)
-            )
-            .filter(Boolean)
-            .join(', ');
-    }
 
     return (
         <Paper elevation={1} sx={{ width: 230, minWidth: 200, p: 2, mr: 2, bgcolor: 'background.paper' }}>
             <List>
                 {(Array.isArray(agents) ? agents : []).map((agent: any) => (
-                    <ListItem
+                    <div
                         key={agent && agent.id ? agent.id : Math.random()}
-                        sx={{
-                            mb: 1,
-                            bgcolor: '#f0f2f5',
-                            borderRadius: 2,
+                        style={{
+                            marginBottom: '8px',
+                            backgroundColor: '#f0f2f5',
+                            borderRadius: '8px',
                             border: '1px solid #e4e6eb',
-                            px: 2,
-                            display: 'block'
+                            padding: '16px',
                         }}
                     >
-                        <Typography fontWeight={600}>{agent && agent.name ? agent.name : ''}</Typography>
+                        <div style={{ fontWeight: 600 }}>{agent && agent.name ? agent.name : ''}</div>
                         {agent && agent.tools && agent.tools.length > 0 && (
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                Tools: {renderToolNames(agent.tools)}
-                            </Typography>
+                            <div style={{ marginTop: '4px', color: 'rgba(0, 0, 0, 0.6)', fontSize: '14px' }}>
+                                Tools: {agent.tools.map((tool: any) => 
+                                    typeof tool === 'object' && tool !== null
+                                        ? tool.toolName || tool.tool_name || JSON.stringify(tool)
+                                        : tool
+                                ).filter(Boolean).join(', ')}
+                            </div>
                         )}
-                    </ListItem>
+                    </div>
                 ))}
             </List>
         </Paper>
