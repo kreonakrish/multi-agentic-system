@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const mysql = require('mysql2/promise');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs').promises;
 
 const app = express();
 const PORT = 4000;
@@ -18,6 +21,108 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
+});
+
+// Configure multer for file upload
+const storage = multer.diskStorage({
+  destination: async function (req, file, cb) {
+    const uploadDir = path.join(__dirname, 'uploads');
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    } catch (error) {
+      cb(error);
+    }
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  }
+});
+
+// Check and update database schema
+async function ensureSchema() {
+  try {
+    const connection = await pool.getConnection();
+    try {
+      // Start transaction
+      await connection.beginTransaction();
+
+      // Check if conversations table needs updating
+      const [columns] = await connection.query('SHOW COLUMNS FROM conversations');
+      const columnMap = new Map(columns.map(col => [col.Field, col]));
+
+      // Update conversation_data column to LONGTEXT if needed
+      if (!columnMap.has('conversation_data') || columnMap.get('conversation_data').Type !== 'longtext') {
+        console.log('Updating conversation_data column to LONGTEXT...');
+        await connection.query('ALTER TABLE conversations MODIFY COLUMN conversation_data LONGTEXT');
+      }
+
+      // Ensure title column is VARCHAR(255) and NOT NULL with default
+      if (!columnMap.has('title') || columnMap.get('title').Type !== 'varchar(255)') {
+        console.log('Updating title column...');
+        await connection.query('ALTER TABLE conversations MODIFY COLUMN title VARCHAR(255) NOT NULL DEFAULT "Untitled"');
+      }
+
+      // Add any missing columns
+      const requiredColumns = {
+        started_at: 'DATETIME',
+        ended_at: 'DATETIME',
+        temperature: 'FLOAT DEFAULT 0.7',
+        token_limit: 'INT DEFAULT 512',
+        start_prompt: 'TEXT',
+        end_prompt: 'TEXT',
+        style: 'VARCHAR(255)'
+      };
+
+      for (const [columnName, columnType] of Object.entries(requiredColumns)) {
+        if (!columnMap.has(columnName)) {
+          console.log(`Adding missing column ${columnName}...`);
+          await connection.query(`ALTER TABLE conversations ADD COLUMN ${columnName} ${columnType}`);
+        }
+      }
+
+      // Add agent_interactions table if it doesn't exist
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS agent_interactions (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          source_agent_id INT NOT NULL,
+          target_agent_id INT NOT NULL,
+          interaction_type VARCHAR(50) NOT NULL,
+          timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+          success_rate FLOAT DEFAULT 0,
+          details TEXT,
+          FOREIGN KEY (source_agent_id) REFERENCES agents(id) ON DELETE CASCADE,
+          FOREIGN KEY (target_agent_id) REFERENCES agents(id) ON DELETE CASCADE
+        )
+      `);
+
+      // Commit transaction
+      await connection.commit();
+      console.log('Database schema check completed successfully');
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
+  } catch (err) {
+    console.error('Error checking/updating database schema:', err);
+    throw err;
+  }
+}
+
+// Call schema check on startup
+ensureSchema().catch(err => {
+  console.error('Failed to ensure database schema:', err);
+  process.exit(1);
 });
 
 // Dummy agent list
@@ -86,8 +191,25 @@ app.get('/api/charts', async (req, res) => {
 // Get all agents
 app.get('/api/agents', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM agents');
-    res.json(rows);
+    const [agents] = await pool.query('SELECT * FROM agents');
+    // Fetch tools for all agents in one query
+    const [agentTools] = await pool.query(`
+      SELECT at.agent_id, t.id, t.tool_name
+      FROM agent_tools at
+      JOIN tools t ON at.tool_id = t.id
+    `);
+    // Map agent_id to tools
+    const toolsByAgent = {};
+    for (const row of agentTools) {
+      if (!toolsByAgent[row.agent_id]) toolsByAgent[row.agent_id] = [];
+      toolsByAgent[row.agent_id].push({ id: row.id, toolName: row.tool_name });
+    }
+    // Attach tools to each agent
+    const agentsWithTools = agents.map(agent => ({
+      ...agent,
+      tools: toolsByAgent[agent.id] || []
+    }));
+    res.json(agentsWithTools);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch agents' });
@@ -200,37 +322,150 @@ app.get('/api/teams', async (req, res) => {
 
 // TEAMS CRUD
 app.post('/api/teams', async (req, res) => {
-  const { name, agent_ids } = req.body;
+  const { name, agents } = req.body;
+  
+  // Start transaction
+  const connection = await pool.getConnection();
+  await connection.beginTransaction();
+
   try {
-    const [result] = await pool.query('INSERT INTO teams (name) VALUES (?)', [name]);
+    // Create the team
+    const [result] = await connection.query('INSERT INTO teams (name) VALUES (?)', [name]);
     const teamId = result.insertId;
-    // Insert agent assignments if provided
-    if (Array.isArray(agent_ids) && agent_ids.length > 0) {
-      await Promise.all(agent_ids.map(agentId =>
-        pool.query('INSERT INTO team_agents (team_id, agent_id) VALUES (?, ?)', [teamId, agentId])
-      ));
+
+    // Insert agent assignments with metrics if provided
+    if (Array.isArray(agents) && agents.length > 0) {
+      for (const agent of agents) {
+        const accuracy = Math.max(0, Math.min(100, Number(agent.accuracy) || 100));
+        const success = Math.max(0, Math.min(100, Number(agent.success) || 100));
+        const priority = Math.max(1, Number(agent.priority) || 1);
+
+        await connection.query(
+          'INSERT INTO team_agents (team_id, agent_id, accuracy, success, priority) VALUES (?, ?, ?, ?, ?)',
+          [teamId, agent.id, accuracy, success, priority]
+        );
+      }
     }
-    res.json({ id: teamId, name });
+
+    // Get the complete team data
+    const [teamRows] = await connection.query('SELECT * FROM teams WHERE id = ?', [teamId]);
+    const [agentRows] = await connection.query(`
+      SELECT a.*, ta.accuracy, ta.success, ta.priority
+      FROM agents a
+      JOIN team_agents ta ON a.id = ta.agent_id
+      WHERE ta.team_id = ?
+    `, [teamId]);
+
+    // Commit transaction
+    await connection.commit();
+    connection.release();
+
+    // Return the complete team data
+    const newTeam = {
+      ...teamRows[0],
+      agents: agentRows.map(agent => ({
+        id: agent.id,
+        name: agent.name,
+        accuracy: Number(agent.accuracy),
+        success: Number(agent.success),
+        priority: Number(agent.priority)
+      }))
+    };
+
+    res.json(newTeam);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to create team' });
+    await connection.rollback();
+    connection.release();
+    console.error('Error creating team:', err);
+    res.status(500).json({ error: 'Failed to create team', details: err.message });
   }
 });
 app.put('/api/teams/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, agent_ids } = req.body;
+  const { name, agents } = req.body;
   try {
-    await pool.query('UPDATE teams SET name=? WHERE id=?', [name, id]);
-    // Remove all current agent assignments for this team
-    await pool.query('DELETE FROM team_agents WHERE team_id=?', [id]);
-    // Insert new agent assignments if provided
-    if (Array.isArray(agent_ids) && agent_ids.length > 0) {
-      await Promise.all(agent_ids.map(agentId =>
-        pool.query('INSERT INTO team_agents (team_id, agent_id) VALUES (?, ?)', [id, agentId])
-      ));
+    // Validate input
+    if (!name || !Array.isArray(agents)) {
+      return res.status(400).json({ 
+        error: 'Invalid input', 
+        details: 'Name and agents array are required' 
+      });
     }
-    res.json({ id, name });
+
+    // Start transaction
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+      console.log('Updating team with data:', { id, name, agents });
+
+      // Update team name
+      await connection.query('UPDATE teams SET name=? WHERE id=?', [name, id]);
+      
+      // Remove all current agent assignments for this team
+      await connection.query('DELETE FROM team_agents WHERE team_id=?', [id]);
+      
+      // Insert new agent assignments with properties if provided
+      if (agents.length > 0) {
+        for (const agent of agents) {
+          // Ensure values are valid numbers
+          const accuracy = Math.max(0, Math.min(100, Number(agent.accuracy) || 100));
+          const success = Math.max(0, Math.min(100, Number(agent.success) || 100));
+          const priority = Math.max(1, Number(agent.priority) || 1);
+
+          console.log('Inserting agent with values:', {
+            team_id: id,
+            agent_id: agent.id,
+            accuracy,
+            success,
+            priority
+          });
+
+          await connection.query(
+            'INSERT INTO team_agents (team_id, agent_id, accuracy, success, priority) VALUES (?, ?, ?, ?, ?)',
+            [id, agent.id, accuracy, success, priority]
+          );
+        }
+      }
+
+      // Get updated team data
+      const [teamRows] = await connection.query('SELECT * FROM teams WHERE id = ?', [id]);
+      const [agentRows] = await connection.query(`
+        SELECT ta.*, a.name 
+        FROM team_agents ta 
+        JOIN agents a ON ta.agent_id = a.id 
+        WHERE ta.team_id = ?
+      `, [id]);
+
+      await connection.commit();
+      connection.release();
+
+      const updatedTeam = {
+        ...teamRows[0],
+        agents: agentRows.map(row => ({
+          id: row.agent_id,
+          name: row.name,
+          accuracy: Number(row.accuracy) || 100,
+          success: Number(row.success) || 100,
+          priority: Number(row.priority) || 1
+        }))
+      };
+      
+      console.log('Sending updated team data:', updatedTeam);
+      res.json(updatedTeam);
+    } catch (err) {
+      console.error('Transaction error:', err);
+      await connection.rollback();
+      connection.release();
+      throw err;
+    }
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update team' });
+    console.error('Error updating team:', err);
+    res.status(500).json({ 
+      error: 'Failed to update team', 
+      details: err.message,
+      sqlMessage: err.sqlMessage 
+    });
   }
 });
 app.delete('/api/teams/:id', async (req, res) => {
@@ -251,46 +486,258 @@ function toMySQLDatetime(dateString) {
 }
 
 // Helper: create or find conversation_settings
-async function getOrCreateConversationSettings(pool, settings) {
+async function getOrCreateConversationSettings(connection, settings) {
   try {
+    console.log('Creating/finding settings:', settings);
+    
+    // Validate settings
+    if (!settings) {
+      throw new Error('Settings object is required');
+    }
+
+    // Ensure team_id is valid
+    if (!settings.team_id) {
+      throw new Error('Team ID is required in settings');
+    }
+
+    // Normalize settings values
+    const normalizedSettings = {
+      team_id: settings.team_id,
+      temperature: Number(settings.temperature) || 0.7,
+      token_limit: Number(settings.token_limit) || 512,
+      start_prompt: settings.start_prompt || '',
+      end_prompt: settings.end_prompt || '',
+      style: settings.style || ''
+    };
+    
+    console.log('Normalized settings:', normalizedSettings);
+    
     // Try to find existing settings
-    const [rows] = await pool.query(
+    const [rows] = await connection.query(
       'SELECT id FROM conversation_settings WHERE team_id=? AND temperature=? AND token_limit=? AND start_prompt=? AND end_prompt=? AND style=? LIMIT 1',
-      [settings.team_id, settings.temperature, settings.token_limit, settings.start_prompt, settings.end_prompt, settings.style]
+      [
+        normalizedSettings.team_id,
+        normalizedSettings.temperature,
+        normalizedSettings.token_limit,
+        normalizedSettings.start_prompt,
+        normalizedSettings.end_prompt,
+        normalizedSettings.style
+      ]
     );
-    if (rows.length > 0) return rows[0].id;
-    // Otherwise, insert new
-    const [result] = await pool.query(
+    
+    if (rows.length > 0) {
+      console.log('Found existing settings with ID:', rows[0].id);
+      return rows[0].id;
+    }
+    
+    // Otherwise, insert new settings
+    console.log('No existing settings found, creating new settings');
+    const [result] = await connection.query(
       'INSERT INTO conversation_settings (team_id, temperature, token_limit, start_prompt, end_prompt, style) VALUES (?, ?, ?, ?, ?, ?)',
-      [settings.team_id, settings.temperature, settings.token_limit, settings.start_prompt, settings.end_prompt, settings.style]
+      [
+        normalizedSettings.team_id,
+        normalizedSettings.temperature,
+        normalizedSettings.token_limit,
+        normalizedSettings.start_prompt,
+        normalizedSettings.end_prompt,
+        normalizedSettings.style
+      ]
     );
+    
+    if (!result.insertId) {
+      throw new Error('Failed to create new conversation settings - no insert ID returned');
+    }
+    
+    console.log('Created new settings with ID:', result.insertId);
     return result.insertId;
   } catch (err) {
-    console.error('Error in getOrCreateConversationSettings:', err, settings);
+    console.error('Error in getOrCreateConversationSettings:', err);
+    console.error('Error details:', {
+      message: err.message,
+      stack: err.stack,
+      code: err.code,
+      sqlMessage: err.sqlMessage
+    });
     throw err;
   }
 }
 
 // POST /api/conversations
 app.post('/api/conversations', async (req, res) => {
-  let { started_at, ended_at, title, conversation_data, settings } = req.body;
   try {
-    started_at = toMySQLDatetime(started_at);
-    ended_at = toMySQLDatetime(ended_at);
-    if (!settings) {
-      console.error('No settings provided in request body:', req.body);
-      return res.status(400).json({ error: 'No settings provided' });
+    console.log('Received conversation creation request with body:', JSON.stringify(req.body, null, 2));
+    
+    const { 
+      title, 
+      started_at, 
+      ended_at, 
+      conversation_data,
+      team_id,
+      temperature,
+      token_limit,
+      start_prompt,
+      end_prompt,
+      style
+    } = req.body;
+    
+    // Enhanced validation with detailed logging
+    if (!conversation_data) {
+      console.error('No conversation_data provided in request body:', req.body);
+      return res.status(400).json({ error: 'conversation_data is required' });
     }
-    // Create/find settings
-    const settings_id = await getOrCreateConversationSettings(pool, settings);
-    const [result] = await pool.query(
-      'INSERT INTO conversations (settings_id, started_at, ended_at, title, conversation_data) VALUES (?, ?, ?, ?, ?)',
-      [settings_id, started_at, ended_at, title, JSON.stringify(conversation_data)]
-    );
-    res.json({ id: result.insertId, settings_id, started_at, ended_at, title, conversation_data });
+    
+    if (!title) {
+      console.error('No title provided in request body:', req.body);
+      return res.status(400).json({ error: 'title is required' });
+    }
+    
+    if (!team_id) {
+      console.error('No team_id provided in request body:', req.body);
+      return res.status(400).json({ error: 'team_id is required' });
+    }
+    
+    // Validate team exists
+    const [teams] = await pool.query('SELECT id FROM teams WHERE id = ?', [team_id]);
+    if (teams.length === 0) {
+      console.error(`Team with ID ${team_id} not found`);
+      return res.status(400).json({ error: `Team with ID ${team_id} not found` });
+    }
+    
+    // Convert dates
+    const startedAt = toMySQLDatetime(started_at);
+    const endedAt = toMySQLDatetime(ended_at);
+    console.log('Processing dates:', { startedAt, endedAt });
+    
+    // Get connection for transaction
+    const connection = await pool.getConnection();
+    
+    try {
+      await connection.beginTransaction();
+      
+      // Create/find settings first with detailed logging
+      console.log('Creating/finding settings with values:', {
+        team_id,
+        temperature,
+        token_limit,
+        start_prompt,
+        end_prompt,
+        style
+      });
+      
+      const settings_id = await getOrCreateConversationSettings(connection, {
+        team_id,
+        temperature,
+        token_limit,
+        start_prompt,
+        end_prompt,
+        style
+      });
+      console.log('Created/found settings with ID:', settings_id);
+      
+      // Ensure conversation_data is properly stringified
+      const stringifiedData = typeof conversation_data === 'string' 
+        ? conversation_data 
+        : JSON.stringify(conversation_data);
+      
+      console.log('Conversation data length:', stringifiedData.length);
+      
+      // Insert conversation with both settings_id and team_id
+      console.log('Inserting conversation with values:', {
+        settings_id,
+        team_id,
+        startedAt,
+        endedAt,
+        title,
+        dataLength: stringifiedData.length
+      });
+      
+      const [result] = await connection.query(
+        `INSERT INTO conversations (
+          settings_id, 
+          team_id,
+          started_at, 
+          ended_at, 
+          title,
+          conversation_data
+        ) VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          settings_id,
+          team_id,
+          startedAt,
+          endedAt,
+          title,
+          stringifiedData
+        ]
+      );
+      
+      console.log('Created conversation with ID:', result.insertId);
+      
+      await connection.commit();
+      
+      // Fetch the complete conversation data to return
+      const [conversations] = await connection.query(`
+        SELECT 
+          c.*,
+          s.team_id,
+          s.temperature,
+          s.token_limit,
+          s.start_prompt,
+          s.end_prompt,
+          s.style
+        FROM conversations c
+        JOIN conversation_settings s ON c.settings_id = s.id
+        WHERE c.id = ?
+      `, [result.insertId]);
+      
+      if (conversations.length === 0) {
+        throw new Error(`Failed to fetch saved conversation with ID ${result.insertId}`);
+      }
+      
+      const savedConversation = conversations[0];
+      
+      // Parse conversation_data for response
+      if (savedConversation.conversation_data) {
+        try {
+          savedConversation.conversation_data = JSON.parse(savedConversation.conversation_data);
+        } catch (e) {
+          console.error('Error parsing saved conversation data:', e);
+          savedConversation.conversation_data = [];
+        }
+      }
+      
+      console.log('Sending response:', JSON.stringify(savedConversation, null, 2));
+      res.json(savedConversation);
+      
+    } catch (err) {
+      await connection.rollback();
+      console.error('Error in transaction:', err);
+      console.error('Error details:', {
+        message: err.message,
+        stack: err.stack,
+        code: err.code,
+        sqlMessage: err.sqlMessage
+      });
+      res.status(500).json({ 
+        error: 'Failed to save conversation',
+        details: err.message,
+        sqlMessage: err.sqlMessage
+      });
+    } finally {
+      connection.release();
+    }
   } catch (err) {
-    console.error('Error creating conversation:', err, req.body);
-    res.status(500).json({ error: 'Failed to create conversation', details: err.message });
+    console.error('Error in conversation creation:', err);
+    console.error('Error details:', {
+      message: err.message,
+      stack: err.stack,
+      code: err.code,
+      sqlMessage: err.sqlMessage
+    });
+    res.status(500).json({ 
+      error: 'Failed to save conversation',
+      details: err.message,
+      sqlMessage: err.sqlMessage
+    });
   }
 });
 
@@ -301,10 +748,26 @@ app.get('/api/conversations', async (req, res) => {
       SELECT c.*, s.team_id, s.temperature, s.token_limit, s.start_prompt, s.end_prompt, s.style
       FROM conversations c
       LEFT JOIN conversation_settings s ON c.settings_id = s.id
+      ORDER BY c.started_at DESC
     `);
-    res.json(rows);
+    
+    // Parse conversation_data for each row
+    const parsedRows = rows.map(row => {
+      try {
+        if (row.conversation_data) {
+          row.conversation_data = JSON.parse(row.conversation_data);
+        }
+      } catch (e) {
+        console.error('Error parsing conversation data for row:', row.id, e);
+        row.conversation_data = [];
+      }
+      return row;
+    });
+    
+    console.log(`Returning ${parsedRows.length} conversations`);
+    res.json(parsedRows);
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching conversations:', err);
     res.status(500).json({ error: 'Failed to fetch conversations' });
   }
 });
@@ -338,16 +801,47 @@ app.get('/api/conversations/:id', async (req, res) => {
 });
 app.put('/api/conversations/:id', async (req, res) => {
   const { id } = req.params;
-  let { team_id, started_at, ended_at, title, temperature, token_limit, start_prompt, end_prompt, style, conversation_data } = req.body;
   try {
-    started_at = toMySQLDatetime(started_at);
-    ended_at = toMySQLDatetime(ended_at);
-    await pool.query(
-      'UPDATE conversations SET team_id=?, started_at=?, ended_at=?, title=?, temperature=?, token_limit=?, start_prompt=?, end_prompt=?, style=?, conversation_data=? WHERE id=?',
-      [team_id, started_at, ended_at, title, temperature, token_limit, start_prompt, end_prompt, style, JSON.stringify(conversation_data), id]
+    // Get the existing conversation first
+    const [existingConv] = await pool.query(
+      'SELECT * FROM conversations WHERE id = ?',
+      [id]
     );
-    res.json({ id, team_id, started_at, ended_at, title, temperature, token_limit, start_prompt, end_prompt, style, conversation_data });
+
+    if (existingConv.length === 0) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
+    // Extract only the fields we want to update
+    const { title } = req.body;
+
+    // Update only the title while preserving other fields
+    await pool.query(
+      'UPDATE conversations SET title = ? WHERE id = ?',
+      [title, id]
+    );
+
+    // Get the updated conversation
+    const [updatedConv] = await pool.query(
+      `SELECT c.*, s.team_id, s.temperature, s.token_limit, s.start_prompt, s.end_prompt, s.style
+       FROM conversations c
+       LEFT JOIN conversation_settings s ON c.settings_id = s.id
+       WHERE c.id = ?`,
+      [id]
+    );
+
+    // Parse conversation_data if it exists
+    if (updatedConv[0].conversation_data) {
+      try {
+        updatedConv[0].conversation_data = JSON.parse(updatedConv[0].conversation_data);
+      } catch (e) {
+        console.error('Error parsing conversation data:', e);
+      }
+    }
+
+    res.json(updatedConv[0]);
   } catch (err) {
+    console.error('Error updating conversation:', err);
     res.status(500).json({ error: 'Failed to update conversation' });
   }
 });
@@ -404,16 +898,35 @@ app.delete('/api/agent-tools', async (req, res) => {
 });
 
 // TEAM-AGENTS RELATIONSHIP ENDPOINTS
-// Assign an agent to a team
+// Assign an agent to a team (with accuracy, success, priority)
 app.post('/api/team-agents', async (req, res) => {
-  const { team_id, agent_id } = req.body;
+  const { team_id, agent_id, accuracy, success, priority } = req.body;
   try {
-    await pool.query('INSERT INTO team_agents (team_id, agent_id) VALUES (?, ?)', [team_id, agent_id]);
+    await pool.query(
+      'INSERT INTO team_agents (team_id, agent_id, accuracy, success, priority) VALUES (?, ?, ?, ?, ?)',
+      [team_id, agent_id, accuracy ?? null, success ?? null, priority ?? null]
+    );
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to assign agent to team' });
   }
 });
+
+// Update an agent-team assignment (accuracy, success, priority)
+app.put('/api/team-agents', async (req, res) => {
+  const { team_id, agent_id, accuracy, success, priority } = req.body;
+  try {
+    await pool.query(
+      'UPDATE team_agents SET accuracy=?, success=?, priority=? WHERE team_id=? AND agent_id=?',
+      [accuracy, success, priority, team_id, agent_id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error updating team agent:', err);
+    res.status(500).json({ error: 'Failed to update team agent properties' });
+  }
+});
+
 // Remove an agent from a team
 app.delete('/api/team-agents', async (req, res) => {
   const { team_id, agent_id } = req.body;
@@ -421,6 +934,7 @@ app.delete('/api/team-agents', async (req, res) => {
     await pool.query('DELETE FROM team_agents WHERE team_id=? AND agent_id=?', [team_id, agent_id]);
     res.json({ success: true });
   } catch (err) {
+    console.error('Error removing agent from team:', err);
     res.status(500).json({ error: 'Failed to remove agent from team' });
   }
 });
@@ -432,6 +946,211 @@ app.post('/api/chat', async (req, res) => {
   res.json({
     response: "This is a stubbed chat response from the orchestrator."
   });
+});
+
+// Create documents table if not exists
+app.get('/api/setup', async (req, res) => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS documents (
+        id VARCHAR(36) PRIMARY KEY,
+        team_id INT,
+        name VARCHAR(255) NOT NULL,
+        type VARCHAR(100) NOT NULL,
+        url VARCHAR(1000) NOT NULL,
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+      )
+    `);
+    res.json({ message: 'Database setup completed' });
+  } catch (error) {
+    console.error('Setup error:', error);
+    res.status(500).json({ error: 'Failed to setup database' });
+  }
+});
+
+// Upload document
+app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const { team_id } = req.body;
+    if (!team_id) {
+      return res.status(400).json({ error: 'team_id is required' });
+    }
+
+    const fileUrl = `/uploads/${req.file.filename}`;
+    const doc = {
+      id: Date.now().toString(),
+      team_id,
+      name: req.file.originalname,
+      type: req.file.mimetype,
+      url: fileUrl,
+      uploaded_at: new Date().toISOString().slice(0, 19).replace('T', ' ') // Format: YYYY-MM-DD HH:MM:SS
+    };
+
+    await pool.query(
+      'INSERT INTO documents (id, team_id, name, type, url, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [doc.id, doc.team_id, doc.name, doc.type, doc.url, doc.uploaded_at]
+    );
+
+    res.json(doc);
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ error: 'Failed to upload file' });
+  }
+});
+
+// Get documents for a team
+app.get('/api/documents', async (req, res) => {
+  try {
+    const { team_id } = req.query;
+    if (!team_id) {
+      return res.status(400).json({ error: 'team_id is required' });
+    }
+
+    const [rows] = await pool.query(
+      'SELECT * FROM documents WHERE team_id = ? ORDER BY uploaded_at DESC',
+      [team_id]
+    );
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Get documents error:', error);
+    res.status(500).json({ error: 'Failed to get documents' });
+  }
+});
+
+// Delete document
+app.delete('/api/documents/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get the document to find the file path
+    const [rows] = await pool.query('SELECT url FROM documents WHERE id = ?', [id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Delete from database
+    await pool.query('DELETE FROM documents WHERE id = ?', [id]);
+
+    // Delete the file
+    const filePath = path.join(__dirname, rows[0].url);
+    await fs.unlink(filePath);
+
+    res.json({ message: 'Document deleted successfully' });
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ error: 'Failed to delete document' });
+  }
+});
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Get a single team with its agents
+app.get('/api/teams/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Get the team
+    const [teams] = await pool.query('SELECT * FROM teams WHERE id = ?', [id]);
+    if (teams.length === 0) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+    const team = teams[0];
+
+    // Get the team's agents with their metrics
+    const [agents] = await pool.query(`
+      SELECT a.*, ta.accuracy, ta.success, ta.priority
+      FROM agents a
+      JOIN team_agents ta ON a.id = ta.agent_id
+      WHERE ta.team_id = ?
+    `, [id]);
+
+    // Format the response
+    const teamWithAgents = {
+      ...team,
+      agents: agents.map(agent => ({
+        id: agent.id,
+        name: agent.name,
+        accuracy: Number(agent.accuracy),
+        success: Number(agent.success),
+        priority: Number(agent.priority)
+      }))
+    };
+
+    res.json(teamWithAgents);
+  } catch (err) {
+    console.error('Error fetching team:', err);
+    res.status(500).json({ error: 'Failed to fetch team' });
+  }
+});
+
+// Get agent interactions
+app.get('/api/agent-interactions', async (req, res) => {
+  const { source, target, team_id } = req.query;
+  try {
+    let query = `
+      SELECT 
+        ai.*,
+        sa.name as source_agent,
+        ta.name as target_agent
+      FROM agent_interactions ai
+      JOIN agents sa ON ai.source_agent_id = sa.id
+      JOIN agents ta ON ai.target_agent_id = ta.id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (team_id) {
+      query += ' AND ai.team_id = ?';
+      params.push(team_id);
+    }
+
+    if (source && target) {
+      query += ' AND ai.source_agent_id = ? AND ai.target_agent_id = ?';
+      params.push(source, target);
+    }
+
+    query += ' ORDER BY ai.timestamp DESC';
+
+    const [rows] = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching agent interactions:', err);
+    res.status(500).json({ error: 'Failed to fetch agent interactions' });
+  }
+});
+
+// Record a new agent interaction
+app.post('/api/agent-interactions', async (req, res) => {
+  const { team_id, source_agent_id, target_agent_id, interaction_type, success_rate, details } = req.body;
+  try {
+    const [result] = await pool.query(
+      'INSERT INTO agent_interactions (team_id, source_agent_id, target_agent_id, interaction_type, success_rate, details) VALUES (?, ?, ?, ?, ?, ?)',
+      [team_id, source_agent_id, target_agent_id, interaction_type, success_rate, details]
+    );
+    
+    // Fetch the created interaction with agent names
+    const [interactions] = await pool.query(`
+      SELECT 
+        ai.*,
+        sa.name as source_agent,
+        ta.name as target_agent
+      FROM agent_interactions ai
+      JOIN agents sa ON ai.source_agent_id = sa.id
+      JOIN agents ta ON ai.target_agent_id = ta.id
+      WHERE ai.id = ?
+    `, [result.insertId]);
+    
+    res.json(interactions[0]);
+  } catch (err) {
+    console.error('Error creating agent interaction:', err);
+    res.status(500).json({ error: 'Failed to create agent interaction' });
+  }
 });
 
 app.listen(PORT, () => {

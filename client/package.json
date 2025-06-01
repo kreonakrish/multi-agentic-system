@@ -1,14 +1,23 @@
 {
-  "name": "multi-agentic-system-client",
-  "version": "1.0.0",
+  "name": "client",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.17.1",
-    "@mui/material": "^5.17.1",
+    "@mui/material": "^5.13.0",
+    "@mui/x-data-grid": "^6.18.7",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/d3": "^7.4.3",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.31",
+    "@types/react": "^18.2.6",
+    "@types/react-dom": "^18.2.4",
     "axios": "^1.7.2",
-    "d3": "^7.9.0",
+    "d3": "^7.8.5",
     "mermaid": "^11.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -16,7 +25,9 @@
     "react-rnd": "^10.5.2",
     "react-scripts": "5.0.1",
     "recharts": "^2.7.2",
-    "use-resize-observer": "^9.1.0"
+    "typescript": "^4.9.5",
+    "use-resize-observer": "^9.1.0",
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -25,6 +36,12 @@
     "eject": "react-scripts eject"
   },
   "proxy": "http://localhost:4000",
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -36,8 +53,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@types/react-dom": "^19.1.5"
   }
 }

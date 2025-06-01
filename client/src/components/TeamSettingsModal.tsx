@@ -11,11 +11,11 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import Checkbox from '@mui/material/Checkbox';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { Rnd } from 'react-rnd';
 import AgentHierarchyGraph from './AgentHierarchyGraph';
@@ -25,12 +25,25 @@ interface TeamAgent {
   name: string;
   accuracy: number;
   success: number;
+  priority: number; // Add priority property
 }
 
 interface Team {
   id: number;
   name: string;
   agents: TeamAgent[];
+}
+
+interface TeamResponse {
+  id: number;
+  name: string;
+  agents: {
+    id: number;
+    name: string;
+    accuracy: number;
+    success: number;
+    priority: number;
+  }[];
 }
 
 interface TeamSettingsModalProps {
@@ -61,8 +74,32 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
     if (selectedTeam) {
       setEditMode(true);
       setNewTeamName(selectedTeam.name);
-      setTeamAgents(selectedTeam.agents || []);
-      setSelectedAgents((selectedTeam.agents || []).map(a => a.name));
+      // Get fresh team data when selecting a team
+      fetch(`/api/teams/${selectedTeam.id}`)
+        .then(res => res.json())
+        .then(teamData => {
+          const initializedAgents = (teamData.agents || []).map((agent: TeamAgent) => ({
+            ...agent,
+            accuracy: Number(agent.accuracy),
+            success: Number(agent.success),
+            priority: Number(agent.priority)
+          }));
+          console.log('Initialized agents from DB:', initializedAgents);
+          setTeamAgents(initializedAgents);
+          setSelectedAgents(initializedAgents.map((a: TeamAgent) => a.name));
+        })
+        .catch(error => {
+          console.error('Error fetching team data:', error);
+          // Fallback to existing data if fetch fails
+          const initializedAgents = (selectedTeam.agents || []).map((agent: TeamAgent) => ({
+            ...agent,
+            accuracy: Number(agent.accuracy),
+            success: Number(agent.success),
+            priority: Number(agent.priority)
+          }));
+          setTeamAgents(initializedAgents);
+          setSelectedAgents(initializedAgents.map((a: TeamAgent) => a.name));
+        });
     } else {
       setEditMode(false);
       setNewTeamName('');
@@ -75,7 +112,7 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
     if (!teamAgents.find(a => a.name === agentName)) {
       setTeamAgents([
         ...teamAgents,
-        { id: Date.now(), name: agentName, accuracy: 100, success: 100 }
+        { id: Date.now(), name: agentName, accuracy: 100, success: 100, priority: 1 }
       ]);
     }
   };
@@ -109,60 +146,114 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
   const handleAccuracyChange = (index: number, value: number) => {
     const newAgents = [...teamAgents];
     newAgents[index].accuracy = value;
+    console.log(`Setting accuracy for ${newAgents[index].name} to:`, value);
     setTeamAgents(newAgents);
   };
 
   const handleSuccessChange = (index: number, value: number) => {
     const newAgents = [...teamAgents];
     newAgents[index].success = value;
+    console.log(`Setting success for ${newAgents[index].name} to:`, value);
+    setTeamAgents(newAgents);
+  };
+
+  const handlePriorityChange = (index: number, value: number) => {
+    const newAgents = [...teamAgents];
+    newAgents[index].priority = value;
+    console.log(`Setting priority for ${newAgents[index].name} to:`, value);
     setTeamAgents(newAgents);
   };
 
   const handleCreateTeam = async () => {
     if (!newTeamName) return;
     try {
-      const agentIds = agents.filter(a => selectedAgents.includes(a.name)).map(a => a.id);
-      const res = await axios.post('/api/teams', { name: newTeamName, agent_ids: agentIds });
-      setTeams([
-        ...teams,
-        {
-          id: res.data.id,
-          name: newTeamName,
-          agents: agents.filter(a => agentIds.includes(a.id))
+      // Map agents with their correct IDs and metrics
+      const agentsWithMetrics = teamAgents.map(agent => {
+        const originalAgent = agents.find(a => a.name === agent.name);
+        if (!originalAgent) {
+          throw new Error(`Agent ${agent.name} not found in available agents`);
         }
-      ]);
-      setNewTeamName('');
+        return {
+          id: originalAgent.id,
+          accuracy: Number(agent.accuracy),
+          success: Number(agent.success),
+          priority: Number(agent.priority)
+        };
+      });
+
+      // Create the team with all data in one request
+      const response = await axios.post('/api/teams', {
+        name: newTeamName,
+        agents: agentsWithMetrics
+      });
+
+      if (response.data) {
+        // Fetch the newly created team to ensure we have the correct data
+        const teamResponse = await axios.get(`/api/teams/${response.data.id}`);
+        const newTeam = teamResponse.data;
+
+        setTeams([...teams, newTeam]);
+        setNewTeamName('');
+        setTeamAgents([]);
+        setSelectedAgents([]);
+        onClose();
+      }
     } catch (err) {
-      alert('Failed to create team');
+      console.error('Failed to create team:', err);
+      alert('Failed to create team. Please try again.');
     }
   };
 
   const handleUpdateTeam = async () => {
     if (!selectedTeam) return;
     try {
-      const agentIds = agents.filter(a => selectedAgents.includes(a.name)).map(a => a.id);
-      await axios.put(`/api/teams/${selectedTeam.id}`, {
-        name: newTeamName,
-        agent_ids: agentIds
+      // Map the agents to include only the necessary data and ensure values are numbers
+      const agentsData = teamAgents.map(agent => {
+        // Find the corresponding agent from the agents prop to get the correct ID
+        const originalAgent = agents.find(a => a.name === agent.name);
+        const data = {
+          id: originalAgent?.id || agent.id,
+          accuracy: Number(agent.accuracy) || 100,
+          success: Number(agent.success) || 100,
+          priority: Number(agent.priority) || 1
+        };
+        console.log('Agent data being sent:', agent.name, data);
+        return data;
       });
-      setTeams(
-          teams.map(t =>
-              t.id === selectedTeam.id
-                  ? {
-                    ...t,
-                    name: newTeamName,
-                    agents: agents.filter(a => agentIds.includes(a.id))
-                  }
-                  : t
-          )
-      );
-      setSelectedTeam({
-        ...selectedTeam,
+
+      console.log('Sending team update with data:', { name: newTeamName, agents: agentsData });
+
+      const response = await axios.put<TeamResponse>(`/api/teams/${selectedTeam.id}`, {
         name: newTeamName,
-        agents: agents.filter(a => agentIds.includes(a.id))
+        agents: agentsData
       });
-    } catch (err) {
-      alert('Failed to update team');
+
+      console.log('Received response:', response.data);
+
+      if (response.data) {
+        // Update local state with the response data
+        const updatedTeam = {
+          ...selectedTeam,
+          name: newTeamName,
+          agents: response.data.agents.map((agent: TeamResponse['agents'][0]) => ({
+            id: agent.id,
+            name: agent.name,
+            accuracy: Number(agent.accuracy) || 100,
+            success: Number(agent.success) || 100,
+            priority: Number(agent.priority) || 1
+          }))
+        };
+
+        console.log('Updated team state:', updatedTeam);
+        setTeams(teams.map(t => t.id === selectedTeam.id ? updatedTeam : t));
+        setSelectedTeam(updatedTeam);
+        onClose();
+      }
+    } catch (error) {
+      const err = error as AxiosError<{ error: string; details?: string }>;
+      console.error('Failed to update team:', err);
+      const errorMessage = err.response?.data?.details || err.message || 'An unknown error occurred';
+      alert(`Failed to update team: ${errorMessage}`);
     }
   };
 
@@ -182,6 +273,39 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
     } catch (err) {
       alert('Failed to assign agent to team');
     }
+  };
+
+  const handleAgentSelection = (event: SelectChangeEvent<string[]>) => {
+    const value = event.target.value as string[];
+    setSelectedAgents(value);
+    
+    const updatedAgents = value.map((agentName: string) => {
+      const existingAgent = teamAgents.find(a => a.name === agentName);
+      const originalAgent = agents.find(a => a.name === agentName);
+      
+      if (existingAgent) {
+        return {
+          ...existingAgent,
+          accuracy: Number(existingAgent.accuracy),
+          success: Number(existingAgent.success),
+          priority: Number(existingAgent.priority)
+        };
+      }
+      
+      // For new agents, use default values
+      const newAgent = {
+        id: originalAgent?.id || Date.now(),
+        name: agentName,
+        accuracy: 100,
+        success: 100,
+        priority: 1
+      };
+      console.log('Creating new agent:', newAgent);
+      return newAgent;
+    });
+    
+    console.log('Updated team agents:', updatedAgents);
+    setTeamAgents(updatedAgents);
   };
 
   return (
@@ -233,28 +357,41 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
                         onChange={e => setNewTeamName(e.target.value)}
                         fullWidth
                     />
-                    <Select
+                    <Select<string[]>
                         multiple
                         value={selectedAgents}
-                        onChange={e => {
-                          const value =
-                              typeof e.target.value === 'string'
-                                  ? e.target.value.split(',')
-                                  : (e.target.value as string[]);
+                        onChange={(event: SelectChangeEvent<string[]>) => {
+                          const value = event.target.value as string[];
                           setSelectedAgents(value);
-                          setTeamAgents(
-                              value.map(agentName => {
-                                const existing = teamAgents.find(a => a.name === agentName);
-                                return existing || {
-                                  id: Date.now(),
-                                  name: agentName,
-                                  accuracy: 100,
-                                  success: 100
-                                };
-                              })
-                          );
+                          
+                          const updatedAgents = value.map((agentName: string) => {
+                            const existingAgent = teamAgents.find(a => a.name === agentName);
+                            const originalAgent = agents.find(a => a.name === agentName);
+                            
+                            if (existingAgent) {
+                              return {
+                                ...existingAgent,
+                                accuracy: Number(existingAgent.accuracy),
+                                success: Number(existingAgent.success),
+                                priority: Number(existingAgent.priority)
+                              };
+                            }
+                            
+                            const newAgent = {
+                              id: originalAgent?.id || Date.now(),
+                              name: agentName,
+                              accuracy: 100,
+                              success: 100,
+                              priority: 1
+                            };
+                            console.log('Creating new agent:', newAgent);
+                            return newAgent;
+                          });
+                          
+                          console.log('Updated team agents:', updatedAgents);
+                          setTeamAgents(updatedAgents);
                         }}
-                        renderValue={selected => (selected as string[]).join(', ')}
+                        renderValue={(selected) => selected.join(', ')}
                         fullWidth
                         displayEmpty
                     >
@@ -308,6 +445,15 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
                                         size="small"
                                         sx={{ width: 100 }}
                                     />
+                                    <TextField
+                                        label="Priority"
+                                        type="number"
+                                        value={agent.priority}
+                                        onChange={e => handlePriorityChange(idx, Number(e.target.value))}
+                                        inputProps={{ min: 1 }}
+                                        size="small"
+                                        sx={{ width: 80 }}
+                                    />
                                   </Box>
                                 }
                             />
@@ -332,7 +478,20 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
                 <PanelResizeHandle className="PanelResizeHandle" />
                 <Panel minSize={20} defaultSize={30} style={{ overflow: 'auto', paddingLeft: 16 }}>
                   <strong>Agent Hierarchy</strong>
-                  <AgentHierarchyGraph agents={teamAgents.map(a => ({ id: a.id, name: a.name }))} />
+                  <AgentHierarchyGraph 
+                    agents={teamAgents.map(agent => ({
+                      id: agent.id,
+                      name: agent.name,
+                      priority: agent.priority,
+                      accuracy: agent.accuracy,
+                      success: agent.success
+                    }))}
+                    selectedAgents={selectedAgents}
+                    onEdgeClick={(sourceId, targetId) => {
+                      // Handle edge click if needed
+                      console.log('Edge clicked:', sourceId, targetId);
+                    }}
+                  />
                 </Panel>
               </PanelGroup>
             </DialogContent>

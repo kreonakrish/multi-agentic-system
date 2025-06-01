@@ -10,31 +10,37 @@ import DialogContent from '@mui/material/DialogContent';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+import IconButton from '@mui/material/IconButton';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import BarChartComponent from './BarChartComponent';
 import LineChartComponent from './LineChartComponent';
 import PieChartComponent from './PieChartComponent';
 import { ConversationStep } from '../App';
+import { Document } from './DocumentList';
 
 interface Message {
   sender: 'user' | 'bot';
   text: string;
   data?: any; // If present, this is chart data
+  attachments?: Document[];
 }
 
 export interface ChatWindowProps {
   placeholder?: string;
   onDataResponse?: (data: any) => void; // Callback to show chart if data is present
   conversationHistory?: ConversationStep[];
-  setConversationHistory?: (history: ConversationStep[]) => void;
+  setConversationHistory?: React.Dispatch<React.SetStateAction<ConversationStep[]>>;
   selectedTeam?: any;
   canChat?: boolean;
+  onFileUpload?: (file: File) => Promise<Document>;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your question...", onDataResponse, conversationHistory, setConversationHistory, selectedTeam, canChat }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your question...", onDataResponse, conversationHistory, setConversationHistory, selectedTeam, canChat, onFileUpload }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -89,49 +95,125 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your questi
     return labels.map((name, i) => ({ name, value: values[i] ?? 0 }));
   }
 
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    try {
+      if (onFileUpload) {
+        const uploadedDoc = await onFileUpload(file);
+        const fileMsg: Message = {
+          sender: 'user',
+          text: `Uploaded file: ${file.name}`,
+          attachments: [uploadedDoc]
+        };
+        setMessages(msgs => [...msgs, fileMsg]);
+        
+        if (setConversationHistory) {
+          const fileStep: ConversationStep = {
+            role: 'user',
+            content: `Uploaded file: ${file.name}`,
+            attachments: [uploadedDoc]
+          };
+          setConversationHistory(prev => [...prev, fileStep]);
+        }
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      const errorMsg: Message = {
+        sender: 'bot',
+        text: 'Failed to upload file. Please try again.'
+      };
+      setMessages(msgs => [...msgs, errorMsg]);
+    }
+
+    // Clear the input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSend = async () => {
     if (!input.trim()) return;
+    
+    // Create user message
     const userMsg: Message = { sender: 'user', text: input };
+    const userStep: ConversationStep = { role: 'user', content: input };
+    
+    // Update local messages and conversation history
     setMessages(msgs => [...msgs, userMsg]);
+    if (setConversationHistory) {
+      setConversationHistory((prev: ConversationStep[]) => [...prev, userStep]);
+    }
+    
     setInput('');
     setLoading(true);
+    
     // Simulate backend response with chart detection
     setTimeout(() => {
       let botMsg: Message;
+      let botStep: ConversationStep;
+      
       if (/bar chart/i.test(input)) {
+        const data = {
+          type: 'bar' as const,
+          labels: ['A', 'B', 'C', 'D'],
+          values: [12, 19, 3, 5]
+        };
         botMsg = {
           sender: 'bot',
           text: 'Here is a bar chart based on your question.',
-          data: {
-            type: 'bar',
-            labels: ['A', 'B', 'C', 'D'],
-            values: [12, 19, 3, 5]
-          }
+          data
+        };
+        botStep = {
+          role: 'bot',
+          content: 'Here is a bar chart based on your question.',
+          data
         };
       } else if (/line chart/i.test(input)) {
+        const data = {
+          type: 'line' as const,
+          labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+          values: [5, 9, 7, 14]
+        };
         botMsg = {
           sender: 'bot',
           text: 'Here is a line chart based on your question.',
-          data: {
-            type: 'line',
-            labels: ['Jan', 'Feb', 'Mar', 'Apr'],
-            values: [5, 9, 7, 14]
-          }
+          data
+        };
+        botStep = {
+          role: 'bot',
+          content: 'Here is a line chart based on your question.',
+          data
         };
       } else if (/pie chart/i.test(input)) {
+        const data = {
+          type: 'pie' as const,
+          labels: ['X', 'Y', 'Z'],
+          values: [30, 50, 20]
+        };
         botMsg = {
           sender: 'bot',
           text: 'Here is a pie chart based on your question.',
-          data: {
-            type: 'pie',
-            labels: ['X', 'Y', 'Z'],
-            values: [30, 50, 20]
-          }
+          data
+        };
+        botStep = {
+          role: 'bot',
+          content: 'Here is a pie chart based on your question.',
+          data
         };
       } else {
         botMsg = { sender: 'bot', text: 'This is a response from the bot.' };
+        botStep = { role: 'bot', content: 'This is a response from the bot.' };
       }
+      
+      // Update both messages and conversation history
       setMessages(msgs => [...msgs, botMsg]);
+      if (setConversationHistory) {
+        setConversationHistory((prev: ConversationStep[]) => [...prev, botStep]);
+      }
+      
       setLoading(false);
     }, 1000);
   };
@@ -171,12 +253,43 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your questi
                   <PieChartComponent data={toPieChartData(msg.data.labels, msg.data.values)} />
                 </Box>
               )}
+              {/* Render attachments if present */}
+              {msg.attachments && msg.attachments.length > 0 && (
+                <Box sx={{ mt: 1 }}>
+                  {msg.attachments.map((doc) => (
+                    <Box key={doc.id} sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      bgcolor: 'rgba(0,0,0,0.04)',
+                      p: 0.5,
+                      borderRadius: 1
+                    }}>
+                      <AttachFileIcon sx={{ mr: 1, fontSize: 20 }} />
+                      {doc.name}
+                    </Box>
+                  ))}
+                </Box>
+              )}
             </Paper>
           </Box>
         ))}
         <div ref={chatEndRef} />
       </Box>
       <Box sx={{ display: 'flex', gap: 1 }}>
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={handleFileSelect}
+          accept="image/*,application/pdf,.doc,.docx,.txt"
+        />
+        <IconButton 
+          onClick={() => fileInputRef.current?.click()}
+          disabled={loading || !canChat}
+          sx={{ alignSelf: 'center' }}
+        >
+          <AttachFileIcon />
+        </IconButton>
         <TextField
           fullWidth
           placeholder={placeholder}

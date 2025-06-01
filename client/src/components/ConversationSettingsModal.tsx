@@ -47,41 +47,19 @@ const ConversationSettingsModal: React.FC<ConversationSettingsModalProps> = ({ o
     }
   }, [open, initialValues]);
 
-  const handleSave = async () => {
-    try {
-      // Save all conversation settings to backend
-      const settingsPayload = {
-        team_id: selectedTeamId,
-        temperature,
-        token_limit: tokenLimit,
-        start_prompt: startPrompt,
-        end_prompt: endPrompt,
-        style,
-        started_at: new Date().toISOString(),
-        ended_at: null,
-        title: startPrompt
-      };
-      const payload = { settings: settingsPayload };
-      if (initialValues && (initialValues as any).id) {
-        await axios.put(`/api/conversations/${(initialValues as any).id}`, payload);
-      } else {
-        await axios.post('/api/conversations', payload);
-      }
-      onSave({ temperature, tokenLimit, startPrompt, endPrompt, style }, selectedTeamId);
-      onClose();
-    } catch (err) {
-      alert('Failed to save conversation');
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!initialValues || !(initialValues as any).id) return;
-    try {
-      await axios.delete(`/api/conversations/${(initialValues as any).id}`);
-      onClose();
-    } catch (err) {
-      alert('Failed to delete conversation');
-    }
+  const handleSave = () => {
+    // Just pass the settings to the parent component
+    onSave(
+      { 
+        temperature, 
+        tokenLimit, 
+        startPrompt, 
+        endPrompt, 
+        style 
+      },
+      selectedTeamId
+    );
+    onClose();
   };
 
   return (
@@ -98,7 +76,9 @@ const ConversationSettingsModal: React.FC<ConversationSettingsModalProps> = ({ o
               fullWidth
             >
               {teams.map(team => (
-                <MenuItem key={team.id || team.name} value={team.id || team.name}>{team.name}</MenuItem>
+                <MenuItem key={team.id || team.name} value={team.id || team.name}>
+                  {team.name}
+                </MenuItem>
               ))}
             </Select>
           </Box>
@@ -146,7 +126,9 @@ const ConversationSettingsModal: React.FC<ConversationSettingsModalProps> = ({ o
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained" color="primary">Save</Button>
+        <Button onClick={handleSave} variant="contained" color="primary">
+          Save
+        </Button>
       </DialogActions>
     </Dialog>
   );
