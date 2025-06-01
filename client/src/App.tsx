@@ -37,6 +37,17 @@ import GroupIcon from '@mui/icons-material/Group';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AgentSettingsModal from './components/AgentSettingsModal';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import BuildIcon from '@mui/icons-material/Build';
+import AddIcon from '@mui/icons-material/Add';
+import StorageIcon from '@mui/icons-material/Storage';
+import ApiIcon from '@mui/icons-material/Api';
+import CloudIcon from '@mui/icons-material/Cloud';
+import ChatIcon from '@mui/icons-material/Chat';
+import GroupsIcon from '@mui/icons-material/Groups';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import LinkIcon from '@mui/icons-material/Link';
+import HubIcon from '@mui/icons-material/Hub';
 
 const agentColors = [
   '#1877f2', // Nifi Agents - Facebook blue
@@ -879,6 +890,9 @@ const App = () => {
                   '&:hover': {
                     backgroundColor: 'rgba(0, 0, 0, 0.04)',
                   },
+                  '& .MuiSvgIcon-root': {
+                    marginRight: '8px',
+                  },
                 },
                 '& .MuiTouchRipple-root': {
                   display: 'none',
@@ -892,6 +906,8 @@ const App = () => {
               }}
             >
               <Tab 
+                icon={<SmartToyIcon />}
+                iconPosition="start"
                 label="Agents" 
                 sx={{
                   '&.Mui-selected': {
@@ -908,6 +924,8 @@ const App = () => {
                 }}
               />
               <Tab 
+                icon={<BuildIcon />}
+                iconPosition="start"
                 label="Tools" 
                 sx={{
                   '&.Mui-selected': {
@@ -928,7 +946,17 @@ const App = () => {
             {/* Add + List for Agents */}
             {sidebarTab === 0 && (
                 <>
-                  <Button variant="contained" color="primary" fullWidth size="medium" sx={{ mb: 1 }} onClick={() => setAgentModalOpen(true)}>Add Agent</Button>
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    fullWidth 
+                    size="medium" 
+                    startIcon={<AddIcon />}
+                    sx={{ mb: 1 }} 
+                    onClick={() => setAgentModalOpen(true)}
+                  >
+                    Add Agent
+                  </Button>
                   <Divider sx={{ margin: '0.5rem 0' }} />
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1, overflowY: 'auto', marginBottom: '1rem' }}>
                     {agents.map((agent, idx) => (
@@ -937,6 +965,7 @@ const App = () => {
                             variant="contained"
                             fullWidth
                             size="small"
+                            startIcon={<SmartToyIcon />}
                             sx={{
                               backgroundColor: agentColors[idx % agentColors.length],
                               color: '#fff',
@@ -951,7 +980,7 @@ const App = () => {
                               minHeight: 32,
                               fontSize: '0.95rem',
                               padding: '0.2rem 0.7rem',
-                              justifyContent: 'flex-start', // Add left alignment
+                              justifyContent: 'flex-start',
                               textAlign: 'left'
                             }}
                             onClick={() => setSelectedAgent(agent)}
@@ -987,7 +1016,17 @@ const App = () => {
             {/* Add + List for Tools */}
             {sidebarTab === 1 && (
                 <>
-                  <Button variant="contained" color="primary" fullWidth size="medium" sx={{ mb: 1 }} onClick={() => setToolModalOpen(true)}>Add Tool</Button>
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    fullWidth 
+                    size="medium" 
+                    startIcon={<AddIcon />}
+                    sx={{ mb: 1 }} 
+                    onClick={() => setToolModalOpen(true)}
+                  >
+                    Add Tool
+                  </Button>
                   <Divider sx={{ margin: '0.5rem 0' }} />
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1, overflowY: 'auto', marginBottom: '1rem' }}>
                     {tools.map((tool, idx) => (
@@ -996,6 +1035,11 @@ const App = () => {
                             variant="contained"
                             fullWidth
                             size="small"
+                            startIcon={
+                              tool.toolType === 'Database' ? <StorageIcon /> :
+                              tool.toolType === 'API' ? <ApiIcon /> :
+                              <CloudIcon />
+                            }
                             sx={{
                               backgroundColor: toolColors[tool.toolType as keyof typeof toolColors] || toolColors.default,
                               color: tool.toolType === 'default' ? '#222' : '#fff',
@@ -1010,7 +1054,7 @@ const App = () => {
                               minHeight: 32,
                               fontSize: '0.95rem',
                               padding: '0.2rem 0.7rem',
-                              justifyContent: 'flex-start', // Align text to left
+                              justifyContent: 'flex-start',
                               textAlign: 'left'
                             }}
                             onClick={() => setSelectedTool(tool)}
@@ -1252,11 +1296,12 @@ const App = () => {
                       </Box>
                       {tabIndex === 0 && !showConversationHistory && (
                           <>
-                            {/* Team Settings button first */}
+                            {/* Team Settings button */}
                             <Button
                                 key="Team Settings"
                                 variant="contained"
                                 fullWidth
+                                startIcon={<GroupsIcon />}
                                 sx={{
                                   backgroundColor: '#e0e0e0',
                                   color: '#222',
@@ -1270,39 +1315,45 @@ const App = () => {
                                   margin: '0 0.5rem',
                                   padding: '0.7rem 0.7rem',
                                   textAlign: 'left',
+                                  justifyContent: 'flex-start',
                                 }}
                                 onClick={() => setTeamSettingsOpen(true)}
                             >
                               Team Settings
                             </Button>
-                      {/* Agent Settings button */}
-                      <Button
-                        key="Agent Settings"
-                        variant="contained"
-                        fullWidth
-                        sx={{
-                          backgroundColor: '#e0e0e0',
-                          color: '#222',
-                          fontWeight: 'bold',
-                          border: '2px solid #222',
-                          borderRadius: 2,
-                          boxShadow: 'none',
-                          '&:hover': {
-                            backgroundColor: '#bdbdbd',
-                          },
-                          margin: '0.5rem',
-                          padding: '0.7rem 0.7rem',
-                          textAlign: 'left',
-                        }}
-                        onClick={() => setAgentSettingsOpen(true)}
-                      >
-                        Agent Settings
-                      </Button>
-                      {/* Conversation Settings button */}
+
+                            {/* Agent Settings button */}
+                            <Button
+                              key="Agent Settings"
+                              variant="contained"
+                              fullWidth
+                              startIcon={<SmartToyIcon />}
+                              sx={{
+                                backgroundColor: '#e0e0e0',
+                                color: '#222',
+                                fontWeight: 'bold',
+                                border: '2px solid #222',
+                                borderRadius: 2,
+                                boxShadow: 'none',
+                                '&:hover': {
+                                  backgroundColor: '#bdbdbd',
+                                },
+                                margin: '0.5rem',
+                                padding: '0.7rem 0.7rem',
+                                textAlign: 'left',
+                                justifyContent: 'flex-start',
+                              }}
+                              onClick={() => setAgentSettingsOpen(true)}
+                            >
+                              Agent Settings
+                            </Button>
+
+                            {/* Conversation Settings button */}
                             <Button
                                 key="Conversation Settings"
                                 variant="contained"
                                 fullWidth
+                                startIcon={<ChatIcon />}
                                 sx={{
                                   backgroundColor: '#e0e0e0',
                                   color: '#222',
@@ -1316,17 +1367,32 @@ const App = () => {
                                   margin: '0 0.5rem',
                                   padding: '0.7rem 0.7rem',
                                   textAlign: 'left',
+                                  justifyContent: 'flex-start',
                                 }}
                                 onClick={() => setConversationSettingsOpen(true)}
                             >
                               Conversation Settings
                             </Button>
+
                             {/* The rest of the rightPanelItems */}
-                      {rightPanelItems.filter(item => !['Team Settings', 'Conversation Settings'].includes(item)).map(item => (
+                            {rightPanelItems.filter(item => !['Team Settings', 'Conversation Settings'].includes(item)).map(item => {
+                              const getIcon = () => {
+                                switch(item) {
+                                  case 'Execution Plan':
+                                    return <AccountTreeIcon />;
+                                  case 'Connected Sources':
+                                    return <LinkIcon />;
+                                  default:
+                                    return <HubIcon />;
+                                }
+                              };
+
+                              return (
                                 <Button
                                     key={item}
                                     variant="contained"
                                     fullWidth
+                                    startIcon={getIcon()}
                                     sx={{
                                       backgroundColor: '#e0e0e0',
                                       color: '#222',
@@ -1340,6 +1406,7 @@ const App = () => {
                                       margin: '0 0.5rem',
                                       padding: '0.7rem 0.7rem',
                                       textAlign: 'left',
+                                      justifyContent: 'flex-start',
                                     }}
                                     onClick={() => {
                                       if (item === 'Execution Plan') setExecutionPlanOpen(true);
@@ -1348,7 +1415,8 @@ const App = () => {
                                 >
                                   {item}
                                 </Button>
-                            ))}
+                              );
+                            })}
                           </>
                       )}
                       {tabIndex === 1 && (

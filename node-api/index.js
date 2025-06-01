@@ -1153,6 +1153,83 @@ app.post('/api/agent-interactions', async (req, res) => {
   }
 });
 
+// PUT /api/teams/:teamId/conversation-settings
+app.put('/api/teams/:teamId/conversation-settings', async (req, res) => {
+  const { teamId } = req.params;
+  try {
+    // Validate team exists
+    const [teams] = await pool.query('SELECT id FROM teams WHERE id = ?', [teamId]);
+    if (teams.length === 0) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    const { temperature, tokenLimit, startPrompt, endPrompt, style } = req.body;
+
+    // Get connection for transaction
+    const connection = await pool.getConnection();
+    
+    try {
+      await connection.beginTransaction();
+
+      // Create or update settings
+      const settings_id = await getOrCreateConversationSettings(connection, {
+        team_id: teamId,
+        temperature: temperature,
+        token_limit: tokenLimit,
+        start_prompt: startPrompt,
+        end_prompt: endPrompt,
+        style: style
+      });
+
+      await connection.commit();
+
+      // Return the saved settings
+      const [settings] = await connection.query(
+        'SELECT * FROM conversation_settings WHERE id = ?',
+        [settings_id]
+      );
+
+      res.json(settings[0]);
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
+  } catch (err) {
+    console.error('Error saving conversation settings:', err);
+    res.status(500).json({ error: 'Failed to save conversation settings' });
+  }
+});
+
+// GET /api/teams/:teamId/conversation-settings
+app.get('/api/teams/:teamId/conversation-settings', async (req, res) => {
+  const { teamId } = req.params;
+  try {
+    // Get the most recent settings for this team
+    const [settings] = await pool.query(
+      'SELECT * FROM conversation_settings WHERE team_id = ? ORDER BY created_at DESC LIMIT 1',
+      [teamId]
+    );
+
+    if (settings.length === 0) {
+      // Return default settings if none exist
+      return res.json({
+        temperature: 0.7,
+        token_limit: 512,
+        start_prompt: '',
+        end_prompt: '',
+        style: ''
+      });
+    }
+
+    res.json(settings[0]);
+  } catch (err) {
+    console.error('Error fetching conversation settings:', err);
+    res.status(500).json({ error: 'Failed to fetch conversation settings' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Orchestrator running at http://localhost:${PORT}`);
 });

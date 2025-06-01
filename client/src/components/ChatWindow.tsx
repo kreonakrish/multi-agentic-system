@@ -12,6 +12,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import IconButton from '@mui/material/IconButton';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import SendIcon from '@mui/icons-material/Send';
 import BarChartComponent from './BarChartComponent';
 import LineChartComponent from './LineChartComponent';
 import PieChartComponent from './PieChartComponent';
@@ -298,8 +299,29 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your questi
           onKeyDown={e => { if (e.key === 'Enter') handleSend(); }}
           disabled={loading || !canChat}
         />
-        <Button variant="contained" onClick={handleSend} disabled={loading || !input.trim() || !canChat}>
-          {loading ? <CircularProgress size={22} /> : 'Send'}
+        <Button 
+          variant="contained" 
+          color="primary"
+          onClick={handleSend} 
+          disabled={loading || !input.trim() || !canChat}
+          sx={{
+            fontWeight: 'bold',
+            border: '2px solid #222',
+            borderRadius: 2,
+            boxShadow: 'none',
+            minWidth: 'auto',
+            width: 56,
+            height: '100%',
+            padding: '8px 16px',
+            '&:hover': {
+              opacity: 0.9,
+            },
+            '&.Mui-disabled': {
+              border: '2px solid rgba(34, 34, 34, 0.3)',
+            }
+          }}
+        >
+          {loading ? <CircularProgress size={24} sx={{ color: '#fff' }} /> : <SendIcon />}
         </Button>
       </Box>
     </Box>
