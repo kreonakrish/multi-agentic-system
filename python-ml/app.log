@@ -266,3 +266,239 @@
 2025-06-01 01:13:32,938 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:13:32] "GET /api/ml/team/1/config HTTP/1.1" 200 -
 2025-06-01 01:13:34,998 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:13:34] "PUT /api/ml/team/1/config HTTP/1.1" 200 -
 2025-06-01 01:13:37,016 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 01:13:37] "GET /api/ml/team/1/metrics?time_range=24h HTTP/1.1" 200 -
+2025-06-01 01:14:03,734 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 01:14:03,857 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 01:14:04,631 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 01:14:04,631 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:05:13,062 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 17:05:13,062 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 17:05:13,062 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:05:13,844 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:05:13,844 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:06:26,286 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:06:26,417 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:06:27,347 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:06:27,347 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:06:40,863 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:06:40] "POST /api/ml/agent/1/tools HTTP/1.1" 200 -
+2025-06-01 17:06:42,911 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:06:42] "[33mPOST /api/ml/agent-memory HTTP/1.1[0m" 404 -
+2025-06-01 17:06:45,061 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:06:45] "[33mPOST /api/ml/agent/1/initialize HTTP/1.1[0m" 404 -
+2025-06-01 17:06:47,115 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:06:47] "[33mPOST /api/ml/agent/1/initialize HTTP/1.1[0m" 404 -
+2025-06-01 17:06:49,175 - __main__ - ERROR - Error sending message from agent 1: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-01 17:06:49,178 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:06:49] "[35m[1mPOST /api/ml/agent/1/send HTTP/1.1[0m" 500 -
+2025-06-01 17:07:22,611 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:07:22,712 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:07:23,656 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:07:23,656 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:08:27,014 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:08:27,123 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:08:27,970 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:08:27,973 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:08:38,647 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:08:38] "[33mPOST /api/ml/agent/1/initialize HTTP/1.1[0m" 404 -
+2025-06-01 17:08:40,755 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:08:40] "[33mPOST /api/ml/agent/1/initialize HTTP/1.1[0m" 404 -
+2025-06-01 17:08:42,826 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:08:42] "[33mPOST /api/ml/agent/1/initialize HTTP/1.1[0m" 404 -
+2025-06-01 17:08:44,872 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:08:44] "[33mPOST /api/ml/agent/1/initialize HTTP/1.1[0m" 404 -
+2025-06-01 17:09:18,242 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:09:18,343 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:09:19,197 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:09:19,201 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:09:57,423 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:09:57,520 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:09:58,311 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:09:58,311 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:10:05,022 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:10:05] "POST /api/ml/agent/29/initialize HTTP/1.1" 200 -
+2025-06-01 17:10:07,083 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:10:07] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:10:09,143 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:10:09] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:10:11,203 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:10:11] "POST /api/ml/agent/30/initialize HTTP/1.1" 200 -
+2025-06-01 17:10:13,272 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:10:13] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:10:15,310 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:10:15] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:10:17,337 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 17:10:17,357 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 17:10:17,358 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:10:17] "[35m[1mPOST /api/ml/agent/30/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 17:10:19,512 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:10:19] "POST /api/ml/agent/31/initialize HTTP/1.1" 200 -
+2025-06-01 17:10:21,568 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:10:21] "POST /api/ml/agent/32/initialize HTTP/1.1" 200 -
+2025-06-01 17:10:23,588 - __main__ - ERROR - Error sending message from agent 32: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-01 17:10:23,588 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:10:23] "[35m[1mPOST /api/ml/agent/32/send HTTP/1.1[0m" 500 -
+2025-06-01 17:11:10,710 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:11:10,886 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:11:11,640 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:11:11,640 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:11:19,486 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:11:19] "POST /api/ml/agent/33/initialize HTTP/1.1" 200 -
+2025-06-01 17:11:21,525 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:11:21] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:11:23,550 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:11:23] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:11:25,633 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:11:25] "POST /api/ml/agent/34/initialize HTTP/1.1" 200 -
+2025-06-01 17:11:27,684 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:11:27] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:11:29,751 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:11:29] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:11:31,800 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 17:11:31,800 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 17:11:31,815 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:11:31] "[35m[1mPOST /api/ml/agent/34/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 17:11:33,967 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:11:33] "POST /api/ml/agent/35/initialize HTTP/1.1" 200 -
+2025-06-01 17:11:36,050 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:11:36] "POST /api/ml/agent/36/initialize HTTP/1.1" 200 -
+2025-06-01 17:11:38,083 - __main__ - ERROR - Error sending message from agent 36: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-01 17:11:38,083 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:11:38] "[35m[1mPOST /api/ml/agent/36/send HTTP/1.1[0m" 500 -
+2025-06-01 17:14:38,869 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:14:39,091 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:14:40,258 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:14:40,274 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:14:48,533 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:14:48] "POST /api/ml/agent/37/initialize HTTP/1.1" 200 -
+2025-06-01 17:14:50,551 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:14:50] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:14:52,612 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:14:52] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:14:54,678 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:14:54] "POST /api/ml/agent/39/initialize HTTP/1.1" 200 -
+2025-06-01 17:14:56,718 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:14:56] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:14:58,780 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:14:58] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:15:00,812 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 17:15:00,812 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 17:15:00,812 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:15:00] "[35m[1mPOST /api/ml/agent/39/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 17:15:02,988 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:15:02] "POST /api/ml/agent/41/initialize HTTP/1.1" 200 -
+2025-06-01 17:15:05,068 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:15:05] "POST /api/ml/agent/43/initialize HTTP/1.1" 200 -
+2025-06-01 17:15:07,100 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:15:07] "POST /api/ml/agent/44/initialize HTTP/1.1" 200 -
+2025-06-01 17:15:09,134 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:15:09] "POST /api/ml/agent/43/send HTTP/1.1" 200 -
+2025-06-01 17:16:00,727 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:16:00,826 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:16:01,612 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:16:01,615 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:16:52,861 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:16:52,961 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:16:53,785 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:16:53,789 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:17:00,951 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:17:00] "POST /api/ml/agent/53/initialize HTTP/1.1" 200 -
+2025-06-01 17:17:02,994 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:17:02] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:17:05,054 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:17:05] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:17:07,129 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:17:07] "POST /api/ml/agent/55/initialize HTTP/1.1" 200 -
+2025-06-01 17:17:09,161 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:17:09] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:17:11,179 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:17:11] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:17:13,200 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:17:13] "POST /api/ml/agent/55/tools HTTP/1.1" 200 -
+2025-06-01 17:17:15,227 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 17:17:15,227 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 17:17:15,227 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:17:15] "[35m[1mPOST /api/ml/agent/55/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 17:17:17,399 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:17:17] "POST /api/ml/agent/57/initialize HTTP/1.1" 200 -
+2025-06-01 17:17:19,487 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:17:19] "POST /api/ml/agent/59/initialize HTTP/1.1" 200 -
+2025-06-01 17:17:21,526 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:17:21] "POST /api/ml/agent/60/initialize HTTP/1.1" 200 -
+2025-06-01 17:17:23,572 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:17:23] "POST /api/ml/agent/59/send HTTP/1.1" 200 -
+2025-06-01 17:20:29,582 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:20:29] "POST /api/ml/agent/61/initialize HTTP/1.1" 200 -
+2025-06-01 17:20:31,619 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:20:31] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:20:33,664 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:20:33] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:20:35,756 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:20:35] "POST /api/ml/agent/63/initialize HTTP/1.1" 200 -
+2025-06-01 17:20:37,787 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:20:37] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:20:39,820 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:20:39] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:20:41,881 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:20:41] "POST /api/ml/agent/63/tools HTTP/1.1" 200 -
+2025-06-01 17:20:43,911 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 17:20:43,911 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 17:20:43,918 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:20:43] "[35m[1mPOST /api/ml/agent/63/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 17:20:46,074 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:20:46] "POST /api/ml/agent/65/initialize HTTP/1.1" 200 -
+2025-06-01 17:20:48,157 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:20:48] "POST /api/ml/agent/67/initialize HTTP/1.1" 200 -
+2025-06-01 17:20:50,196 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:20:50] "POST /api/ml/agent/68/initialize HTTP/1.1" 200 -
+2025-06-01 17:20:52,244 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:20:52] "POST /api/ml/agent/67/send HTTP/1.1" 200 -
+2025-06-01 17:26:57,990 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:26:58,235 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:26:59,844 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:26:59,851 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:27:35,479 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:27:35] "POST /api/ml/agent/69/initialize HTTP/1.1" 200 -
+2025-06-01 17:27:37,552 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:27:37] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:27:39,583 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:27:39] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:27:41,738 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:27:41] "POST /api/ml/agent/71/initialize HTTP/1.1" 200 -
+2025-06-01 17:27:43,786 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:27:43] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:27:45,838 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:27:45] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:27:47,858 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:27:47] "POST /api/ml/agent/71/tools HTTP/1.1" 200 -
+2025-06-01 17:27:49,927 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 17:27:49,931 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 17:27:49,931 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:27:49] "[35m[1mPOST /api/ml/agent/71/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 17:27:52,177 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:27:52] "POST /api/ml/agent/73/initialize HTTP/1.1" 200 -
+2025-06-01 17:27:54,248 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:27:54] "POST /api/ml/agent/75/initialize HTTP/1.1" 200 -
+2025-06-01 17:27:56,288 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:27:56] "POST /api/ml/agent/76/initialize HTTP/1.1" 200 -
+2025-06-01 17:27:58,356 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:27:58] "POST /api/ml/agent/75/send HTTP/1.1" 200 -
+2025-06-01 17:31:05,443 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:31:05,571 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:31:06,435 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:31:06,435 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:31:23,267 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:23] "POST /api/ml/agent/77/initialize HTTP/1.1" 200 -
+2025-06-01 17:31:25,307 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:25] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:31:27,335 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:27] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:31:29,445 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:29] "POST /api/ml/agent/79/initialize HTTP/1.1" 200 -
+2025-06-01 17:31:31,489 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:31] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:31:33,533 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:33] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:31:35,568 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:35] "POST /api/ml/agent/79/tools HTTP/1.1" 200 -
+2025-06-01 17:31:37,602 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 17:31:37,602 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 17:31:37,602 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:37] "[35m[1mPOST /api/ml/agent/79/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 17:31:39,785 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:39] "POST /api/ml/agent/81/initialize HTTP/1.1" 200 -
+2025-06-01 17:31:41,867 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:41] "POST /api/ml/agent/83/initialize HTTP/1.1" 200 -
+2025-06-01 17:31:43,901 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:43] "POST /api/ml/agent/84/initialize HTTP/1.1" 200 -
+2025-06-01 17:31:45,934 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:45] "POST /api/ml/agent/83/send HTTP/1.1" 200 -
+2025-06-01 17:31:48,942 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:48] "POST /api/ml/agent/85/initialize HTTP/1.1" 200 -
+2025-06-01 17:31:50,988 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:50] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:31:53,023 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:53] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:31:55,133 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:55] "POST /api/ml/agent/87/initialize HTTP/1.1" 200 -
+2025-06-01 17:31:57,185 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:57] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:31:59,266 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:31:59] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:32:01,328 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:01] "POST /api/ml/agent/87/tools HTTP/1.1" 200 -
+2025-06-01 17:32:03,385 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 17:32:03,385 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 17:32:03,385 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:03] "[35m[1mPOST /api/ml/agent/87/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 17:32:05,584 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:05] "POST /api/ml/agent/89/initialize HTTP/1.1" 200 -
+2025-06-01 17:32:07,668 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:07] "POST /api/ml/agent/91/initialize HTTP/1.1" 200 -
+2025-06-01 17:32:09,733 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:09] "POST /api/ml/agent/92/initialize HTTP/1.1" 200 -
+2025-06-01 17:32:11,785 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:11] "POST /api/ml/agent/91/send HTTP/1.1" 200 -
+2025-06-01 17:32:14,862 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:32:14,964 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:32:15,883 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:32:15,883 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:32:25,092 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:25] "POST /api/ml/agent/93/initialize HTTP/1.1" 200 -
+2025-06-01 17:32:27,113 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:27] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:32:29,156 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:29] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:32:31,233 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:31] "POST /api/ml/agent/95/initialize HTTP/1.1" 200 -
+2025-06-01 17:32:33,283 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:33] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:32:35,334 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:35] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:32:37,389 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:37] "POST /api/ml/agent/95/tools HTTP/1.1" 200 -
+2025-06-01 17:32:39,441 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 17:32:39,449 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 17:32:39,449 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:39] "[35m[1mPOST /api/ml/agent/95/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 17:32:41,518 - __main__ - WARNING - 404 Not Found: http://localhost:5000/health
+2025-06-01 17:32:41,518 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:41] "[33mGET /health HTTP/1.1[0m" 404 -
+2025-06-01 17:32:43,750 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:43] "POST /api/ml/agent/97/initialize HTTP/1.1" 200 -
+2025-06-01 17:32:45,840 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:45] "POST /api/ml/agent/99/initialize HTTP/1.1" 200 -
+2025-06-01 17:32:47,886 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:47] "POST /api/ml/agent/100/initialize HTTP/1.1" 200 -
+2025-06-01 17:32:49,939 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:32:49] "POST /api/ml/agent/99/send HTTP/1.1" 200 -
+2025-06-01 17:33:05,223 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:33:05,310 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:33:06,132 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:33:06,132 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:33:12,483 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:12] "POST /api/ml/agent/101/initialize HTTP/1.1" 200 -
+2025-06-01 17:33:14,531 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:14] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:33:16,582 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:16] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:33:18,670 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:18] "POST /api/ml/agent/103/initialize HTTP/1.1" 200 -
+2025-06-01 17:33:20,699 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:20] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:33:22,722 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:22] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:33:24,758 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:24] "POST /api/ml/agent/103/tools HTTP/1.1" 200 -
+2025-06-01 17:33:26,800 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 17:33:26,806 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 17:33:26,806 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:26] "[35m[1mPOST /api/ml/agent/103/execute_all HTTP/1.1[0m" 500 -
+2025-06-01 17:33:28,850 - __main__ - WARNING - 404 Not Found: http://localhost:5000/health
+2025-06-01 17:33:28,851 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:28] "[33mGET /health HTTP/1.1[0m" 404 -
+2025-06-01 17:33:31,000 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:31] "POST /api/ml/agent/105/initialize HTTP/1.1" 200 -
+2025-06-01 17:33:33,070 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:33] "POST /api/ml/agent/107/initialize HTTP/1.1" 200 -
+2025-06-01 17:33:35,129 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:35] "POST /api/ml/agent/108/initialize HTTP/1.1" 200 -
+2025-06-01 17:33:37,151 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:33:37] "POST /api/ml/agent/107/send HTTP/1.1" 200 -
+2025-06-01 17:34:19,575 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:34:19,684 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:34:20,536 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:34:20,542 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 17:34:28,636 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:34:28] "POST /api/ml/agent/109/initialize HTTP/1.1" 200 -
+2025-06-01 17:34:30,696 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:34:30] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:34:32,735 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:34:32] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:34:34,803 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:34:34] "POST /api/ml/agent/111/initialize HTTP/1.1" 200 -
+2025-06-01 17:34:36,832 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:34:36] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:34:38,882 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:34:38] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 17:34:40,930 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:34:40] "POST /api/ml/agent/111/tools HTTP/1.1" 200 -
+2025-06-01 17:34:42,976 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-01 17:34:55,168 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 17:34:55,185 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-01 17:34:55,187 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:34:55] "POST /api/ml/agent/111/execute_all HTTP/1.1" 200 -
+2025-06-01 17:34:57,266 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:34:57] "POST /api/ml/agent/113/initialize HTTP/1.1" 200 -
+2025-06-01 17:34:59,356 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:34:59] "POST /api/ml/agent/115/initialize HTTP/1.1" 200 -
+2025-06-01 17:35:01,399 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:35:01] "POST /api/ml/agent/116/initialize HTTP/1.1" 200 -
+2025-06-01 17:35:03,430 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 17:35:03] "POST /api/ml/agent/115/send HTTP/1.1" 200 -
+2025-06-01 17:35:22,907 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_execute_agents.py', reloading
+2025-06-01 17:35:23,028 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 17:35:23,770 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 17:35:23,775 - werkzeug - INFO -  * Debugger PIN: 368-215-762
