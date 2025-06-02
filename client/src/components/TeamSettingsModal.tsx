@@ -309,6 +309,7 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
   };
 
   return (
+    open ? (
       <Rnd
           default={{ x: 100, y: 100, width: 800, height: 600 }}
           minWidth={500}
@@ -325,7 +326,12 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
             topLeft: true
           }}
           dragHandleClassName="team-settings-modal-title"
-          style={{ zIndex: 1300, position: 'fixed' }}
+          style={{ 
+            zIndex: 1300, 
+            position: 'fixed',
+            display: open ? 'block' : 'none',
+            pointerEvents: open ? 'auto' : 'none'
+          }}
       >
         <div style={{ width: '100%', height: '100%' }}>
           <Dialog
@@ -520,6 +526,7 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
           </Dialog>
         </div>
       </Rnd>
+    ) : null
   );
 };
 

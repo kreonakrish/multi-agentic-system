@@ -871,50 +871,63 @@ const App = () => {
         {/* Main Section */}
         <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
           {/* Left Sidebar with resizable pane */}
-          <aside style={{ width: sidebarWidth, minWidth: 160, maxWidth: 400, background: "#e6e9ed", padding: "1rem 0", borderRight: "2px solid #bfc5c9", display: "flex", flexDirection: "column", gap: "0.7rem", position: 'relative' }}>
+          <aside style={{ 
+              width: sidebarWidth, 
+              minWidth: 160, 
+              maxWidth: 400, 
+              background: "#e6e9ed", 
+              padding: "1rem 0", 
+              borderRight: "2px solid #bfc5c9", 
+              display: "flex", 
+              flexDirection: "column", 
+              gap: "0.7rem", 
+              position: 'relative',
+              zIndex: 100 // Ensure sidebar is above other content but below modals
+          }}>
             {/* Agents/Tools Tabs */}
             <Tabs 
-              value={sidebarTab} 
-              onChange={(_, v) => setSidebarTab(v)} 
-              variant="fullWidth" 
-              sx={{ 
-                mb: 1,
-                position: 'relative',
-                '& .MuiTabs-flexContainer': {
-                  height: '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  position: 'relative',
-                },
-                '& .MuiTab-root': {
-                  minHeight: '48px',
-                  height: '48px',
-                  padding: '12px 16px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  fontSize: '0.95rem',
-                  width: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                  },
-                  '& .MuiSvgIcon-root': {
-                    marginRight: '8px',
-                  },
-                },
-                '& .MuiTouchRipple-root': {
-                  display: 'none',
-                },
-                '& .MuiTabs-indicator': {
-                  height: '3px',
-                  borderRadius: '3px 3px 0 0',
-                  zIndex: 0,
-                },
-                borderBottom: '1px solid rgba(0, 0, 0, 0.12)'
-              }}
+                value={sidebarTab} 
+                onChange={(_, v) => setSidebarTab(v)} 
+                variant="fullWidth"
+                sx={{ 
+                    mb: 1,
+                    position: 'relative',
+                    zIndex: 101, // Ensure tabs are above the sidebar content
+                    '& .MuiTabs-flexContainer': {
+                        height: '48px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        position: 'relative',
+                    },
+                    '& .MuiTab-root': {
+                        minHeight: '48px',
+                        height: '48px',
+                        padding: '12px 16px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.95rem',
+                        width: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        position: 'relative',
+                        '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                        },
+                        '& .MuiSvgIcon-root': {
+                            marginRight: '8px',
+                        },
+                    },
+                    '& .MuiTouchRipple-root': {
+                        display: 'block',
+                    },
+                    '& .MuiTabs-indicator': {
+                        height: '3px',
+                        borderRadius: '3px 3px 0 0',
+                        zIndex: 102, // Ensure indicator is above tabs
+                    },
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.12)'
+                }}
             >
               <Tab 
                 icon={<SmartToyIcon />}
@@ -931,7 +944,8 @@ const App = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                   },
-                  zIndex: 1,
+                  zIndex: 2,
+                  position: 'relative',
                 }}
               />
               <Tab 
@@ -1039,7 +1053,16 @@ const App = () => {
                     Add Tool
                   </Button>
                   <Divider sx={{ margin: '0.5rem 0' }} />
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1, overflowY: 'auto', marginBottom: '1rem' }}>
+                  <div style={{ 
+                    display: "flex", 
+                    flexDirection: "column", 
+                    gap: "0.5rem", 
+                    flex: 1, 
+                    overflowY: 'auto', 
+                    marginBottom: '1rem',
+                    position: 'relative',
+                    zIndex: 1
+                  }}>
                     {tools.map((tool, idx) => (
                         <Button
                             key={tool.toolName}
@@ -1051,6 +1074,7 @@ const App = () => {
                               tool.toolType === 'API' ? <ApiIcon /> :
                               <CloudIcon />
                             }
+                            onClick={() => setSelectedTool(tool)}
                             sx={{
                               backgroundColor: toolColors[tool.toolType as keyof typeof toolColors] || toolColors.default,
                               color: tool.toolType === 'default' ? '#222' : '#fff',
@@ -1061,14 +1085,19 @@ const App = () => {
                               '&:hover': {
                                 backgroundColor: toolColors[tool.toolType as keyof typeof toolColors] || toolColors.default,
                                 opacity: 0.9,
+                                cursor: 'pointer'
+                              },
+                              '&:active': {
+                                transform: 'scale(0.98)'
                               },
                               minHeight: 32,
                               fontSize: '0.95rem',
                               padding: '0.2rem 0.7rem',
                               justifyContent: 'flex-start',
-                              textAlign: 'left'
+                              textAlign: 'left',
+                              position: 'relative',
+                              zIndex: 2
                             }}
-                            onClick={() => setSelectedTool(tool)}
                         >
                           {tool.toolName}
                         </Button>
@@ -1100,12 +1129,12 @@ const App = () => {
             <div
                 style={{
                   position: 'absolute',
-                  top: 0,
+                  top: 48,
                   right: -5,
                   width: 10,
-                  height: '100%',
+                  height: 'calc(100% - 48px)',
                   cursor: 'col-resize',
-                  zIndex: 10,
+                  zIndex: 1,
                 }}
                 onMouseDown={handleMouseDown}
             />
