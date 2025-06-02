@@ -502,3 +502,912 @@
 2025-06-01 17:35:23,028 - werkzeug - INFO -  * Restarting with stat
 2025-06-01 17:35:23,770 - werkzeug - WARNING -  * Debugger is active!
 2025-06-01 17:35:23,775 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 18:48:21,710 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 18:48:21] "[33mPOST /api/ml/agent/1/initialize HTTP/1.1[0m" 404 -
+2025-06-01 18:48:35,486 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 18:48:35] "[33mPOST /api/ml/agent/1/initialize HTTP/1.1[0m" 404 -
+2025-06-01 18:50:06,341 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\execute_agents.py', reloading
+2025-06-01 18:50:06,578 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 18:50:07,608 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 18:50:07,611 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 18:50:22,626 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 18:50:22] "[33mPOST /api/ml/agent/5/initialize HTTP/1.1[0m" 404 -
+2025-06-01 18:50:31,474 - __main__ - WARNING - 404 Not Found: http://localhost:5000/health
+2025-06-01 18:50:31,474 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 18:50:31] "[33mGET /health HTTP/1.1[0m" 404 -
+2025-06-01 18:52:04,352 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\execute_agents.py', reloading
+2025-06-01 18:52:04,493 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 18:52:05,281 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 18:52:05,287 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 18:56:11,071 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\execute_agents.py', reloading
+2025-06-01 18:56:11,201 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 18:56:12,131 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 18:56:12,149 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 18:59:11,216 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\execute_agents.py', reloading
+2025-06-01 18:59:11,310 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 18:59:12,103 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 18:59:12,107 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 18:59:29,224 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\execute_agents.py', reloading
+2025-06-01 18:59:29,327 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 18:59:30,076 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 18:59:30,076 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:00:09,331 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\execute_agents.py', reloading
+2025-06-01 19:00:09,425 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:00:10,175 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:00:10,189 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:00:12,209 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\execute_agents.py', reloading
+2025-06-01 19:00:12,320 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:00:13,092 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:00:13,111 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:00:47,269 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:00:47] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:00:49,367 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:00:49] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:00:51,424 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:00:51] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:00:53,485 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:00:53] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:00:55,524 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/tools/5
+2025-06-01 19:00:55,524 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:00:55] "[33mGET /api/tools/5 HTTP/1.1[0m" 404 -
+2025-06-01 19:00:57,572 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:00:57] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 19:03:48,592 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\execute_agents.py', reloading
+2025-06-01 19:03:48,685 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:03:49,455 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:03:49,455 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:04:03,720 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:04:03] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:04:05,783 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:04:05] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:04:07,846 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:04:07] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:04:09,888 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:04:09] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:04:11,924 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/tools/5
+2025-06-01 19:04:11,924 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:04:11] "[33mGET /api/tools/5 HTTP/1.1[0m" 404 -
+2025-06-01 19:04:13,960 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:04:13] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 19:07:30,908 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\execute_agents.py', reloading
+2025-06-01 19:07:31,048 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:07:31,897 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:07:31,901 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:09:06,500 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:09:06,599 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:09:07,461 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:09:07,461 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:10:28,968 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:10:29,172 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:12:45,846 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:12:45,993 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 19:12:45,993 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 19:12:45,993 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:12:46,622 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:12:46,771 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:12:46,771 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:12:59,352 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:12:59] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:13:01,415 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/ml/agent-memory
+2025-06-01 19:13:01,415 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:13:01] "[33mPOST /api/ml/agent-memory HTTP/1.1[0m" 404 -
+2025-06-01 19:13:50,195 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:13:50,295 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:13:50,953 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:13:51,075 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:13:51,079 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:14:07,170 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:14:07,279 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:14:08,010 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:14:08,157 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:14:08,166 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:14:08,170 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:14:31,291 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:14:31,427 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:14:32,069 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:14:32,202 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:14:32,212 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:14:32,215 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:14:41,277 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:14:41,393 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:14:42,104 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:14:42,228 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:14:42,239 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:14:42,243 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:14:48,966 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:14:48] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:14:51,015 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:14:51,040 - __main__ - INFO - Created memory for agent 10: {'id': 49, 'agent_id': 10, 'memory_type': 'SHORT_TERM_MEMORY', 'start_prompt': 'You are a Databricks Agent and know Spark very well', 'end_prompt': 'Have a Unit Test to verify your code', 'context': None, 'created_at': datetime.datetime(2025, 6, 1, 19, 14, 51), 'updated_at': datetime.datetime(2025, 6, 1, 19, 14, 51)}
+2025-06-01 19:14:51,042 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:14:51,043 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:14:51] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:14:53,095 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:14:53,123 - __main__ - INFO - Created memory for agent 10: {'id': 50, 'agent_id': 10, 'memory_type': 'LONG_TERM_MEMORY', 'start_prompt': None, 'end_prompt': None, 'context': 'Apache Spark & Databricks best practices', 'created_at': datetime.datetime(2025, 6, 1, 19, 14, 53), 'updated_at': datetime.datetime(2025, 6, 1, 19, 14, 53)}
+2025-06-01 19:14:53,127 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:14:53,127 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:14:53] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:14:55,198 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:14:55] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:14:57,251 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/tools/5
+2025-06-01 19:14:57,251 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:14:57] "[33mGET /api/tools/5 HTTP/1.1[0m" 404 -
+2025-06-01 19:14:59,273 - __main__ - INFO - Starting execution of send_agent_message
+2025-06-01 19:14:59,303 - __main__ - ERROR - Error in send_agent_message: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:14:59,304 - __main__ - INFO - Completed execution of send_agent_message
+2025-06-01 19:14:59,305 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:14:59] "[35m[1mPOST /api/ml/agent/10/send HTTP/1.1[0m" 500 -
+2025-06-01 19:16:26,925 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:16:27,037 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:16:27,738 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:16:27,854 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:16:27,865 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:16:27,875 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:16:55,034 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:16:55,131 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:16:55,830 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:16:55,959 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:16:55,971 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:16:55,977 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:18:02,367 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:18:02,444 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:18:03,145 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:18:03,268 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:18:03,277 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:18:03,281 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:18:35,474 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:18:35,578 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:18:35,594 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 19:18:35,594 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 19:18:35,609 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:18:36,235 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:18:36,360 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:18:36,381 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:18:36,387 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:18:46,011 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:18:46] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:18:48,032 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:18:48,054 - __main__ - INFO - Created memory for agent 10: {'id': 51, 'agent_id': 10, 'memory_type': 'SHORT_TERM_MEMORY', 'start_prompt': 'You are a Databricks Agent and know Spark very well', 'end_prompt': 'Have a Unit Test to verify your code', 'context': None, 'created_at': datetime.datetime(2025, 6, 1, 19, 18, 48), 'updated_at': datetime.datetime(2025, 6, 1, 19, 18, 48)}
+2025-06-01 19:18:48,056 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:18:48,057 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:18:48] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:18:50,081 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:18:50,098 - __main__ - INFO - Created memory for agent 10: {'id': 52, 'agent_id': 10, 'memory_type': 'LONG_TERM_MEMORY', 'start_prompt': None, 'end_prompt': None, 'context': 'Apache Spark & Databricks best practices', 'created_at': datetime.datetime(2025, 6, 1, 19, 18, 50), 'updated_at': datetime.datetime(2025, 6, 1, 19, 18, 50)}
+2025-06-01 19:18:50,099 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:18:50,099 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:18:50] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:18:52,148 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:18:52] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:18:54,188 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/tools/5
+2025-06-01 19:18:54,188 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:18:54] "[33mGET /api/tools/5 HTTP/1.1[0m" 404 -
+2025-06-01 19:18:56,212 - __main__ - INFO - Starting execution of send_agent_message
+2025-06-01 19:18:56,212 - __main__ - INFO - Initializing agent 10 from database...
+2025-06-01 19:18:56,215 - __main__ - INFO - Set conversation ID: c6e8e337-07ed-4151-a9a6-3d7bb1eaea89
+2025-06-01 19:18:56,215 - __main__ - INFO - Storing initial message in database...
+2025-06-01 19:18:56,228 - __main__ - ERROR - Database error storing message: 1048 (23000): Column 'sender_id' cannot be null
+Traceback (most recent call last):
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 772, in cmd_query
+    self._cmysql.query(
+_mysql_connector.MySQLInterfaceError: Column 'sender_id' cannot be null
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\multi-agentic-system\python-ml\app.py", line 965, in send_agent_message
+    cursor.execute(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\cursor_cext.py", line 356, in execute
+    self._connection.cmd_query(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\opentelemetry\context_propagation.py", line 97, in wrapper
+    return method(cnx, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 781, in cmd_query
+    raise get_mysql_exception(
+mysql.connector.errors.IntegrityError: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:18:56,233 - __main__ - ERROR - Error in send_agent_message: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:18:56,234 - __main__ - INFO - Completed execution of send_agent_message
+2025-06-01 19:18:56,235 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:18:56] "[35m[1mPOST /api/ml/agent/10/send HTTP/1.1[0m" 500 -
+2025-06-01 19:19:32,161 - __main__ - ERROR - OPENAI_API_KEY not found in environment variables!
+2025-06-01 19:20:07,909 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:20:07,993 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:20:08,726 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:20:08,860 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:20:08,884 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:20:08,886 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:20:21,966 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:20:22,041 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:20:22,748 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:20:22,865 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:20:22,874 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:20:22,878 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:20:30,740 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:20:30,873 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:20:30,890 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 19:20:30,890 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 19:20:30,893 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:20:31,491 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:20:31,612 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:20:31,628 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:20:31,630 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:20:38,805 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:20:38] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:20:40,843 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:20:40,862 - __main__ - INFO - Created memory for agent 10: {'id': 53, 'agent_id': 10, 'memory_type': 'SHORT_TERM_MEMORY', 'start_prompt': 'You are a Databricks Agent and know Spark very well', 'end_prompt': 'Have a Unit Test to verify your code', 'context': None, 'created_at': datetime.datetime(2025, 6, 1, 19, 20, 40), 'updated_at': datetime.datetime(2025, 6, 1, 19, 20, 40)}
+2025-06-01 19:20:40,864 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:20:40,865 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:20:40] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:20:42,895 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:20:42,915 - __main__ - INFO - Created memory for agent 10: {'id': 54, 'agent_id': 10, 'memory_type': 'LONG_TERM_MEMORY', 'start_prompt': None, 'end_prompt': None, 'context': 'Apache Spark & Databricks best practices', 'created_at': datetime.datetime(2025, 6, 1, 19, 20, 42), 'updated_at': datetime.datetime(2025, 6, 1, 19, 20, 42)}
+2025-06-01 19:20:42,917 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:20:42,918 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:20:42] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:20:44,947 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:20:44] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:20:46,984 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/tools/5
+2025-06-01 19:20:46,984 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:20:46] "[33mGET /api/tools/5 HTTP/1.1[0m" 404 -
+2025-06-01 19:20:49,004 - __main__ - INFO - Starting execution of send_agent_message
+2025-06-01 19:20:49,004 - __main__ - INFO - Initializing agent 10 from database...
+2025-06-01 19:20:49,004 - __main__ - INFO - Set conversation ID: 4e3d0fe5-e5bf-4281-8c7c-3ed5fb36676c
+2025-06-01 19:20:49,004 - __main__ - INFO - Storing initial message in database...
+2025-06-01 19:20:49,021 - __main__ - ERROR - Database error storing message: 1048 (23000): Column 'sender_id' cannot be null
+Traceback (most recent call last):
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 772, in cmd_query
+    self._cmysql.query(
+_mysql_connector.MySQLInterfaceError: Column 'sender_id' cannot be null
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\multi-agentic-system\python-ml\app.py", line 986, in send_agent_message
+    cursor.execute(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\cursor_cext.py", line 356, in execute
+    self._connection.cmd_query(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\opentelemetry\context_propagation.py", line 97, in wrapper
+    return method(cnx, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 781, in cmd_query
+    raise get_mysql_exception(
+mysql.connector.errors.IntegrityError: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:20:49,026 - __main__ - ERROR - Error in send_agent_message: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:20:49,027 - __main__ - INFO - Completed execution of send_agent_message
+2025-06-01 19:20:49,029 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:20:49] "[35m[1mPOST /api/ml/agent/10/send HTTP/1.1[0m" 500 -
+2025-06-01 19:21:06,024 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:21:06] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:21:08,061 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:21:08,078 - __main__ - INFO - Created memory for agent 10: {'id': 55, 'agent_id': 10, 'memory_type': 'SHORT_TERM_MEMORY', 'start_prompt': 'You are a Databricks Agent and know Spark very well', 'end_prompt': 'Have a Unit Test to verify your code', 'context': None, 'created_at': datetime.datetime(2025, 6, 1, 19, 21, 8), 'updated_at': datetime.datetime(2025, 6, 1, 19, 21, 8)}
+2025-06-01 19:21:08,080 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:21:08,081 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:21:08] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:21:10,108 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:21:10,130 - __main__ - INFO - Created memory for agent 10: {'id': 56, 'agent_id': 10, 'memory_type': 'LONG_TERM_MEMORY', 'start_prompt': None, 'end_prompt': None, 'context': 'Apache Spark & Databricks best practices', 'created_at': datetime.datetime(2025, 6, 1, 19, 21, 10), 'updated_at': datetime.datetime(2025, 6, 1, 19, 21, 10)}
+2025-06-01 19:21:10,130 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:21:10,130 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:21:10] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:21:12,181 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:21:12] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:21:14,217 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/tools/5
+2025-06-01 19:21:14,217 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:21:14] "[33mGET /api/tools/5 HTTP/1.1[0m" 404 -
+2025-06-01 19:21:16,255 - __main__ - INFO - Starting execution of send_agent_message
+2025-06-01 19:21:16,255 - __main__ - INFO - Initializing agent 10 from database...
+2025-06-01 19:21:16,255 - __main__ - INFO - Set conversation ID: 5c2317e3-4643-4644-9df0-3b0eca73c924
+2025-06-01 19:21:16,255 - __main__ - INFO - Storing initial message in database...
+2025-06-01 19:21:16,265 - __main__ - ERROR - Database error storing message: 1048 (23000): Column 'sender_id' cannot be null
+Traceback (most recent call last):
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 772, in cmd_query
+    self._cmysql.query(
+_mysql_connector.MySQLInterfaceError: Column 'sender_id' cannot be null
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\multi-agentic-system\python-ml\app.py", line 986, in send_agent_message
+    cursor.execute(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\cursor_cext.py", line 356, in execute
+    self._connection.cmd_query(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\opentelemetry\context_propagation.py", line 97, in wrapper
+    return method(cnx, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 781, in cmd_query
+    raise get_mysql_exception(
+mysql.connector.errors.IntegrityError: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:21:16,267 - __main__ - ERROR - Error in send_agent_message: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:21:16,268 - __main__ - INFO - Completed execution of send_agent_message
+2025-06-01 19:21:16,269 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:21:16] "[35m[1mPOST /api/ml/agent/10/send HTTP/1.1[0m" 500 -
+2025-06-01 19:23:06,152 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:23:06] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:23:08,202 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:23:08,219 - __main__ - INFO - Created memory for agent 10: {'id': 57, 'agent_id': 10, 'memory_type': 'SHORT_TERM_MEMORY', 'start_prompt': 'You are a Databricks Agent and know Spark very well', 'end_prompt': 'Have a Unit Test to verify your code', 'context': None, 'created_at': datetime.datetime(2025, 6, 1, 19, 23, 8), 'updated_at': datetime.datetime(2025, 6, 1, 19, 23, 8)}
+2025-06-01 19:23:08,222 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:23:08,223 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:23:08] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:23:10,270 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:23:10,289 - __main__ - INFO - Created memory for agent 10: {'id': 58, 'agent_id': 10, 'memory_type': 'LONG_TERM_MEMORY', 'start_prompt': None, 'end_prompt': None, 'context': 'Apache Spark & Databricks best practices', 'created_at': datetime.datetime(2025, 6, 1, 19, 23, 10), 'updated_at': datetime.datetime(2025, 6, 1, 19, 23, 10)}
+2025-06-01 19:23:10,292 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:23:10,293 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:23:10] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:23:12,337 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:23:12] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:23:14,376 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/tools/5
+2025-06-01 19:23:14,376 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:23:14] "[33mGET /api/tools/5 HTTP/1.1[0m" 404 -
+2025-06-01 19:23:16,411 - __main__ - INFO - Starting execution of send_agent_message
+2025-06-01 19:23:16,411 - __main__ - INFO - Initializing agent 10 from database...
+2025-06-01 19:23:16,411 - __main__ - INFO - Set conversation ID: 8b2f8b39-5788-4e4e-a448-ce9d57d223d0
+2025-06-01 19:23:16,411 - __main__ - INFO - Storing initial message in database...
+2025-06-01 19:23:16,420 - __main__ - ERROR - Database error storing message: 1048 (23000): Column 'sender_id' cannot be null
+Traceback (most recent call last):
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 772, in cmd_query
+    self._cmysql.query(
+_mysql_connector.MySQLInterfaceError: Column 'sender_id' cannot be null
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\multi-agentic-system\python-ml\app.py", line 986, in send_agent_message
+    cursor.execute(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\cursor_cext.py", line 356, in execute
+    self._connection.cmd_query(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\opentelemetry\context_propagation.py", line 97, in wrapper
+    return method(cnx, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 781, in cmd_query
+    raise get_mysql_exception(
+mysql.connector.errors.IntegrityError: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:23:16,423 - __main__ - ERROR - Error in send_agent_message: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:23:16,424 - __main__ - INFO - Completed execution of send_agent_message
+2025-06-01 19:23:16,425 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:23:16] "[35m[1mPOST /api/ml/agent/10/send HTTP/1.1[0m" 500 -
+2025-06-01 19:24:54,338 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:24:54,439 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:24:55,173 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:24:55,310 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:24:55,329 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:24:55,331 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:25:18,295 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:25:18,432 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:25:18,459 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 19:25:18,460 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 19:25:18,462 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:25:19,059 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:25:19,199 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:25:19,215 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:25:19,224 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:25:35,139 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:25:35] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:25:37,176 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:25:37,196 - __main__ - INFO - Created memory for agent 10: {'id': 59, 'agent_id': 10, 'memory_type': 'SHORT_TERM_MEMORY', 'start_prompt': 'You are a Databricks Agent and know Spark very well', 'end_prompt': 'Have a Unit Test to verify your code', 'context': None, 'created_at': datetime.datetime(2025, 6, 1, 19, 25, 37), 'updated_at': datetime.datetime(2025, 6, 1, 19, 25, 37)}
+2025-06-01 19:25:37,199 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:25:37,200 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:25:37] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:25:39,213 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:25:39,233 - __main__ - INFO - Created memory for agent 10: {'id': 60, 'agent_id': 10, 'memory_type': 'LONG_TERM_MEMORY', 'start_prompt': None, 'end_prompt': None, 'context': 'Apache Spark & Databricks best practices', 'created_at': datetime.datetime(2025, 6, 1, 19, 25, 39), 'updated_at': datetime.datetime(2025, 6, 1, 19, 25, 39)}
+2025-06-01 19:25:39,236 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:25:39,236 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:25:39] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:25:41,265 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:25:41] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:25:43,297 - __main__ - ERROR - Error fetching tool 5: 1054 (42S22): Unknown column 'type' in 'field list'
+2025-06-01 19:25:43,297 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:25:43] "[35m[1mGET /api/tools/5 HTTP/1.1[0m" 500 -
+2025-06-01 19:25:45,363 - __main__ - INFO - Starting execution of send_agent_message
+2025-06-01 19:25:45,363 - __main__ - INFO - Initializing agent 10 from database...
+2025-06-01 19:25:45,363 - __main__ - INFO - Set conversation ID: 8edeafde-d082-4acf-a4ce-690cbae8d6b4
+2025-06-01 19:25:45,363 - __main__ - INFO - Storing initial message in database...
+2025-06-01 19:25:45,371 - __main__ - ERROR - Database error storing message: 1048 (23000): Column 'sender_id' cannot be null
+Traceback (most recent call last):
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 772, in cmd_query
+    self._cmysql.query(
+_mysql_connector.MySQLInterfaceError: Column 'sender_id' cannot be null
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\multi-agentic-system\python-ml\app.py", line 986, in send_agent_message
+    cursor.execute(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\cursor_cext.py", line 356, in execute
+    self._connection.cmd_query(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\opentelemetry\context_propagation.py", line 97, in wrapper
+    return method(cnx, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 781, in cmd_query
+    raise get_mysql_exception(
+mysql.connector.errors.IntegrityError: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:25:45,375 - __main__ - ERROR - Error in send_agent_message: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:25:45,377 - __main__ - INFO - Completed execution of send_agent_message
+2025-06-01 19:25:45,377 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:25:45] "[35m[1mPOST /api/ml/agent/10/send HTTP/1.1[0m" 500 -
+2025-06-01 19:26:31,706 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:26:31,807 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:26:32,537 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:26:32,669 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:26:32,670 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:26:32,682 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:27:20,910 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:27:21,029 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:27:21,816 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:27:21,943 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:27:21,954 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:27:21,957 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:27:36,064 - __main__ - ERROR - OPENAI_API_KEY not found in environment variables!
+2025-06-01 19:27:36,166 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:27:36,184 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 19:27:36,184 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 19:27:36,184 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:27:36,848 - __main__ - ERROR - OPENAI_API_KEY not found in environment variables!
+2025-06-01 19:27:36,947 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:27:36,968 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:27:36,969 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:32:08,530 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:32:08,647 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:32:09,476 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:32:09,611 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:32:09,633 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:32:09,642 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:32:09,653 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:32:36,785 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:32:36,894 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:32:37,680 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:32:37,862 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:32:37,883 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:32:37,898 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:32:37,902 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:32:56,011 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:32:56,169 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:32:56,814 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:32:56,959 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:32:56,989 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:32:57,000 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:32:57,003 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:33:04,776 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:33:04] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:33:06,826 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:33:06,846 - __main__ - INFO - Created memory for agent 10: {'id': 61, 'agent_id': 10, 'memory_type': 'SHORT_TERM_MEMORY', 'start_prompt': 'You are a Databricks Agent and know Spark very well', 'end_prompt': 'Have a Unit Test to verify your code', 'context': None, 'created_at': datetime.datetime(2025, 6, 1, 19, 33, 6), 'updated_at': datetime.datetime(2025, 6, 1, 19, 33, 6)}
+2025-06-01 19:33:06,848 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:33:06,848 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:33:06] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:33:08,880 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:33:08,900 - __main__ - INFO - Created memory for agent 10: {'id': 62, 'agent_id': 10, 'memory_type': 'LONG_TERM_MEMORY', 'start_prompt': None, 'end_prompt': None, 'context': 'Apache Spark & Databricks best practices', 'created_at': datetime.datetime(2025, 6, 1, 19, 33, 8), 'updated_at': datetime.datetime(2025, 6, 1, 19, 33, 8)}
+2025-06-01 19:33:08,903 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:33:08,904 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:33:08] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:33:10,931 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:33:10] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:33:12,951 - __main__ - ERROR - Error fetching tool 5: 1054 (42S22): Unknown column 'type' in 'field list'
+2025-06-01 19:33:12,951 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:33:12] "[35m[1mGET /api/tools/5 HTTP/1.1[0m" 500 -
+2025-06-01 19:33:14,974 - __main__ - INFO - Starting execution of send_agent_message
+2025-06-01 19:33:14,975 - __main__ - INFO - Received request data: {'message': '\n# You are part of Team 27 to complete execution of any task.\n# You are an intelligent agent named Databricks Agent 10. \n\n# The agent memory is created with both types:\nagent_memory = {\n    \'SHORT_TERM_MEMORY\': {\n        \'start_prompt\': \'You are a Databricks Agent and know Spark very well\',\n        \'end_prompt\': \'Have a Unit Test to verify your code\'\n    },\n    \'LONG_TERM_MEMORY\': {\n        \'context\': \'Apache Spark & Databricks best practices\'\n    }\n}\n\n# Tools added to agent\'s tools list [5]:\ndbx_tool_5 = {\n    \'tool_name\': \'Tool 5\',\n    \'tool_type\': \'Unknown\',\n    \'hostname\': \'unknown\',\n    \'auth_method\': \'unknown\'\n}\n\nUser\'s request: "How to implement a Spark DataFrame transformation?"\n\nConsidering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.\n# If execution needs multiple steps, send instructions.\n# Leverage workflow service if needed.\n', 'interaction_type': 'direct', 'team_id': 27}
+2025-06-01 19:33:14,976 - __main__ - INFO - Initializing agent 10 from database...
+2025-06-01 19:33:14,981 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 19:33:14,983 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 19:33:14,983 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 19:33:14,985 - __main__ - INFO - Agent details: id=10, name=DBx Agents, memory_type=Graph
+2025-06-01 19:33:14,986 - __main__ - INFO - Agent tools: ['DBx Tool']
+2025-06-01 19:33:14,986 - __main__ - INFO - Set conversation ID: 2f5d8b79-0fb1-416e-8809-bc1afd39784d
+2025-06-01 19:33:14,987 - __main__ - INFO - Storing initial message in database...
+2025-06-01 19:33:14,989 - __main__ - ERROR - Database error storing message: 1048 (23000): Column 'sender_id' cannot be null
+Traceback (most recent call last):
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 772, in cmd_query
+    self._cmysql.query(
+_mysql_connector.MySQLInterfaceError: Column 'sender_id' cannot be null
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\multi-agentic-system\python-ml\app.py", line 1040, in send_agent_message
+    cursor.execute(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\cursor_cext.py", line 356, in execute
+    self._connection.cmd_query(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\opentelemetry\context_propagation.py", line 97, in wrapper
+    return method(cnx, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 781, in cmd_query
+    raise get_mysql_exception(
+mysql.connector.errors.IntegrityError: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:33:14,994 - __main__ - ERROR - Error in send_agent_message: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:33:14,995 - __main__ - INFO - Completed execution of send_agent_message
+2025-06-01 19:33:14,995 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:33:14] "[35m[1mPOST /api/ml/agent/10/send HTTP/1.1[0m" 500 -
+2025-06-01 19:35:14,876 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:35:15,075 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:35:15,820 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:35:15,973 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:35:15,995 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:35:16,011 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:35:16,014 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:35:45,208 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:35:45,311 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:35:45,979 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:35:46,140 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:35:46,156 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:35:46,166 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:35:46,170 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:36:19,296 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:36:19,381 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:36:20,081 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:36:20,247 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:36:20,270 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:36:20,280 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:36:20,284 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:36:35,387 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:36:35,484 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:36:36,163 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:36:36,306 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:36:36,325 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:36:36,337 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:36:36,340 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:36:44,621 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:36:44] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:36:46,651 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:36:46,669 - __main__ - INFO - Created memory for agent 10: {'id': 63, 'agent_id': 10, 'memory_type': 'SHORT_TERM_MEMORY', 'start_prompt': 'You are a Databricks Agent and know Spark very well', 'end_prompt': 'Have a Unit Test to verify your code', 'context': None, 'created_at': datetime.datetime(2025, 6, 1, 19, 36, 46), 'updated_at': datetime.datetime(2025, 6, 1, 19, 36, 46)}
+2025-06-01 19:36:46,672 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:36:46,672 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:36:46] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:36:48,705 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:36:48,724 - __main__ - INFO - Created memory for agent 10: {'id': 64, 'agent_id': 10, 'memory_type': 'LONG_TERM_MEMORY', 'start_prompt': None, 'end_prompt': None, 'context': 'Apache Spark & Databricks best practices', 'created_at': datetime.datetime(2025, 6, 1, 19, 36, 48), 'updated_at': datetime.datetime(2025, 6, 1, 19, 36, 48)}
+2025-06-01 19:36:48,726 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:36:48,727 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:36:48] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:36:50,773 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:36:50] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:36:52,811 - __main__ - ERROR - Error fetching tool 5: 1054 (42S22): Unknown column 'type' in 'field list'
+2025-06-01 19:36:52,811 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:36:52] "[35m[1mGET /api/tools/5 HTTP/1.1[0m" 500 -
+2025-06-01 19:36:54,831 - __main__ - INFO - Starting execution of send_agent_message
+2025-06-01 19:36:54,831 - __main__ - INFO - [send_agent_message] Received request data: {'message': '\n# You are part of Team 27 to complete execution of any task.\n# You are an intelligent agent named Databricks Agent 10. \n\n# The agent memory is created with both types:\nagent_memory = {\n    \'SHORT_TERM_MEMORY\': {\n        \'start_prompt\': \'You are a Databricks Agent and know Spark very well\',\n        \'end_prompt\': \'Have a Unit Test to verify your code\'\n    },\n    \'LONG_TERM_MEMORY\': {\n        \'context\': \'Apache Spark & Databricks best practices\'\n    }\n}\n\n# Tools added to agent\'s tools list [5]:\ndbx_tool_5 = {\n    \'tool_name\': \'Tool 5\',\n    \'tool_type\': \'Unknown\',\n    \'hostname\': \'unknown\',\n    \'auth_method\': \'unknown\'\n}\n\nUser\'s request: "How to implement a Spark DataFrame transformation?"\n\nConsidering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.\n# If execution needs multiple steps, send instructions.\n# Leverage workflow service if needed.\n', 'interaction_type': 'direct', 'team_id': 27}
+2025-06-01 19:36:54,831 - __main__ - INFO - [send_agent_message] Initializing agent 10 from database...
+2025-06-01 19:36:54,847 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 19:36:54,850 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 19:36:54,850 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 19:36:54,853 - __main__ - INFO - [send_agent_message] Agent details: id=10, name=DBx Agents, memory_type=Graph
+2025-06-01 19:36:54,854 - __main__ - INFO - [send_agent_message] Agent tools: ['DBx Tool']
+2025-06-01 19:36:54,854 - __main__ - INFO - [send_agent_message] Set conversation ID: cc8543c8-706c-43ad-8ebe-7e142f2fbc7b
+2025-06-01 19:36:54,855 - __main__ - INFO - [send_agent_message] Storing initial message in database...
+2025-06-01 19:36:54,856 - __main__ - ERROR - [send_agent_message] Database error storing message: 1048 (23000): Column 'sender_id' cannot be null
+Traceback (most recent call last):
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 772, in cmd_query
+    self._cmysql.query(
+_mysql_connector.MySQLInterfaceError: Column 'sender_id' cannot be null
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\multi-agentic-system\python-ml\app.py", line 1049, in send_agent_message
+    cursor.execute(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\cursor_cext.py", line 356, in execute
+    self._connection.cmd_query(
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\opentelemetry\context_propagation.py", line 97, in wrapper
+    return method(cnx, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\connection_cext.py", line 781, in cmd_query
+    raise get_mysql_exception(
+mysql.connector.errors.IntegrityError: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:36:54,861 - __main__ - ERROR - [send_agent_message] Unhandled error: 1048 (23000): Column 'sender_id' cannot be null
+2025-06-01 19:36:54,863 - __main__ - INFO - Completed execution of send_agent_message
+2025-06-01 19:36:54,863 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:36:54] "[35m[1mPOST /api/ml/agent/10/send HTTP/1.1[0m" 500 -
+2025-06-01 19:40:12,760 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:40:12,880 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:40:13,660 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:40:13,793 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:40:13,998 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:40:14,016 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:40:14,019 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:41:16,644 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:41:16,790 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:41:16,875 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:41:16,889 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 19:41:16,889 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 19:41:16,890 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:41:17,537 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:41:17,690 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:41:17,784 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:41:17,792 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:41:17,799 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:41:23,874 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:41:23] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:41:25,926 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:41:25,932 - __main__ - INFO - Created memory for agent 10: {'id': 65, 'agent_id': 10, 'memory_type': 'SHORT_TERM_MEMORY', 'start_prompt': 'You are a Databricks Agent and know Spark very well', 'end_prompt': 'Have a Unit Test to verify your code', 'context': None, 'created_at': datetime.datetime(2025, 6, 1, 19, 41, 25), 'updated_at': datetime.datetime(2025, 6, 1, 19, 41, 25)}
+2025-06-01 19:41:25,940 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:41:25,940 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:41:25] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:41:27,961 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:41:27,961 - __main__ - INFO - Created memory for agent 10: {'id': 66, 'agent_id': 10, 'memory_type': 'LONG_TERM_MEMORY', 'start_prompt': None, 'end_prompt': None, 'context': 'Apache Spark & Databricks best practices', 'created_at': datetime.datetime(2025, 6, 1, 19, 41, 27), 'updated_at': datetime.datetime(2025, 6, 1, 19, 41, 27)}
+2025-06-01 19:41:27,976 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:41:27,977 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:41:27] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:41:30,040 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:41:30] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:41:32,072 - __main__ - ERROR - Error fetching tool 5: 1054 (42S22): Unknown column 'type' in 'field list'
+2025-06-01 19:41:32,075 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:41:32] "[35m[1mGET /api/tools/5 HTTP/1.1[0m" 500 -
+2025-06-01 19:41:34,115 - __main__ - INFO - Starting execution of send_agent_message
+2025-06-01 19:41:34,115 - __main__ - INFO - [send_agent_message] Received request data: {'message': '\n# You are part of Team 27 to complete execution of any task.\n# You are an intelligent agent named Databricks Agent 10. \n\n# The agent memory is created with both types:\nagent_memory = {\n    \'SHORT_TERM_MEMORY\': {\n        \'start_prompt\': \'You are a Databricks Agent and know Spark very well\',\n        \'end_prompt\': \'Have a Unit Test to verify your code\'\n    },\n    \'LONG_TERM_MEMORY\': {\n        \'context\': \'Apache Spark & Databricks best practices\'\n    }\n}\n\n# Tools added to agent\'s tools list [5]:\ndbx_tool_5 = {\n    \'tool_name\': \'Tool 5\',\n    \'tool_type\': \'Unknown\',\n    \'hostname\': \'unknown\',\n    \'auth_method\': \'unknown\'\n}\n\nUser\'s request: "How to implement a Spark DataFrame transformation?"\n\nConsidering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.\n# If execution needs multiple steps, send instructions.\n# Leverage workflow service if needed.\n', 'interaction_type': 'direct', 'team_id': 27}
+2025-06-01 19:41:34,115 - __main__ - INFO - [send_agent_message] Initializing agent 10 from database...
+2025-06-01 19:41:34,115 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 19:41:34,128 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 19:41:34,130 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 19:41:34,132 - __main__ - INFO - [send_agent_message] Agent details: id=10, name=DBx Agents, memory_type=Graph
+2025-06-01 19:41:34,133 - __main__ - INFO - [send_agent_message] Agent tools: ['DBx Tool']
+2025-06-01 19:41:34,133 - __main__ - INFO - [send_agent_message] Set conversation ID: dacfbf1c-5c6f-4043-b795-edf913f27fde
+2025-06-01 19:41:34,134 - __main__ - INFO - [send_agent_message] Storing initial message in database...
+2025-06-01 19:41:34,149 - __main__ - INFO - [send_agent_message] Message stored successfully
+2025-06-01 19:41:34,151 - __main__ - INFO - [send_agent_message] Processing message with foundation model...
+2025-06-01 19:41:34,151 - __main__ - INFO - [send_agent_message] Formatted messages for LLM: [{'role': 'system', 'content': 'You are DBx Agents, an AI agent with Graph memory type. You have access to the following tools: DBx Tool.'}, {'role': 'user', 'content': '\n# You are part of Team 27 to complete execution of any task.\n# You are an intelligent agent named Databricks Agent 10. \n\n# The agent memory is created with both types:\nagent_memory = {\n    \'SHORT_TERM_MEMORY\': {\n        \'start_prompt\': \'You are a Databricks Agent and know Spark very well\',\n        \'end_prompt\': \'Have a Unit Test to verify your code\'\n    },\n    \'LONG_TERM_MEMORY\': {\n        \'context\': \'Apache Spark & Databricks best practices\'\n    }\n}\n\n# Tools added to agent\'s tools list [5]:\ndbx_tool_5 = {\n    \'tool_name\': \'Tool 5\',\n    \'tool_type\': \'Unknown\',\n    \'hostname\': \'unknown\',\n    \'auth_method\': \'unknown\'\n}\n\nUser\'s request: "How to implement a Spark DataFrame transformation?"\n\nConsidering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.\n# If execution needs multiple steps, send instructions.\n# Leverage workflow service if needed.\n'}]
+2025-06-01 19:41:34,152 - __main__ - INFO - [send_agent_message] Agent state before execution: memories=22, tools=1
+2025-06-01 19:41:34,153 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: 
+# You are part of Team 27 to complete execution of any task.
+# You are an intelligent agent named Databricks Agent 10. 
+
+# The agent memory is created with both types:
+agent_memory = {
+    'SHORT_TERM_MEMORY': {
+        'start_prompt': 'You are a Databricks Agent and know Spark very well',
+        'end_prompt': 'Have a Unit Test to verify your code'
+    },
+    'LONG_TERM_MEMORY': {
+        'context': 'Apache Spark & Databricks best practices'
+    }
+}
+
+# Tools added to agent's tools list [5]:
+dbx_tool_5 = {
+    'tool_name': 'Tool 5',
+    'tool_type': 'Unknown',
+    'hostname': 'unknown',
+    'auth_method': 'unknown'
+}
+
+User's request: "How to implement a Spark DataFrame transformation?"
+
+Considering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.
+# If execution needs multiple steps, send instructions.
+# Leverage workflow service if needed.
+
+2025-06-01 19:41:34,154 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 19:41:34,154 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 19:41:34,154 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-01 19:41:48,412 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 19:41:48,425 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-01 19:41:48,425 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 19:41:48,425 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 19:41:48,433 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-01 19:41:48,433 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 19:41:48,433 - __main__ - INFO - [send_agent_message] Foundation model processing complete
+2025-06-01 19:41:48,434 - __main__ - INFO - [send_agent_message] Storing model response in database...
+2025-06-01 19:41:48,440 - __main__ - INFO - [send_agent_message] Model response stored successfully
+2025-06-01 19:41:48,441 - __main__ - INFO - [send_agent_message] Successfully completed message processing
+2025-06-01 19:41:48,442 - __main__ - INFO - Completed execution of send_agent_message
+2025-06-01 19:41:48,442 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:41:48] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 19:42:52,458 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:42:52,593 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:42:53,259 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:42:53,423 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:42:53,522 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:42:53,535 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:42:53,540 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:42:56,577 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:42:56,669 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:42:57,324 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:42:57,474 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:42:57,556 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:42:57,575 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:42:57,578 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:45:27,674 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:45:27,786 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:45:28,558 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:45:28,706 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:45:28,800 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:45:28,811 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:45:28,816 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:46:19,077 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:46:19,212 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:46:19,956 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:46:20,124 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:46:20,230 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:46:20,230 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:46:20,249 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:46:44,344 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:46:44,489 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:46:44,582 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:46:44,598 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 19:46:44,598 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 19:46:44,599 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:46:45,283 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:46:45,465 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:46:45,583 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:46:45,598 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:46:45,609 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:46:57,716 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:46:57,816 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:46:58,485 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:46:58,632 - __main__ - INFO - Database connection pool initialized successfully
+2025-06-01 19:46:58,718 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:46:58,730 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:46:58,734 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:47:02,232 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:47:02] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:47:04,260 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:47:04,278 - __main__ - INFO - Created memory for agent 10: {'id': 67, 'agent_id': 10, 'memory_type': 'SHORT_TERM_MEMORY', 'start_prompt': 'You are a Databricks Agent and know Spark very well', 'end_prompt': 'Have a Unit Test to verify your code', 'context': None, 'created_at': datetime.datetime(2025, 6, 1, 19, 47, 4), 'updated_at': datetime.datetime(2025, 6, 1, 19, 47, 4)}
+2025-06-01 19:47:04,281 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:47:04,282 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:47:04] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:47:06,312 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:47:06,337 - __main__ - INFO - Created memory for agent 10: {'id': 68, 'agent_id': 10, 'memory_type': 'LONG_TERM_MEMORY', 'start_prompt': None, 'end_prompt': None, 'context': 'Apache Spark & Databricks best practices', 'created_at': datetime.datetime(2025, 6, 1, 19, 47, 6), 'updated_at': datetime.datetime(2025, 6, 1, 19, 47, 6)}
+2025-06-01 19:47:06,338 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:47:06,339 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:47:06] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:47:08,381 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:47:08] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:47:10,427 - __main__ - ERROR - Error fetching tool 5: 1054 (42S22): Unknown column 'type' in 'field list'
+2025-06-01 19:47:10,429 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:47:10] "[35m[1mGET /api/tools/5 HTTP/1.1[0m" 500 -
+2025-06-01 19:47:12,465 - __main__ - INFO - Starting execution of send_agent_message
+2025-06-01 19:47:12,465 - __main__ - INFO - [send_agent_message] Received request data: {'message': '\n# You are part of Team 27 to complete execution of any task.\n# You are an intelligent agent named Databricks Agent 10. \n\n# The agent memory is created with both types:\nagent_memory = {\n    \'SHORT_TERM_MEMORY\': {\n        \'start_prompt\': \'You are a Databricks Agent and know Spark very well\',\n        \'end_prompt\': \'Have a Unit Test to verify your code\'\n    },\n    \'LONG_TERM_MEMORY\': {\n        \'context\': \'Apache Spark & Databricks best practices\'\n    }\n}\n\n# Tools added to agent\'s tools list [5]:\ndbx_tool_5 = {\n    \'tool_name\': \'Tool 5\',\n    \'tool_type\': \'Unknown\',\n    \'hostname\': \'unknown\',\n    \'auth_method\': \'unknown\'\n}\n\nUser\'s request: "How to implement a Spark DataFrame transformation?"\n\nConsidering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.\n# If execution needs multiple steps, send instructions.\n# Leverage workflow service if needed.\n', 'interaction_type': 'direct', 'team_id': 27}
+2025-06-01 19:47:12,465 - __main__ - INFO - [send_agent_message] Initializing agent 10 from database...
+2025-06-01 19:47:12,465 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 19:47:12,465 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 19:47:12,465 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 19:47:12,480 - __main__ - INFO - [send_agent_message] Agent details: id=10, name=DBx Agents, memory_type=Graph
+2025-06-01 19:47:12,481 - __main__ - INFO - [send_agent_message] Agent tools: ['DBx Tool']
+2025-06-01 19:47:12,481 - __main__ - INFO - [send_agent_message] Set conversation ID: c0ae5853-fcd7-47dd-a2be-97ecd5804bd4
+2025-06-01 19:47:12,482 - __main__ - INFO - [send_agent_message] Storing initial message in database...
+2025-06-01 19:47:12,483 - __main__ - INFO - [send_agent_message] Executing insert with values: (None, 10, '\n# You are part of Team 27 to complete execution of any task.\n# You are an intelligent agent named Databricks Agent 10. \n\n# The agent memory is created with both types:\nagent_memory = {\n    \'SHORT_TERM_MEMORY\': {\n        \'start_prompt\': \'You are a Databricks Agent and know Spark very well\',\n        \'end_prompt\': \'Have a Unit Test to verify your code\'\n    },\n    \'LONG_TERM_MEMORY\': {\n        \'context\': \'Apache Spark & Databricks best practices\'\n    }\n}\n\n# Tools added to agent\'s tools list [5]:\ndbx_tool_5 = {\n    \'tool_name\': \'Tool 5\',\n    \'tool_type\': \'Unknown\',\n    \'hostname\': \'unknown\',\n    \'auth_method\': \'unknown\'\n}\n\nUser\'s request: "How to implement a Spark DataFrame transformation?"\n\nConsidering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.\n# If execution needs multiple steps, send instructions.\n# Leverage workflow service if needed.\n', 'direct', 'c0ae5853-fcd7-47dd-a2be-97ecd5804bd4', 27, 'pending')
+2025-06-01 19:47:12,488 - __main__ - INFO - [send_agent_message] Message inserted with ID: 1
+2025-06-01 19:47:12,493 - __main__ - INFO - [send_agent_message] Message stored and committed successfully
+2025-06-01 19:47:12,493 - __main__ - INFO - [send_agent_message] Processing message with foundation model...
+2025-06-01 19:47:12,493 - __main__ - INFO - [send_agent_message] Formatted messages for LLM: [{'role': 'system', 'content': 'You are DBx Agents, an AI agent with Graph memory type. You have access to the following tools: DBx Tool.'}, {'role': 'user', 'content': '\n# You are part of Team 27 to complete execution of any task.\n# You are an intelligent agent named Databricks Agent 10. \n\n# The agent memory is created with both types:\nagent_memory = {\n    \'SHORT_TERM_MEMORY\': {\n        \'start_prompt\': \'You are a Databricks Agent and know Spark very well\',\n        \'end_prompt\': \'Have a Unit Test to verify your code\'\n    },\n    \'LONG_TERM_MEMORY\': {\n        \'context\': \'Apache Spark & Databricks best practices\'\n    }\n}\n\n# Tools added to agent\'s tools list [5]:\ndbx_tool_5 = {\n    \'tool_name\': \'Tool 5\',\n    \'tool_type\': \'Unknown\',\n    \'hostname\': \'unknown\',\n    \'auth_method\': \'unknown\'\n}\n\nUser\'s request: "How to implement a Spark DataFrame transformation?"\n\nConsidering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.\n# If execution needs multiple steps, send instructions.\n# Leverage workflow service if needed.\n'}]
+2025-06-01 19:47:12,494 - __main__ - INFO - [send_agent_message] Agent state before execution: memories=24, tools=1
+2025-06-01 19:47:12,494 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: 
+# You are part of Team 27 to complete execution of any task.
+# You are an intelligent agent named Databricks Agent 10. 
+
+# The agent memory is created with both types:
+agent_memory = {
+    'SHORT_TERM_MEMORY': {
+        'start_prompt': 'You are a Databricks Agent and know Spark very well',
+        'end_prompt': 'Have a Unit Test to verify your code'
+    },
+    'LONG_TERM_MEMORY': {
+        'context': 'Apache Spark & Databricks best practices'
+    }
+}
+
+# Tools added to agent's tools list [5]:
+dbx_tool_5 = {
+    'tool_name': 'Tool 5',
+    'tool_type': 'Unknown',
+    'hostname': 'unknown',
+    'auth_method': 'unknown'
+}
+
+User's request: "How to implement a Spark DataFrame transformation?"
+
+Considering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.
+# If execution needs multiple steps, send instructions.
+# Leverage workflow service if needed.
+
+2025-06-01 19:47:12,495 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 19:47:12,496 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 19:47:12,496 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-01 19:47:26,654 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 19:47:26,654 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-01 19:47:26,662 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 19:47:26,662 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 19:47:26,663 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-01 19:47:26,663 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 19:47:26,663 - __main__ - INFO - [send_agent_message] Foundation model processing complete
+2025-06-01 19:47:26,664 - __main__ - INFO - [send_agent_message] Storing model response in database...
+2025-06-01 19:47:26,664 - __main__ - INFO - [send_agent_message] Executing update with values: ('To execute a Spark DataFrame transformation, we will not require the usage of the DBx tool from the agent\'s tool list. The transformation can be implemented directly using Apache Spark\'s DataFrame API. Here are the steps for execution:\n\n1. First, initialize your SparkSession. A SparkSession is an entry point to any spark functionality:\n```python\nfrom pyspark.sql import SparkSession\nspark = SparkSession.builder.appName("DataFrame Transformation").getOrCreate()\n```\n2. Load your data into a DataFrame. This can be done from a variety of sources, but for simplicity, we will use a CSV file:\n```python\ndf = spark.read.csv("path_to_your_file.csv", header=True, inferSchema=True)\n```\n3. Now you can perform a transformation on your DataFrame. For example, let\'s filter the rows where a certain column, \'column1\', is greater than 50:\n```python\ndf_transformed = df.filter(df.column1 > 50)\n```\n4. As a best practice, we ought to validate our transformations through Unit Testing:\n```python\ndef test_dataframe_transformation():\n    # Assume\n    expected_output = [Row(column1=51), Row(column1=60), Row(column1=70)]\n    # Action\n    df_test = spark.createDataFrame([(50,), (51,), (60,), (70,)], [\'column1\'])\n    df_test_transformed = df_test.filter(df_test.column1 > 50)\n    # Assert\n    assert df_test_transformed.collect() == expected_output\ntest_dataframe_transformation()\n```\nReplace \'column1\' and 50 with your own column name and condition respectively.\n\nAlways remember, transformations in Spark are lazy, meaning they do not compute their results right away. They just remember the transformations applied to some base dataset (e.g., a file). The transformations are only computed when an action requires a result to be returned to the driver program.\n\nIf your process involves multiple complex transformations and requires orchestration, consider using a workflow service like Apache Airflow. This can help manage and schedule your Spark jobs more efficiently.', '{"status": "success", "context": "Context: Apache Spark & Databricks best practices", "memory_type": "Graph", "llm_response": "To execute a Spark DataFrame transformation, we will not require the usage of the DBx tool from the agent\'s tool list. The transformation can be implemented directly using Apache Spark\'s DataFrame API. Here are the steps for execution:\\n\\n1. First, initialize your SparkSession. A SparkSession is an entry point to any spark functionality:\\n```python\\nfrom pyspark.sql import SparkSession\\nspark = SparkSession.builder.appName(\\"DataFrame Transformation\\").getOrCreate()\\n```\\n2. Load your data into a DataFrame. This can be done from a variety of sources, but for simplicity, we will use a CSV file:\\n```python\\ndf = spark.read.csv(\\"path_to_your_file.csv\\", header=True, inferSchema=True)\\n```\\n3. Now you can perform a transformation on your DataFrame. For example, let\'s filter the rows where a certain column, \'column1\', is greater than 50:\\n```python\\ndf_transformed = df.filter(df.column1 > 50)\\n```\\n4. As a best practice, we ought to validate our transformations through Unit Testing:\\n```python\\ndef test_dataframe_transformation():\\n    # Assume\\n    expected_output = [Row(column1=51), Row(column1=60), Row(column1=70)]\\n    # Action\\n    df_test = spark.createDataFrame([(50,), (51,), (60,), (70,)], [\'column1\'])\\n    df_test_transformed = df_test.filter(df_test.column1 > 50)\\n    # Assert\\n    assert df_test_transformed.collect() == expected_output\\ntest_dataframe_transformation()\\n```\\nReplace \'column1\' and 50 with your own column name and condition respectively.\\n\\nAlways remember, transformations in Spark are lazy, meaning they do not compute their results right away. They just remember the transformations applied to some base dataset (e.g., a file). The transformations are only computed when an action requires a result to be returned to the driver program.\\n\\nIf your process involves multiple complex transformations and requires orchestration, consider using a workflow service like Apache Airflow. This can help manage and schedule your Spark jobs more efficiently.", "model_used": "gpt-4", "tool_responses": [{"tool_id": 5, "tool_name": "DBx Tool", "tool_type": "DatabaseTool", "hostname": "db_hostname", "auth_method": "Basic", "command": "To execute a Spark DataFrame transformation, we will not require the usage of the DBx tool from the agent\'s tool list. The transformation can be implemented directly using Apache Spark\'s DataFrame API. Here are the steps for execution:\\n\\n1. First, initialize your SparkSession. A SparkSession is an entry point to any spark functionality:\\n```python\\nfrom pyspark.sql import SparkSession\\nspark = SparkSession.builder.appName(\\"DataFrame Transformation\\").getOrCreate()\\n```\\n2. Load your data into a DataFrame. This can be done from a variety of sources, but for simplicity, we will use a CSV file:\\n```python\\ndf = spark.read.csv(\\"path_to_your_file.csv\\", header=True, inferSchema=True)\\n```\\n3. Now you can perform a transformation on your DataFrame. For example, let\'s filter the rows where a certain column, \'column1\', is greater than 50:\\n```python\\ndf_transformed = df.filter(df.column1 > 50)\\n```\\n4. As a best practice, we ought to validate our transformations through Unit Testing:\\n```python\\ndef test_dataframe_transformation():\\n    # Assume\\n    expected_output = [Row(column1=51), Row(column1=60), Row(column1=70)]\\n    # Action\\n    df_test = spark.createDataFrame([(50,), (51,), (60,), (70,)], [\'column1\'])\\n    df_test_transformed = df_test.filter(df_test.column1 > 50)\\n    # Assert\\n    assert df_test_transformed.collect() == expected_output\\ntest_dataframe_transformation()\\n```\\nReplace \'column1\' and 50 with your own column name and condition respectively.\\n\\nAlways remember, transformations in Spark are lazy, meaning they do not compute their results right away. They just remember the transformations applied to some base dataset (e.g., a file). The transformations are only computed when an action requires a result to be returned to the driver program.\\n\\nIf your process involves multiple complex transformations and requires orchestration, consider using a workflow service like Apache Airflow. This can help manage and schedule your Spark jobs more efficiently.", "status": "success", "message": "Agent has successfully used the DBx Tool (DatabaseTool)", "database_specific": {"query_type": "simulated", "affected_rows": 0, "execution_time": "0.00s"}}], "validation_results": null}', 'c0ae5853-fcd7-47dd-a2be-97ecd5804bd4')
+2025-06-01 19:47:26,681 - __main__ - INFO - [send_agent_message] Model response stored and committed successfully
+2025-06-01 19:47:26,682 - __main__ - INFO - [send_agent_message] Successfully completed message processing
+2025-06-01 19:47:26,685 - __main__ - ERROR - Error in send_agent_message: Failed adding connection; queue is full
+2025-06-01 19:47:26,691 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:47:26] "[35m[1mPOST /api/ml/agent/10/send HTTP/1.1[0m" 500 -
+2025-06-01 19:49:10,531 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:49:10,652 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:49:11,329 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:49:11,393 - __main__ - ERROR - Error creating connection pool: Connection configuration not valid: Unsupported argument 'max_allowed_packet'
+Traceback (most recent call last):
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\pooling.py", line 532, in set_config
+    test_cnx.config(**kwargs)
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\abstracts.py", line 727, in config
+    raise AttributeError(f"Unsupported argument '{key}'") from None
+AttributeError: Unsupported argument 'max_allowed_packet'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\multi-agentic-system\python-ml\app.py", line 116, in <module>
+    connection_pool = mysql.connector.pooling.MySQLConnectionPool(**db_config)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\pooling.py", line 487, in __init__
+    self.set_config(**kwargs)
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\pooling.py", line 536, in set_config
+    raise PoolError(f"Connection configuration not valid: {err}") from err
+mysql.connector.errors.PoolError: Connection configuration not valid: Unsupported argument 'max_allowed_packet'
+2025-06-01 19:50:13,350 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:50:13,410 - __main__ - ERROR - Error creating connection pool: Connection configuration not valid: Unsupported argument 'max_allowed_packet'
+Traceback (most recent call last):
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\pooling.py", line 532, in set_config
+    test_cnx.config(**kwargs)
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\abstracts.py", line 727, in config
+    raise AttributeError(f"Unsupported argument '{key}'") from None
+AttributeError: Unsupported argument 'max_allowed_packet'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\multi-agentic-system\python-ml\app.py", line 116, in <module>
+    connection_pool = mysql.connector.pooling.MySQLConnectionPool(**db_config)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\pooling.py", line 487, in __init__
+    self.set_config(**kwargs)
+  File "C:\Users\krish\AppData\Local\Programs\Python\Python311\Lib\site-packages\mysql\connector\pooling.py", line 536, in set_config
+    raise PoolError(f"Connection configuration not valid: {err}") from err
+mysql.connector.errors.PoolError: Connection configuration not valid: Unsupported argument 'max_allowed_packet'
+2025-06-01 19:51:14,952 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:51:15,392 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 19:51:15,485 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:51:15,492 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 19:51:15,492 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 19:51:15,505 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:51:16,146 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:51:16,586 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 19:51:16,676 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:51:16,693 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:51:16,697 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 19:51:22,149 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:51:22] "POST /api/ml/agent/10/initialize HTTP/1.1" 200 -
+2025-06-01 19:51:24,185 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:51:24,207 - __main__ - INFO - Created memory for agent 10: {'id': 69, 'agent_id': 10, 'memory_type': 'SHORT_TERM_MEMORY', 'start_prompt': 'You are a Databricks Agent and know Spark very well', 'end_prompt': 'Have a Unit Test to verify your code', 'context': None, 'created_at': datetime.datetime(2025, 6, 1, 19, 51, 24), 'updated_at': datetime.datetime(2025, 6, 1, 19, 51, 24)}
+2025-06-01 19:51:24,210 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:51:24,211 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:51:24] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:51:26,221 - __main__ - INFO - Starting execution of create_agent_memory
+2025-06-01 19:51:26,236 - __main__ - INFO - Created memory for agent 10: {'id': 70, 'agent_id': 10, 'memory_type': 'LONG_TERM_MEMORY', 'start_prompt': None, 'end_prompt': None, 'context': 'Apache Spark & Databricks best practices', 'created_at': datetime.datetime(2025, 6, 1, 19, 51, 26), 'updated_at': datetime.datetime(2025, 6, 1, 19, 51, 26)}
+2025-06-01 19:51:26,238 - __main__ - INFO - Completed execution of create_agent_memory
+2025-06-01 19:51:26,238 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:51:26] "POST /api/ml/agent-memory HTTP/1.1" 200 -
+2025-06-01 19:51:28,266 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:51:28] "POST /api/ml/agent/10/tools HTTP/1.1" 200 -
+2025-06-01 19:51:30,307 - __main__ - ERROR - Error fetching tool 5: 1054 (42S22): Unknown column 'type' in 'field list'
+2025-06-01 19:51:30,307 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:51:30] "[35m[1mGET /api/tools/5 HTTP/1.1[0m" 500 -
+2025-06-01 19:51:32,343 - __main__ - INFO - Starting execution of send_agent_message
+2025-06-01 19:51:32,343 - __main__ - INFO - [send_agent_message] Received request data: {'message': '\n# You are part of Team 27 to complete execution of any task.\n# You are an intelligent agent named Databricks Agent 10. \n\n# The agent memory is created with both types:\nagent_memory = {\n    \'SHORT_TERM_MEMORY\': {\n        \'start_prompt\': \'You are a Databricks Agent and know Spark very well\',\n        \'end_prompt\': \'Have a Unit Test to verify your code\'\n    },\n    \'LONG_TERM_MEMORY\': {\n        \'context\': \'Apache Spark & Databricks best practices\'\n    }\n}\n\n# Tools added to agent\'s tools list [5]:\ndbx_tool_5 = {\n    \'tool_name\': \'Tool 5\',\n    \'tool_type\': \'Unknown\',\n    \'hostname\': \'unknown\',\n    \'auth_method\': \'unknown\'\n}\n\nUser\'s request: "How to implement a Spark DataFrame transformation?"\n\nConsidering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.\n# If execution needs multiple steps, send instructions.\n# Leverage workflow service if needed.\n', 'interaction_type': 'direct', 'team_id': 27}
+2025-06-01 19:51:32,343 - __main__ - INFO - [send_agent_message] Initializing agent 10 from database...
+2025-06-01 19:51:32,359 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 19:51:32,362 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 19:51:32,363 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 19:51:32,366 - __main__ - INFO - [send_agent_message] Agent details: id=10, name=DBx Agents, memory_type=Graph
+2025-06-01 19:51:32,367 - __main__ - INFO - [send_agent_message] Agent tools: ['DBx Tool']
+2025-06-01 19:51:32,367 - __main__ - INFO - [send_agent_message] Set conversation ID: 833665bd-5d35-4407-a10e-45fc7785fb68
+2025-06-01 19:51:32,369 - __main__ - INFO - [send_agent_message] Storing initial message in database...
+2025-06-01 19:51:32,372 - __main__ - INFO - [send_agent_message] Executing insert with values: (None, 10, '\n# You are part of Team 27 to complete execution of any task.\n# You are an intelligent agent named Databricks Agent 10. \n\n# The agent memory is created with both types:\nagent_memory = {\n    \'SHORT_TERM_MEMORY\': {\n        \'start_prompt\': \'You are a Databricks Agent and know Spark very well\',\n        \'end_prompt\': \'Have a Unit Test to verify your code\'\n    },\n    \'LONG_TERM_MEMORY\': {\n        \'context\': \'Apache Spark & Databricks best practices\'\n    }\n}\n\n# Tools added to agent\'s tools list [5]:\ndbx_tool_5 = {\n    \'tool_name\': \'Tool 5\',\n    \'tool_type\': \'Unknown\',\n    \'hostname\': \'unknown\',\n    \'auth_method\': \'unknown\'\n}\n\nUser\'s request: "How to implement a Spark DataFrame transformation?"\n\nConsidering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.\n# If execution needs multiple steps, send instructions.\n# Leverage workflow service if needed.\n', 'direct', '833665bd-5d35-4407-a10e-45fc7785fb68', 27, 'pending')
+2025-06-01 19:51:32,376 - __main__ - INFO - [send_agent_message] Message inserted with ID: 1
+2025-06-01 19:51:32,381 - __main__ - INFO - [send_agent_message] Message stored and committed successfully
+2025-06-01 19:51:32,383 - __main__ - INFO - [send_agent_message] Processing message with foundation model...
+2025-06-01 19:51:32,384 - __main__ - INFO - [send_agent_message] Formatted messages for LLM: [{'role': 'system', 'content': 'You are DBx Agents, an AI agent with Graph memory type. You have access to the following tools: DBx Tool.'}, {'role': 'user', 'content': '\n# You are part of Team 27 to complete execution of any task.\n# You are an intelligent agent named Databricks Agent 10. \n\n# The agent memory is created with both types:\nagent_memory = {\n    \'SHORT_TERM_MEMORY\': {\n        \'start_prompt\': \'You are a Databricks Agent and know Spark very well\',\n        \'end_prompt\': \'Have a Unit Test to verify your code\'\n    },\n    \'LONG_TERM_MEMORY\': {\n        \'context\': \'Apache Spark & Databricks best practices\'\n    }\n}\n\n# Tools added to agent\'s tools list [5]:\ndbx_tool_5 = {\n    \'tool_name\': \'Tool 5\',\n    \'tool_type\': \'Unknown\',\n    \'hostname\': \'unknown\',\n    \'auth_method\': \'unknown\'\n}\n\nUser\'s request: "How to implement a Spark DataFrame transformation?"\n\nConsidering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.\n# If execution needs multiple steps, send instructions.\n# Leverage workflow service if needed.\n'}]
+2025-06-01 19:51:32,384 - __main__ - INFO - [send_agent_message] Agent state before execution: memories=26, tools=1
+2025-06-01 19:51:32,384 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: 
+# You are part of Team 27 to complete execution of any task.
+# You are an intelligent agent named Databricks Agent 10. 
+
+# The agent memory is created with both types:
+agent_memory = {
+    'SHORT_TERM_MEMORY': {
+        'start_prompt': 'You are a Databricks Agent and know Spark very well',
+        'end_prompt': 'Have a Unit Test to verify your code'
+    },
+    'LONG_TERM_MEMORY': {
+        'context': 'Apache Spark & Databricks best practices'
+    }
+}
+
+# Tools added to agent's tools list [5]:
+dbx_tool_5 = {
+    'tool_name': 'Tool 5',
+    'tool_type': 'Unknown',
+    'hostname': 'unknown',
+    'auth_method': 'unknown'
+}
+
+User's request: "How to implement a Spark DataFrame transformation?"
+
+Considering the provided context, determine which tool(s) should be utilized and provide structured instructions for execution.
+# If execution needs multiple steps, send instructions.
+# Leverage workflow service if needed.
+
+2025-06-01 19:51:32,385 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 19:51:32,385 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 19:51:32,385 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-01 19:51:44,190 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 19:51:44,190 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-01 19:51:44,190 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 19:51:44,190 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 19:51:44,199 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-01 19:51:44,199 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 19:51:44,199 - __main__ - INFO - [send_agent_message] Foundation model processing complete
+2025-06-01 19:51:44,204 - __main__ - INFO - [send_agent_message] Storing model response in database...
+2025-06-01 19:51:44,204 - __main__ - INFO - [send_agent_message] Executing update with values: ('Given the user\'s request and available tools, here\'s a step-by-step guide on how to implement a Spark DataFrame transformation:\n\n**Step 1: Start Spark Session**\nBefore you start, make sure you have a Spark session running. If not, start one using:\n\n```python\nfrom pyspark.sql import SparkSession\n\nspark = SparkSession.builder.appName("DataFrame Transformation").getOrCreate()\n```\n\n**Step 2: Load Data**\nLoad the data into a DataFrame. You can load data from various sources like CSV, Parquet, or from a database.\n\nIf you\'re loading data from a CSV file, use:\n```python\ndf = spark.read.csv("path_to_your_file.csv", header=True, inferSchema=True)\n```\n\n**Step 3: DataFrame Transformation**\nYou can perform various transformations on the DataFrame, such as `select()`, `filter()`, `groupBy()`, etc. For instance, to select specific columns:\n\n```python\ndf_transformed = df.select("column1", "column2")\n```\n\n**Step 4: Show Result**\nYou can view the result of your transformation using `show()`:\n\n```python\ndf_transformed.show()\n```\n\n**Step 5: Unit Test**\nTo ensure that your code is working as expected, write a unit test. For example, you could verify the number of columns in the transformed DataFrame:\n\n```python\nassert len(df_transformed.columns) == 2, "DataFrame transformation failed"\n```\n\nPlease note that the DBx tool mentioned in the context does not seem to have a clear purpose or authentication method, so it\'s not clear how it would be used in this scenario. You would typically use a Spark interface (like `pyspark` in the Python console, `spark-shell` in the Scala console, or notebooks in Databricks) to execute these steps.', '{"status": "success", "context": "Context: Apache Spark & Databricks best practices", "memory_type": "Graph", "llm_response": "Given the user\'s request and available tools, here\'s a step-by-step guide on how to implement a Spark DataFrame transformation:\\n\\n**Step 1: Start Spark Session**\\nBefore you start, make sure you have a Spark session running. If not, start one using:\\n\\n```python\\nfrom pyspark.sql import SparkSession\\n\\nspark = SparkSession.builder.appName(\\"DataFrame Transformation\\").getOrCreate()\\n```\\n\\n**Step 2: Load Data**\\nLoad the data into a DataFrame. You can load data from various sources like CSV, Parquet, or from a database.\\n\\nIf you\'re loading data from a CSV file, use:\\n```python\\ndf = spark.read.csv(\\"path_to_your_file.csv\\", header=True, inferSchema=True)\\n```\\n\\n**Step 3: DataFrame Transformation**\\nYou can perform various transformations on the DataFrame, such as `select()`, `filter()`, `groupBy()`, etc. For instance, to select specific columns:\\n\\n```python\\ndf_transformed = df.select(\\"column1\\", \\"column2\\")\\n```\\n\\n**Step 4: Show Result**\\nYou can view the result of your transformation using `show()`:\\n\\n```python\\ndf_transformed.show()\\n```\\n\\n**Step 5: Unit Test**\\nTo ensure that your code is working as expected, write a unit test. For example, you could verify the number of columns in the transformed DataFrame:\\n\\n```python\\nassert len(df_transformed.columns) == 2, \\"DataFrame transformation failed\\"\\n```\\n\\nPlease note that the DBx tool mentioned in the context does not seem to have a clear purpose or authentication method, so it\'s not clear how it would be used in this scenario. You would typically use a Spark interface (like `pyspark` in the Python console, `spark-shell` in the Scala console, or notebooks in Databricks) to execute these steps.", "model_used": "gpt-4", "tool_responses": [{"tool_id": 5, "tool_name": "DBx Tool", "tool_type": "DatabaseTool", "hostname": "db_hostname", "auth_method": "Basic", "command": "Given the user\'s request and available tools, here\'s a step-by-step guide on how to implement a Spark DataFrame transformation:\\n\\n**Step 1: Start Spark Session**\\nBefore you start, make sure you have a Spark session running. If not, start one using:\\n\\n```python\\nfrom pyspark.sql import SparkSession\\n\\nspark = SparkSession.builder.appName(\\"DataFrame Transformation\\").getOrCreate()\\n```\\n\\n**Step 2: Load Data**\\nLoad the data into a DataFrame. You can load data from various sources like CSV, Parquet, or from a database.\\n\\nIf you\'re loading data from a CSV file, use:\\n```python\\ndf = spark.read.csv(\\"path_to_your_file.csv\\", header=True, inferSchema=True)\\n```\\n\\n**Step 3: DataFrame Transformation**\\nYou can perform various transformations on the DataFrame, such as `select()`, `filter()`, `groupBy()`, etc. For instance, to select specific columns:\\n\\n```python\\ndf_transformed = df.select(\\"column1\\", \\"column2\\")\\n```\\n\\n**Step 4: Show Result**\\nYou can view the result of your transformation using `show()`:\\n\\n```python\\ndf_transformed.show()\\n```\\n\\n**Step 5: Unit Test**\\nTo ensure that your code is working as expected, write a unit test. For example, you could verify the number of columns in the transformed DataFrame:\\n\\n```python\\nassert len(df_transformed.columns) == 2, \\"DataFrame transformation failed\\"\\n```\\n\\nPlease note that the DBx tool mentioned in the context does not seem to have a clear purpose or authentication method, so it\'s not clear how it would be used in this scenario. You would typically use a Spark interface (like `pyspark` in the Python console, `spark-shell` in the Scala console, or notebooks in Databricks) to execute these steps.", "status": "success", "message": "Agent has successfully used the DBx Tool (DatabaseTool)", "database_specific": {"query_type": "simulated", "affected_rows": 0, "execution_time": "0.00s"}}], "validation_results": null}', '833665bd-5d35-4407-a10e-45fc7785fb68')
+2025-06-01 19:51:44,212 - __main__ - INFO - [send_agent_message] Model response stored and committed successfully
+2025-06-01 19:51:44,215 - __main__ - INFO - [send_agent_message] Successfully completed message processing
+2025-06-01 19:51:44,215 - __main__ - WARNING - Error returning connection to pool: 'NoneType' object has no attribute 'in_transaction'
+2025-06-01 19:51:44,216 - __main__ - ERROR - Error force closing connection: 'NoneType' object has no attribute '_force_close'
+2025-06-01 19:51:44,216 - __main__ - INFO - Completed execution of send_agent_message
+2025-06-01 19:51:44,217 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 19:51:44] "POST /api/ml/agent/10/send HTTP/1.1" 200 -
+2025-06-01 19:57:33,278 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 19:57:33,405 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 19:57:34,084 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 19:57:34,524 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 19:57:34,602 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 19:57:34,622 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 19:57:34,625 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 20:03:36,002 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 20:03:36,128 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 20:03:36,954 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 20:03:37,383 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 20:03:37,549 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 20:03:37,564 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 20:03:37,577 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 20:09:10,203 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 20:09:10,319 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 20:09:11,086 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 20:09:11,559 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 20:09:11,697 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 20:09:11,717 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 20:09:11,721 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 20:30:54,170 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_team_execution.py', reloading
+2025-06-01 20:30:54,365 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 20:30:55,194 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 20:30:55,653 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 20:30:55,770 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 20:30:55,785 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 20:30:55,793 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 20:34:47,829 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_team_execution.py', reloading
+2025-06-01 20:34:47,955 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 20:34:48,789 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 20:34:49,305 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 20:34:49,440 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 20:34:49,454 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 20:34:49,457 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 20:35:41,879 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_team_execution.py', reloading
+2025-06-01 20:35:41,995 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 20:35:42,749 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 20:35:43,131 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 20:35:43,273 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 20:35:43,283 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 20:35:43,289 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 20:35:44,310 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_team_execution.py', reloading
+2025-06-01 20:35:44,443 - werkzeug - INFO -  * Restarting with stat

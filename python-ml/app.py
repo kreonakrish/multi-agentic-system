@@ -17,9 +17,41 @@ import uuid
 import sys
 from dotenv import load_dotenv
 import decimal
+import openai
+
+# Configure logging first
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('app.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
+
+# Verify OpenAI API Key
+openai_api_key = os.getenv('OPENAI_API_KEY')
+if not openai_api_key:
+    logger.error("OPENAI_API_KEY not found in environment variables!")
+    # Don't initialize client yet - we'll do it lazily when needed
+    client = None
+else:
+    logger.info("OPENAI_API_KEY found in environment")
+    client = OpenAI()  # This will automatically use OPENAI_API_KEY from environment variables
+
+def get_openai_client():
+    """Get or initialize OpenAI client with proper error handling"""
+    global client
+    if client is None:
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            raise ValueError("OpenAI API key not found. Please set OPENAI_API_KEY environment variable.")
+        client = OpenAI()
+    return client
 
 app = Flask(__name__)
 
@@ -62,30 +94,79 @@ def log_execution(f):
             raise
     return wrapper
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('app.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-
 # Database configuration
 db_config = {
     'host': 'localhost',
     'user': 'admin',
     'password': 'gUest@Sep2',
-    'database': 'multi_agentic_system'
+    'database': 'multi_agentic_system',
+    'pool_name': 'mypool',
+    'pool_size': 20,  # Increased from 5 to 20
+    'pool_reset_session': True,
+    'connect_timeout': 10
 }
 
-# Initialize OpenAI client
-client = OpenAI()  # This will automatically use OPENAI_API_KEY from environment variables
+# Create connection pool with better error handling and monitoring
+try:
+    connection_pool = mysql.connector.pooling.MySQLConnectionPool(**db_config)
+    logger.info("Database connection pool initialized successfully with size: %d", db_config['pool_size'])
+except mysql.connector.Error as e:
+    logger.error(f"Error creating connection pool: {e}", exc_info=True)
+    raise
 
-# Create connection pool
-connection_pool = mysql.connector.pooling.MySQLConnectionPool(**db_config)
+def get_db_connection():
+    """Get a connection from the pool with proper error handling and monitoring"""
+    try:
+        conn = connection_pool.get_connection()
+        logger.debug("Got connection from pool")
+        # Configure connection after getting it from pool
+        conn.set_charset_collation('utf8mb4', 'utf8mb4_unicode_ci')
+        conn.autocommit = True
+        return conn
+    except mysql.connector.errors.PoolError as e:
+        logger.error(f"Pool error getting connection: {e}", exc_info=True)
+        # Try to clean up any stale connections
+        try:
+            connection_pool._remove_connections()
+            conn = connection_pool.get_connection()
+            conn.set_charset_collation('utf8mb4', 'utf8mb4_unicode_ci')
+            conn.autocommit = True
+            logger.info("Successfully got connection after pool cleanup")
+            return conn
+        except Exception as cleanup_error:
+            logger.error(f"Failed to cleanup pool and get new connection: {cleanup_error}", exc_info=True)
+            raise
+    except mysql.connector.Error as e:
+        logger.error(f"Error getting database connection: {e}", exc_info=True)
+        raise
+
+def safe_close_connection(conn, cursor=None):
+    """Safely close cursor and connection with proper error handling"""
+    try:
+        if cursor:
+            cursor.close()
+            logger.debug("Cursor closed successfully")
+    except Exception as e:
+        logger.warning(f"Error closing cursor: {e}")
+
+    try:
+        if conn:
+            if not conn.in_transaction:  # Only return connection to pool if not in transaction
+                conn.close()
+                logger.debug("Connection returned to pool successfully")
+            else:
+                logger.warning("Connection has uncommitted transaction, rolling back before return to pool")
+                conn.rollback()
+                conn.close()
+    except Exception as e:
+        logger.warning(f"Error returning connection to pool: {e}")
+        try:
+            # Force close if normal close fails
+            if conn:
+                conn._force_close()
+                logger.info("Connection force closed")
+        except Exception as force_close_error:
+            logger.error(f"Error force closing connection: {force_close_error}")
 
 class Tool(ABC):
     def __init__(self, tool_id, tool_name, hostname, username, password, auth_method):
@@ -431,21 +512,63 @@ class Agent:
             return {"status": "error", "message": "Production model not implemented yet"}
         
         try:
-            # Use OpenAI's chat completion
-            response = client.chat.completions.create(
-                model="gpt-4",  # Using gpt-4 as specified in the example
-                messages=messages,
-                temperature=0.7,
-                max_tokens=1000
-            )
+            # Get OpenAI client with error handling
+            try:
+                openai_client = get_openai_client()
+            except ValueError as e:
+                self.log('error', f"OpenAI client initialization failed: {str(e)}")
+                return {"status": "error", "message": str(e)}
             
-            return {
-                "status": "success",
-                "response": response.choices[0].message.content,
-                "model_used": "gpt-4"
-            }
+            # Log the request
+            self.log('info', "Sending request to OpenAI API...", 
+                    extra={'messages': messages})
+            
+            # Use OpenAI's chat completion
+            try:
+                response = openai_client.chat.completions.create(
+                    model="gpt-4",  # Using gpt-4 as specified in the example
+                    messages=messages,
+                    temperature=0.7,
+                    max_tokens=1000
+                )
+                
+                self.log('info', "Received response from OpenAI API")
+                self.log('debug', f"Model response: {response.choices[0].message.content}")
+                
+                return {
+                    "status": "success",
+                    "response": response.choices[0].message.content,
+                    "model_used": "gpt-4"
+                }
+            except openai.RateLimitError as e:
+                self.log('error', "OpenAI API rate limit exceeded", exc_info=True)
+                return {
+                    "status": "error",
+                    "message": "Rate limit exceeded. Please try again later.",
+                    "error_type": "rate_limit"
+                }
+            except openai.APIError as e:
+                self.log('error', f"OpenAI API error: {str(e)}", exc_info=True)
+                return {
+                    "status": "error",
+                    "message": f"OpenAI API error: {str(e)}",
+                    "error_type": "api_error"
+                }
+            except Exception as e:
+                self.log('error', f"Unexpected error in OpenAI API call: {str(e)}", exc_info=True)
+                return {
+                    "status": "error",
+                    "message": f"Unexpected error: {str(e)}",
+                    "details": traceback.format_exc()
+                }
+                
         except Exception as e:
-            return {"status": "error", "message": str(e)}
+            self.log('error', f"Error in process_with_llm: {str(e)}", exc_info=True)
+            return {
+                "status": "error",
+                "message": f"Error processing with LLM: {str(e)}",
+                "details": traceback.format_exc()
+            }
 
     def format_messages_for_llm(self, command: str, context: str = "") -> List[Dict[str, str]]:
         """
@@ -485,7 +608,7 @@ class Agent:
         ]
 
         try:
-            validation_response = client.chat.completions.create(
+            validation_response = get_openai_client().chat.completions.create(
                 model="gpt-4",
                 messages=validation_messages,
                 temperature=0.3,  # Lower temperature for more consistent validation
@@ -513,50 +636,99 @@ class Agent:
 
     def execute_with_tools(self, command: str) -> Dict[str, Any]:
         """Execute command with all configured tools"""
+        self.log('info', f"[execute_with_tools] Starting execution with command: {command}")
+        
         if not self.tools:
+            self.log('warning', "[execute_with_tools] No tools configured for this agent")
             return {"status": "error", "message": "No tools configured for this agent"}
 
-        # Get context from memories
-        context = self.get_context_from_memories()
-        end_prompt = None
-        if self.memories and self.memories[0].get('end_prompt'):
-            end_prompt = self.memories[0]['end_prompt']
+        try:
+            # Get context from memories
+            self.log('info', "[execute_with_tools] Getting context from memories")
+            context = self.get_context_from_memories()
+            end_prompt = None
+            if self.memories and self.memories[0].get('end_prompt'):
+                end_prompt = self.memories[0]['end_prompt']
+            self.log('debug', f"[execute_with_tools] Retrieved context: {context}, end_prompt: {end_prompt}")
 
-        # Process command with LLM first
-        messages = self.format_messages_for_llm(command, context)
-        llm_response = self.process_with_llm(messages)
-        
-        if llm_response["status"] != "success":
-            return llm_response
+            # Process command with LLM first
+            self.log('info', "[execute_with_tools] Processing command with LLM")
+            messages = self.format_messages_for_llm(command, context)
+            self.log('debug', f"[execute_with_tools] Formatted messages for LLM: {messages}")
+            
+            llm_response = self.process_with_llm(messages)
+            self.log('info', f"[execute_with_tools] LLM processing status: {llm_response['status']}")
+            
+            if llm_response["status"] != "success":
+                self.log('error', f"[execute_with_tools] LLM processing failed: {llm_response}")
+                return llm_response
 
-        # Execute command with all tools
-        tool_responses = []
-        for tool in self.tools:
-            result = tool.execute(llm_response["response"])
-            tool_responses.append(result)
+            # Execute command with all tools
+            self.log('info', "[execute_with_tools] Executing command with tools")
+            tool_responses = []
+            for tool in self.tools:
+                try:
+                    self.log('info', f"[execute_with_tools] Executing with tool: {tool.tool_name}")
+                    result = tool.execute(llm_response["response"])
+                    tool_responses.append(result)
+                    self.log('debug', f"[execute_with_tools] Tool response: {result}")
+                except Exception as tool_error:
+                    self.log('error', f"[execute_with_tools] Error executing tool {tool.tool_name}: {str(tool_error)}", exc_info=True)
+                    tool_responses.append({
+                        "status": "error",
+                        "tool_name": tool.tool_name,
+                        "error": str(tool_error)
+                    })
 
-        # Validate responses if end prompt exists
-        validation_results = []
-        if end_prompt:
-            for response in tool_responses:
-                validation_result = self.validate_response_with_llm(
-                    str(response),  # Convert response to string for validation
-                    end_prompt
-                )
-                validation_results.append(validation_result)
+            # Check if all tool executions failed
+            if all(response.get("status") == "error" for response in tool_responses):
+                self.log('error', "[execute_with_tools] All tool executions failed")
+                return {
+                    "status": "error",
+                    "message": "All tool executions failed",
+                    "tool_responses": tool_responses
+                }
 
-        # Compile final response
-        final_response = {
-            "status": "success",
-            "context": context,
-            "memory_type": self.memory_type,
-            "llm_response": llm_response["response"],
-            "model_used": llm_response["model_used"],
-            "tool_responses": tool_responses,
-            "validation_results": validation_results if end_prompt else None
-        }
+            # Validate responses if end prompt exists
+            validation_results = []
+            if end_prompt:
+                self.log('info', "[execute_with_tools] Validating responses against end prompt")
+                for response in tool_responses:
+                    try:
+                        validation_result = self.validate_response_with_llm(
+                            str(response),  # Convert response to string for validation
+                            end_prompt
+                        )
+                        validation_results.append(validation_result)
+                        self.log('debug', f"[execute_with_tools] Validation result: {validation_result}")
+                    except Exception as validation_error:
+                        self.log('error', f"[execute_with_tools] Error validating response: {str(validation_error)}", exc_info=True)
+                        validation_results.append({
+                            "status": "error",
+                            "message": f"Validation failed: {str(validation_error)}"
+                        })
 
-        return final_response
+            # Compile final response
+            final_response = {
+                "status": "success",
+                "context": context,
+                "memory_type": self.memory_type,
+                "llm_response": llm_response["response"],
+                "model_used": llm_response["model_used"],
+                "tool_responses": tool_responses,
+                "validation_results": validation_results if end_prompt else None
+            }
+            
+            self.log('info', "[execute_with_tools] Successfully completed execution")
+            return final_response
+
+        except Exception as e:
+            self.log('error', f"[execute_with_tools] Unhandled error: {str(e)}", exc_info=True)
+            return {
+                "status": "error",
+                "message": f"Error executing command: {str(e)}",
+                "details": traceback.format_exc()
+            }
 
     def execute_with_tool(self, tool_id: int, command: str) -> Dict[str, Any]:
         """Legacy method for single tool execution"""
@@ -607,7 +779,7 @@ class Agent:
                 interaction_type=interaction_type)
         
         try:
-            conn = connection_pool.get_connection()
+            conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
 
             # Create new interaction
@@ -675,7 +847,7 @@ class Agent:
     def receive_message(self, interaction_id: int) -> Dict[str, Any]:
         """Process a received message"""
         try:
-            conn = connection_pool.get_connection()
+            conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
             
             # Get interaction details
@@ -802,6 +974,76 @@ class Agent:
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
+class TeamTask:
+    def __init__(self, task_id: str, description: str, requirements: Dict[str, Any]):
+        self.task_id = task_id
+        self.description = description
+        self.requirements = requirements
+        self.status = "pending"
+        self.results = []
+        self.created_at = datetime.now()
+        self.updated_at = datetime.now()
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "task_id": self.task_id,
+            "description": self.description,
+            "requirements": self.requirements,
+            "status": self.status,
+            "results": self.results,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat()
+        }
+
+class TeamMember:
+    def __init__(self, agent_id: int, priority: int, accuracy_threshold: float, success_rate: float):
+        self.agent_id = agent_id
+        self.priority = priority
+        self.accuracy_threshold = accuracy_threshold
+        self.success_rate = success_rate
+        self.current_task = None
+        self.results = []
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "agent_id": self.agent_id,
+            "priority": self.priority,
+            "accuracy_threshold": self.accuracy_threshold,
+            "success_rate": self.success_rate,
+            "current_task": self.current_task.to_dict() if self.current_task else None,
+            "results": self.results
+        }
+
+class Team:
+    def __init__(self, team_id: str, name: str, description: str):
+        self.team_id = team_id
+        self.name = name
+        self.description = description
+        self.members: List[TeamMember] = []
+        self.tasks: List[TeamTask] = []
+        self.created_at = datetime.now()
+        self.updated_at = datetime.now()
+
+    def add_member(self, member: TeamMember):
+        self.members.append(member)
+        # Sort members by priority (highest first)
+        self.members.sort(key=lambda x: x.priority, reverse=True)
+
+    def assign_task(self, task: TeamTask):
+        self.tasks.append(task)
+        self.updated_at = datetime.now()
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "team_id": self.team_id,
+            "name": self.name,
+            "description": self.description,
+            "members": [member.to_dict() for member in self.members],
+            "tasks": [task.to_dict() for task in self.tasks],
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat()
+        }
+
 def create_tool(tool_data):
     tool_types = {
         "Database": DatabaseTool,
@@ -828,7 +1070,7 @@ def initialize_agent(agent_id):
         data = request.get_json()
         use_prod = data.get('use_prod', False)
         
-        conn = connection_pool.get_connection()
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         # Get agent details with correct column names
@@ -876,544 +1118,232 @@ def initialize_agent(agent_id):
             conn.close()
 
 @app.route('/api/ml/agent/<int:agent_id>/send', methods=['POST'])
-def send_message(agent_id):
-    try:
-        data = request.get_json()
-        target_agent_id = data.get('target_agent_id')
-        message = data.get('message')
-        interaction_type = data.get('interaction_type', 'direct')
-        
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor()
-        
-        # Insert message with processed_message field
-        cursor.execute(
-            """INSERT INTO messages 
-            (sender_id, receiver_id, content, processed_message, interaction_type)
-            VALUES (%s, %s, %s, %s, %s)""",
-            (agent_id, target_agent_id, message, message, interaction_type)
-        )
-        conn.commit()
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Message sent successfully'
-        })
-        
-    except Exception as e:
-        logger.error(f"Error sending message from agent {agent_id}: {str(e)}")
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
-    finally:
-        if 'cursor' in locals():
-            cursor.close()
-        if 'conn' in locals():
-            conn.close()
-
-@app.route('/api/ml/agent/<int:agent_id>/workflow', methods=['POST'])
-def start_workflow(agent_id):
-    try:
-        data = request.get_json()
-        workflow_type = data.get('type')
-        agents = data.get('agents', [])
-        message = data.get('message')
-        
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor()
-        
-        # Create workflow with message field
-        cursor.execute(
-            """INSERT INTO workflows (initiator_id, type, message)
-            VALUES (%s, %s, %s)""",
-            (agent_id, workflow_type, message)
-        )
-        workflow_id = cursor.lastrowid
-        
-        # Create workflow steps
-        for idx, agent_id in enumerate(agents):
-            cursor.execute(
-                """INSERT INTO workflow_steps (workflow_id, agent_id, step_order)
-                VALUES (%s, %s, %s)""",
-                (workflow_id, agent_id, idx + 1)
-            )
-            
-        conn.commit()
-        
-        return jsonify({
-            'status': 'success',
-            'workflow_id': workflow_id
-        })
-        
-    except Exception as e:
-        logger.error(f"Error starting workflow for agent {agent_id}: {str(e)}")
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
-    finally:
-        if 'cursor' in locals():
-            cursor.close()
-        if 'conn' in locals():
-            conn.close()
-
-@app.route('/api/ml/team/<int:team_id>/metrics', methods=['GET'])
-def get_metrics(team_id):
-    try:
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        # Get basic team metrics
-        cursor.execute("""
-            SELECT 
-                COUNT(DISTINCT m.id) as interaction_count,
-                COUNT(DISTINCT tp.tool_id) as tool_count,
-                COALESCE(
-                    COUNT(CASE WHEN m.status = 'processed' THEN 1 END) * 100.0 / 
-                    NULLIF(COUNT(m.id), 0),
-                    0
-                ) as success_rate
-            FROM teams t
-            LEFT JOIN team_agents ta ON t.id = ta.team_id
-            LEFT JOIN messages m ON m.sender_id = ta.agent_id OR m.receiver_id = ta.agent_id
-            LEFT JOIN team_tool_permissions tp ON tp.team_id = t.id
-            WHERE t.id = %s
-            GROUP BY t.id
-        """, (team_id,))
-        
-        metrics = cursor.fetchone()
-        
-        # Ensure we have valid metrics
-        if not metrics:
-            metrics = {
-                'interaction_count': 0,
-                'tool_count': 0,
-                'success_rate': 0.0
-            }
-        else:
-            # Convert decimal values to float for JSON serialization
-            metrics = {
-                k: float(v) if isinstance(v, decimal.Decimal) else (
-                    int(v) if isinstance(v, (int, float)) else v
-                ) for k, v in metrics.items()
-            }
-        
-        return jsonify({
-            'status': 'success',
-            'metrics': metrics,
-            'time_range': request.args.get('time_range', '24h')
-        })
-        
-    except Exception as e:
-        logger.error(f"Error getting team metrics: {str(e)}")
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
-    finally:
-        if 'cursor' in locals():
-            cursor.close()
-        if 'conn' in locals():
-            conn.close()
-
-@app.route('/api/ml/team/<int:team_id>/config', methods=['GET', 'PUT'])
-def team_config(team_id):
+@log_execution
+def send_agent_message(agent_id):
+    """Send a message to an agent and get response from foundation model"""
     conn = None
     cursor = None
     try:
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor(dictionary=True, buffered=True)  # Use buffered cursor
+        # Log request data
+        request_data = request.get_json()
+        logger.info(f"[send_agent_message] Received request data: {request_data}")
         
-        if request.method == 'GET':
-            # First check if team exists
-            cursor.execute("SELECT id, name FROM teams WHERE id = %s", (team_id,))
-            team = cursor.fetchone()
-            
-            if not team:
-                return jsonify({
-                    'status': 'error',
-                    'message': 'Team not found'
-                }), 404
-            
-            # Get team configuration
-            cursor.execute("""
-                SELECT config_data 
-                FROM team_configurations
-                WHERE team_id = %s
-            """, (team_id,))
-            
-            config = cursor.fetchone() or {}  # Ensure we consume the result
-            config_data = {}
-            
-            if config:
-                try:
-                    if isinstance(config.get('config_data'), str):
-                        config_data = json.loads(config['config_data'])
-                    elif isinstance(config.get('config_data'), dict):
-                        config_data = config['config_data']
-                    elif config.get('config_data') is None:
-                        config_data = {}
-                except (json.JSONDecodeError, TypeError, KeyError):
-                    config_data = {}
-            
-            # Get permissions
-            cursor.execute("""
-                SELECT tool_id, permission_level
-                FROM team_tool_permissions
-                WHERE team_id = %s
-            """, (team_id,))
-            
-            # Convert MySQL results to plain dictionaries and ensure we consume all results
-            permissions = []
-            rows = cursor.fetchall() or []  # Ensure we consume all results
-            for row in rows:
-                perm = {}
-                for key, value in row.items():
-                    if isinstance(value, (datetime, decimal.Decimal)):
-                        perm[key] = str(value)
-                    else:
-                        perm[key] = value
-                permissions.append(perm)
-            
-            # Convert team data to plain dictionary
-            team_dict = {}
-            for key, value in team.items():
-                if isinstance(value, (datetime, decimal.Decimal)):
-                    team_dict[key] = str(value)
-                else:
-                    team_dict[key] = value
-            
-            response = {
-                'status': 'success',
-                'config': {
-                    'team_id': team_dict['id'],
-                    'name': team_dict['name'],
-                    'settings': config_data,
-                    'permissions': permissions
-                }
-            }
-            
-            return jsonify(response)
-            
-        elif request.method == 'PUT':
-            data = request.get_json()
-            if not data:
-                return jsonify({
-                    'status': 'error',
-                    'message': 'No data provided'
-                }), 400
-                
-            config = data.get('config', {})
-            permissions = data.get('permissions', [])
-            
-            # First check if team exists
-            cursor.execute("SELECT id FROM teams WHERE id = %s", (team_id,))
-            if not cursor.fetchone():  # Ensure we consume the result
-                return jsonify({
-                    'status': 'error',
-                    'message': 'Team not found'
-                }), 404
-            
-            try:
-                # Update team configuration using config_data field
-                cursor.execute(
-                    """INSERT INTO team_configurations (team_id, config_data)
-                    VALUES (%s, %s)
-                    ON DUPLICATE KEY UPDATE config_data = VALUES(config_data)""",
-                    (team_id, json.dumps(config))
-                )
-                
-                # Update tool permissions
-                if permissions:
-                    # First remove existing permissions
-                    cursor.execute(
-                        "DELETE FROM team_tool_permissions WHERE team_id = %s",
-                        (team_id,)
-                    )
-                    
-                    # Add new permissions
-                    for perm in permissions:
-                        cursor.execute(
-                            """INSERT INTO team_tool_permissions 
-                            (team_id, tool_id, permission_level)
-                            VALUES (%s, %s, %s)""",
-                            (team_id, perm['tool_id'], perm['level'])
-                        )
-                
-                conn.commit()
-                
-                return jsonify({
-                    'status': 'success',
-                    'message': 'Configuration updated successfully'
-                })
-                
-            except Exception as e:
-                if conn:
-                    conn.rollback()
-                logger.error(f"Database error updating team config: {str(e)}")
-                return jsonify({
-                    'status': 'error',
-                    'message': f'Database error: {str(e)}'
-                }), 500
-            
-    except Exception as e:
-        logger.error(f"Error managing team {team_id} configuration: {str(e)}")
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
-    finally:
-        if cursor:
-            try:
-                cursor.close()
-            except:
-                pass
-        if conn:
-            try:
-                conn.close()
-            except:
-                pass
+        message = request_data.get('message')
+        team_id = request_data.get('team_id')
+        interaction_type = request_data.get('interaction_type', 'direct')
 
-# Agent Memory CRUD Endpoints
-
-@app.route('/api/ml/agent-memory', methods=['POST'])
-def create_agent_memory():
-    try:
-        data = request.json
-        required_fields = ['agent_id', 'memory_type']
-        if not all(field in data for field in required_fields):
+        if not message:
+            logger.warning("[send_agent_message] Message is required")
             return jsonify({
                 "status": "error",
-                "message": f"Missing required fields: {', '.join(required_fields)}"
+                "message": "message is required"
             }), 400
 
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        # Verify agent exists
-        cursor.execute("SELECT id FROM agents WHERE id = %s", (data['agent_id'],))
-        if not cursor.fetchone():
-            cursor.close()
-            conn.close()
-            return jsonify({
-                "status": "error",
-                "message": f"Agent with id {data['agent_id']} not found"
-            }), 404
-
-        # Insert memory
-        insert_query = """
-            INSERT INTO agent_memory 
-            (agent_id, memory_type, start_prompt, end_prompt, context)
-            VALUES (%s, %s, %s, %s, %s)
-        """
-        cursor.execute(insert_query, (
-            data['agent_id'],
-            data['memory_type'],
-            data.get('start_prompt'),
-            data.get('end_prompt'),
-            data.get('context')
-        ))
-        conn.commit()
-        memory_id = cursor.lastrowid
-
-        # Fetch the created memory
-        cursor.execute("SELECT * FROM agent_memory WHERE id = %s", (memory_id,))
-        memory = cursor.fetchone()
-
-        cursor.close()
-        conn.close()
-
-        return jsonify({
-            "status": "success",
-            "memory": memory
-        })
-
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@app.route('/api/ml/agent-memory/<int:memory_id>', methods=['GET'])
-def get_agent_memory(memory_id):
-    try:
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        cursor.execute("SELECT * FROM agent_memory WHERE id = %s", (memory_id,))
-        memory = cursor.fetchone()
-
-        cursor.close()
-        conn.close()
-
-        if not memory:
-            return jsonify({
-                "status": "error",
-                "message": f"Memory with id {memory_id} not found"
-            }), 404
-
-        return jsonify({
-            "status": "success",
-            "memory": memory
-        })
-
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@app.route('/api/ml/agent/<int:agent_id>/memories', methods=['GET'])
-def get_agent_memories(agent_id):
-    try:
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        # Verify agent exists
-        cursor.execute("SELECT id FROM agents WHERE id = %s", (agent_id,))
-        if not cursor.fetchone():
-            cursor.close()
-            conn.close()
-            return jsonify({
-                "status": "error",
-                "message": f"Agent with id {agent_id} not found"
-            }), 404
-
-        # Get all memories for the agent
-        cursor.execute("SELECT * FROM agent_memory WHERE agent_id = %s ORDER BY created_at DESC", (agent_id,))
-        memories = cursor.fetchall()
-
-        cursor.close()
-        conn.close()
-
-        return jsonify({
-            "status": "success",
-            "memories": memories
-        })
-
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@app.route('/api/ml/agent-memory/<int:memory_id>', methods=['PUT'])
-def update_agent_memory(memory_id):
-    try:
-        data = request.json
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        # Check if memory exists
-        cursor.execute("SELECT * FROM agent_memory WHERE id = %s", (memory_id,))
-        if not cursor.fetchone():
-            cursor.close()
-            conn.close()
-            return jsonify({
-                "status": "error",
-                "message": f"Memory with id {memory_id} not found"
-            }), 404
-
-        # Update memory
-        update_query = """
-            UPDATE agent_memory 
-            SET memory_type = %s,
-                start_prompt = %s,
-                end_prompt = %s,
-                context = %s
-            WHERE id = %s
-        """
-        cursor.execute(update_query, (
-            data.get('memory_type'),
-            data.get('start_prompt'),
-            data.get('end_prompt'),
-            data.get('context'),
-            memory_id
-        ))
-        conn.commit()
-
-        # Fetch updated memory
-        cursor.execute("SELECT * FROM agent_memory WHERE id = %s", (memory_id,))
-        updated_memory = cursor.fetchone()
-
-        cursor.close()
-        conn.close()
-
-        return jsonify({
-            "status": "success",
-            "memory": updated_memory
-        })
-
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@app.route('/api/ml/agent-memory/<int:memory_id>', methods=['DELETE'])
-def delete_agent_memory(memory_id):
-    try:
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        # Check if memory exists
-        cursor.execute("SELECT * FROM agent_memory WHERE id = %s", (memory_id,))
-        if not cursor.fetchone():
-            cursor.close()
-            conn.close()
-            return jsonify({
-                "status": "error",
-                "message": f"Memory with id {memory_id} not found"
-            }), 404
-
-        # Delete memory
-        cursor.execute("DELETE FROM agent_memory WHERE id = %s", (memory_id,))
-        conn.commit()
-
-        cursor.close()
-        conn.close()
-
-        return jsonify({
-            "status": "success",
-            "message": f"Memory with id {memory_id} deleted successfully"
-        })
-
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-# New API endpoints for agent interactions
-
-@app.route('/api/ml/agent/<int:agent_id>/send', methods=['POST'])
-@log_execution
-def send_agent_message(agent_id):
-    """Send a message from one agent to another"""
-    try:
-        data = request.json
-        target_agent_id = data.get('target_agent_id')
-        message = data.get('message')
-        interaction_type = data.get('interaction_type', InteractionType.DIRECT.value)
-
-        if not all([target_agent_id, message]):
-            logger.warning(
-                "Invalid request parameters",
-                extra={
-                    'agent_id': agent_id,
-                    'target_agent_id': target_agent_id,
-                    'message_provided': bool(message)
-                }
-            )
-            return jsonify({
-                "status": "error",
-                "message": "target_agent_id and message are required"
-            }), 400
-
-        # Initialize source agent
+        # Initialize agent
+        logger.info(f"[send_agent_message] Initializing agent {agent_id} from database...")
         agent = initialize_agent_from_db(agent_id)
         if not agent:
-            logger.error(f"Agent {agent_id} not found")
-            return jsonify({"status": "error", "message": "Source agent not found"}), 404
+            logger.error(f"[send_agent_message] Agent {agent_id} not found in database")
+            return jsonify({"status": "error", "message": "Agent not found"}), 404
+
+        # Log agent details
+        logger.info(f"[send_agent_message] Agent details: id={agent.agent_id}, name={agent.name}, memory_type={agent.memory_type}")
+        logger.info(f"[send_agent_message] Agent tools: {[t.tool_name for t in agent.tools]}")
 
         # Set correlation ID for tracking
-        agent.set_correlation_id(str(uuid.uuid4()))
+        conversation_id = str(uuid.uuid4())
+        agent.set_correlation_id(conversation_id)
+        logger.info(f"[send_agent_message] Set conversation ID: {conversation_id}")
 
-        # Send message
-        result = agent.send_message(target_agent_id, message, interaction_type)
-        return jsonify(result)
+        # Store the message in database
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            
+            logger.info("[send_agent_message] Storing initial message in database...")
+            
+            # First verify we can insert
+            cursor.execute("SELECT id FROM agents WHERE id = %s", (agent_id,))
+            if not cursor.fetchone():
+                raise ValueError(f"Agent {agent_id} not found in database")
+            
+            # Insert the message
+            insert_query = """
+                INSERT INTO messages 
+                (sender_id, receiver_id, content, interaction_type, conversation_id, team_id, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            insert_values = (None, agent_id, message, interaction_type, conversation_id, team_id, 'pending')
+            
+            logger.info(f"[send_agent_message] Executing insert with values: {insert_values}")
+            cursor.execute(insert_query, insert_values)
+            
+            # Get the inserted ID
+            message_id = cursor.lastrowid
+            logger.info(f"[send_agent_message] Message inserted with ID: {message_id}")
+            
+            # Verify the insert
+            cursor.execute("SELECT * FROM messages WHERE id = %s", (message_id,))
+            inserted_message = cursor.fetchone()
+            if not inserted_message:
+                raise ValueError("Message insert failed - no row found after insert")
+                
+            conn.commit()
+            logger.info("[send_agent_message] Message stored and committed successfully")
+            
+        except Exception as db_error:
+            if conn:
+                conn.rollback()
+            logger.error(f"[send_agent_message] Database error storing message: {str(db_error)}", exc_info=True)
+            return jsonify({
+                "status": "error",
+                "message": f"Database error: {str(db_error)}"
+            }), 500
+        finally:
+            safe_close_connection(conn, cursor)
+
+        # Process with foundation model
+        logger.info("[send_agent_message] Processing message with foundation model...")
+        try:
+            # Log the messages being sent to the model
+            formatted_messages = agent.format_messages_for_llm(message)
+            logger.info(f"[send_agent_message] Formatted messages for LLM: {formatted_messages}")
+            
+            # Log agent state before execution
+            logger.info(f"[send_agent_message] Agent state before execution: memories={len(agent.memories)}, tools={len(agent.tools)}")
+            
+            result = agent.execute_with_tools(message)
+            logger.info("[send_agent_message] Foundation model processing complete")
+            logger.debug(f"[send_agent_message] Model result: {result}")
+            
+            if result.get('status') != 'success':
+                logger.error(f"[send_agent_message] Model processing failed: {result}")
+                return jsonify(result), 500
+                
+        except Exception as model_error:
+            logger.error(f"[send_agent_message] Error processing with foundation model: {str(model_error)}", exc_info=True)
+            return jsonify({
+                "status": "error",
+                "message": f"Model processing error: {str(model_error)}",
+                "details": traceback.format_exc()
+            }), 500
+        
+        # Store the model's response
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            
+            logger.info("[send_agent_message] Storing model response in database...")
+            update_query = """
+                UPDATE messages 
+                SET processed_message = %s,
+                    model_response = %s,
+                    status = 'processed'
+                WHERE conversation_id = %s
+            """
+            update_values = (
+                result.get('llm_response', ''),
+                json.dumps(result),
+                conversation_id
+            )
+            
+            logger.info(f"[send_agent_message] Executing update with values: {update_values}")
+            cursor.execute(update_query, update_values)
+            
+            # Verify the update
+            cursor.execute("SELECT * FROM messages WHERE conversation_id = %s", (conversation_id,))
+            updated_message = cursor.fetchone()
+            if not updated_message or updated_message['status'] != 'processed':
+                raise ValueError("Message update failed - no row found or status not updated")
+                
+            conn.commit()
+            logger.info("[send_agent_message] Model response stored and committed successfully")
+            
+        except Exception as db_error:
+            if conn:
+                conn.rollback()
+            logger.error(f"[send_agent_message] Database error storing model response: {str(db_error)}", exc_info=True)
+            return jsonify({
+                "status": "error",
+                "message": f"Database error: {str(db_error)}",
+                "details": traceback.format_exc()
+            }), 500
+        finally:
+            safe_close_connection(conn, cursor)
+
+        response_data = {
+            "status": "success",
+            "conversation_id": conversation_id,
+            "model_response": result.get('llm_response', ''),
+            "full_response": result
+        }
+        logger.info("[send_agent_message] Successfully completed message processing")
+        return jsonify(response_data)
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        logger.error(
+            f"[send_agent_message] Unhandled error: {str(e)}",
+            extra={
+                'agent_id': agent_id,
+                'error': str(e),
+                'traceback': traceback.format_exc()
+            }
+        )
+        return jsonify({
+            "status": "error",
+            "message": f"Error processing message: {str(e)}",
+            "details": traceback.format_exc()
+        }), 500
+    finally:
+        safe_close_connection(conn, cursor)
+
+@app.route('/api/ml/agent/<int:agent_id>/response/<conversation_id>', methods=['GET'])
+@log_execution
+def get_agent_response(agent_id, conversation_id):
+    """Get the foundation model's response for a specific conversation"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            cursor.execute(
+                """SELECT content, processed_message, model_response, status
+                FROM messages 
+                WHERE conversation_id = %s AND receiver_id = %s""",
+                (conversation_id, agent_id)
+            )
+            message = cursor.fetchone()
+        finally:
+            cursor.close()
+            conn.close()
+
+        if not message:
+            return jsonify({
+                "status": "error",
+                "message": "Message not found"
+            }), 404
+
+        if message['status'] != 'processed':
+            return jsonify({
+                "status": "pending",
+                "message": "Message is still being processed"
+            })
+
+        return jsonify({
+            "status": "success",
+            "original_message": message['content'],
+            "model_response": message['processed_message'],
+            "full_response": json.loads(message['model_response']) if message['model_response'] else None
+        })
 
     except Exception as e:
         logger.error(
-            f"Error in send_agent_message: {str(e)}",
+            f"Error in get_agent_response: {str(e)}",
             extra={
                 'agent_id': agent_id,
+                'conversation_id': conversation_id,
                 'error': str(e),
                 'traceback': traceback.format_exc()
             }
@@ -1424,7 +1354,7 @@ def send_agent_message(agent_id):
 def receive_message(agent_id, interaction_id):
     """Process a received message"""
     try:
-        conn = connection_pool.get_connection()
+        conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
         # Get message details
@@ -1503,7 +1433,7 @@ def start_agent_workflow(agent_id):
 def initialize_agent_from_db(agent_id: int) -> Agent:
     """Helper function to initialize an agent from database"""
     try:
-        conn = connection_pool.get_connection()
+        conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
         # Get agent details including team_id
@@ -1514,7 +1444,9 @@ def initialize_agent_from_db(agent_id: int) -> Agent:
             WHERE a.id = %s
         """, (agent_id,))
         agent_data = cursor.fetchone()
+        
         if not agent_data:
+            logger.error(f"Agent {agent_id} not found in database")
             return None
 
         # Create agent instance
@@ -1527,32 +1459,50 @@ def initialize_agent_from_db(agent_id: int) -> Agent:
         )
 
         # Load agent's memories
-        agent.load_memories(cursor)
+        try:
+            agent.load_memories(cursor)
+            logger.info(f"Loaded memories for agent {agent_id}")
+        except Exception as e:
+            logger.error(f"Error loading memories for agent {agent_id}: {e}", exc_info=True)
 
         # Get agent's tools
-        cursor.execute("""
-            SELECT t.* 
-            FROM tools t
-            JOIN agent_tools at ON t.id = at.tool_id
-            WHERE at.agent_id = %s
-        """, (agent_id,))
-        
-        tools_data = cursor.fetchall()
-        for tool_data in tools_data:
-            try:
-                tool = create_tool(tool_data)
-                agent.add_tool(tool)
-            except ValueError as e:
-                print(f"Warning: Failed to create tool: {e}")
+        try:
+            cursor.execute("""
+                SELECT t.* 
+                FROM tools t
+                JOIN agent_tools at ON t.id = at.tool_id
+                WHERE at.agent_id = %s
+            """, (agent_id,))
+            
+            tools_data = cursor.fetchall()
+            logger.info(f"Found {len(tools_data)} tools for agent {agent_id}")
+            
+            for tool_data in tools_data:
+                try:
+                    tool = create_tool(tool_data)
+                    agent.add_tool(tool)
+                    logger.info(f"Added tool {tool_data['tool_name']} to agent {agent_id}")
+                except ValueError as e:
+                    logger.error(f"Failed to create tool for agent {agent_id}: {e}", exc_info=True)
+                except Exception as e:
+                    logger.error(f"Unexpected error creating tool for agent {agent_id}: {e}", exc_info=True)
 
-        cursor.close()
-        conn.close()
+            if not agent.tools:
+                logger.warning(f"No tools were successfully loaded for agent {agent_id}")
+                
+        except Exception as e:
+            logger.error(f"Error loading tools for agent {agent_id}: {e}", exc_info=True)
 
         return agent
 
     except Exception as e:
-        print(f"Error initializing agent: {e}")
+        logger.error(f"Error initializing agent {agent_id}: {e}", exc_info=True)
         return None
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 # Error handlers with logging
 @app.errorhandler(404)
@@ -1579,7 +1529,7 @@ def internal_error(error):
 @app.route('/api/ml/tools', methods=['GET'])
 def get_tools():
     try:
-        conn = connection_pool.get_connection()
+        conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
         cursor.execute("SELECT id, tool_name, description, type FROM tools")
@@ -1605,7 +1555,7 @@ def get_tools():
 @app.route('/api/ml/tools/<int:tool_id>', methods=['GET', 'PUT'])
 def manage_tool(tool_id):
     try:
-        conn = connection_pool.get_connection()
+        conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
         if request.method == 'GET':
@@ -1657,7 +1607,7 @@ def manage_tool(tool_id):
 @app.route('/api/ml/agent/<int:agent_id>/tools', methods=['GET', 'POST'])
 def manage_agent_tools(agent_id):
     try:
-        conn = connection_pool.get_connection()
+        conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
         if request.method == 'GET':
@@ -1714,7 +1664,7 @@ def manage_agent_tools(agent_id):
 @app.route('/api/ml/agent/<int:agent_id>/tool/<int:tool_id>', methods=['POST', 'DELETE'])
 def manage_single_agent_tool(agent_id, tool_id):
     try:
-        conn = connection_pool.get_connection()
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         if request.method == 'POST':
@@ -1769,7 +1719,7 @@ def execute_all_tools(agent_id):
                 'message': 'Command is required'
             }), 400
 
-        conn = connection_pool.get_connection()
+        conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
         # Initialize agent
@@ -1828,6 +1778,666 @@ def execute_all_tools(agent_id):
                 conn.close()
             except:
                 pass
+
+@app.route('/api/ml/agent-memory', methods=['POST'])
+@log_execution
+def create_agent_memory():
+    """Create a new memory for an agent"""
+    try:
+        data = request.json
+        required_fields = ['agent_id', 'memory_type']
+        if not all(field in data for field in required_fields):
+            logger.warning(f"Missing required fields in request: {data}")
+            return jsonify({
+                "status": "error",
+                "message": f"Missing required fields: {', '.join(required_fields)}"
+            }), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        try:
+            # Verify agent exists
+            cursor.execute("SELECT id FROM agents WHERE id = %s", (data['agent_id'],))
+            if not cursor.fetchone():
+                logger.warning(f"Agent {data['agent_id']} not found")
+                return jsonify({
+                    "status": "error",
+                    "message": f"Agent with id {data['agent_id']} not found"
+                }), 404
+
+            # Create table if not exists
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS agent_memory (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    agent_id INT NOT NULL,
+                    memory_type VARCHAR(50) NOT NULL,
+                    start_prompt TEXT,
+                    end_prompt TEXT,
+                    context TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    FOREIGN KEY (agent_id) REFERENCES agents(id)
+                )
+            """)
+
+            # Insert memory
+            insert_query = """
+                INSERT INTO agent_memory 
+                (agent_id, memory_type, start_prompt, end_prompt, context)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            cursor.execute(insert_query, (
+                data['agent_id'],
+                data['memory_type'],
+                data.get('start_prompt'),
+                data.get('end_prompt'),
+                data.get('context')
+            ))
+            conn.commit()
+            memory_id = cursor.lastrowid
+
+            # Fetch the created memory
+            cursor.execute("SELECT * FROM agent_memory WHERE id = %s", (memory_id,))
+            memory = cursor.fetchone()
+
+            logger.info(f"Created memory for agent {data['agent_id']}: {memory}")
+            return jsonify({
+                "status": "success",
+                "memory": memory
+            })
+
+        finally:
+            cursor.close()
+            conn.close()
+
+    except Exception as e:
+        logger.error(f"Error creating agent memory: {str(e)}", exc_info=True)
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to create memory: {str(e)}"
+        }), 500
+
+@app.route('/api/tools/<int:tool_id>', methods=['GET'])
+def get_tool(tool_id):
+    """Get details of a specific tool"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        cursor.execute("""
+            SELECT id, tool_name, description, type, hostname, auth_method
+            FROM tools 
+            WHERE id = %s
+        """, (tool_id,))
+        
+        tool = cursor.fetchone()
+        
+        if not tool:
+            return jsonify({
+                'status': 'error',
+                'message': 'Tool not found'
+            }), 404
+            
+        return jsonify({
+            'status': 'success',
+            'tool_name': tool['tool_name'],
+            'tool_type': tool['type'],
+            'hostname': tool['hostname'],
+            'auth_method': tool['auth_method']
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching tool {tool_id}: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+# Initialize database tables
+def init_db():
+    """Initialize database tables if they don't exist"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Create agents table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS agents (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                memory_type VARCHAR(50) NOT NULL,
+                foundation_model VARCHAR(50) NOT NULL,
+                status VARCHAR(20) DEFAULT 'inactive',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Create team_messages table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS team_messages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                team_id VARCHAR(36) NOT NULL,
+                task_id VARCHAR(36) NOT NULL,
+                task_description TEXT NOT NULL,
+                task_requirements JSON,
+                team_config JSON,
+                status VARCHAR(20) DEFAULT 'pending',
+                result JSON,
+                error_message TEXT,
+                processing_time INT,
+                agent_responses JSON,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_team_id (team_id),
+                INDEX idx_task_id (task_id),
+                INDEX idx_status (status)
+            )
+        """)
+        
+        # Create agent_memory table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS agent_memory (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                agent_id INT NOT NULL,
+                memory_type VARCHAR(50) NOT NULL,
+                start_prompt TEXT,
+                end_prompt TEXT,
+                context TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (agent_id) REFERENCES agents(id)
+            )
+        """)
+        
+        # Drop and recreate messages table to update schema
+        cursor.execute("DROP TABLE IF EXISTS messages")
+        cursor.execute("""
+            CREATE TABLE messages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                sender_id INT NULL,  -- Allow NULL for system/user messages
+                receiver_id INT NOT NULL,
+                content TEXT NOT NULL,
+                processed_message TEXT,
+                model_response TEXT,
+                interaction_type VARCHAR(50) DEFAULT 'direct',
+                conversation_id VARCHAR(36),
+                team_id INT,
+                status VARCHAR(20) DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (receiver_id) REFERENCES agents(id),
+                FOREIGN KEY (sender_id) REFERENCES agents(id)
+            )
+        """)
+
+        # Create tools table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tools (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                tool_name VARCHAR(255) NOT NULL,
+                description TEXT,
+                type VARCHAR(50) NOT NULL,
+                hostname VARCHAR(255),
+                username VARCHAR(255),
+                password VARCHAR(255),
+                auth_method VARCHAR(50),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+        """)
+
+        # Create agent_tools table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS agent_tools (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                agent_id INT NOT NULL,
+                tool_id INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (agent_id) REFERENCES agents(id),
+                FOREIGN KEY (tool_id) REFERENCES tools(id)
+            )
+        """)
+        
+        # Check if test agent exists
+        cursor.execute("SELECT id FROM agents WHERE id = 10")
+        if not cursor.fetchone():
+            # Create test agent
+            cursor.execute("""
+                INSERT INTO agents (id, name, memory_type, foundation_model, status)
+                VALUES (10, 'Databricks Agent', 'SHORT_TERM_MEMORY', 'gpt-4', 'active')
+            """)
+            logger.info("Created test agent with ID 10")
+
+        # Check if test tool exists
+        cursor.execute("SELECT id FROM tools WHERE id = 5")
+        if not cursor.fetchone():
+            # Create test tool
+            cursor.execute("""
+                INSERT INTO tools (id, tool_name, description, type, hostname, auth_method)
+                VALUES (5, 'DBX Tool', 'Databricks Integration Tool', 'WebService', 'databricks.example.com', 'token')
+            """)
+            logger.info("Created test tool with ID 5")
+
+            # Associate tool with agent
+            cursor.execute("""
+                INSERT IGNORE INTO agent_tools (agent_id, tool_id)
+                VALUES (10, 5)
+            """)
+            logger.info("Associated tool 5 with agent 10")
+        
+        conn.commit()
+        logger.info("Database tables initialized successfully")
+        
+    except mysql.connector.Error as e:
+        logger.error(f"Database error during initialization: {e}", exc_info=True)
+        raise
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+# Initialize database on startup
+init_db()
+
+@app.route('/api/debug/db-contents', methods=['GET'])
+def get_db_contents():
+    """Debug endpoint to check database contents"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        tables = ['agents', 'agent_memory', 'messages', 'tools', 'agent_tools']
+        contents = {}
+        
+        for table in tables:
+            try:
+                cursor.execute(f"SELECT * FROM {table}")
+                contents[table] = cursor.fetchall()
+                # Convert datetime objects to strings for JSON serialization
+                if contents[table]:
+                    for row in contents[table]:
+                        for key, value in row.items():
+                            if isinstance(value, datetime):
+                                row[key] = value.isoformat()
+                logger.info(f"Found {len(contents[table])} rows in {table}")
+            except Exception as e:
+                logger.error(f"Error fetching from {table}: {str(e)}")
+                contents[table] = {"error": str(e)}
+        
+        return jsonify({
+            "status": "success",
+            "database_contents": contents
+        })
+        
+    except Exception as e:
+        logger.error(f"Error checking database contents: {str(e)}", exc_info=True)
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/api/debug/db-connection', methods=['GET'])
+def check_db_connection():
+    """Debug endpoint to verify database connection"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Try a simple query
+        cursor.execute("SELECT 1")
+        result = cursor.fetchone()
+        
+        # Get database version
+        cursor.execute("SELECT VERSION()")
+        version = cursor.fetchone()
+        
+        # Get table counts
+        cursor.execute("""
+            SELECT TABLE_NAME, TABLE_ROWS
+            FROM information_schema.tables
+            WHERE TABLE_SCHEMA = %s
+        """, (db_config['database'],))
+        table_counts = cursor.fetchall()
+        
+        return jsonify({
+            "status": "success",
+            "connection": "active",
+            "database": db_config['database'],
+            "version": version[0] if version else None,
+            "table_counts": dict(table_counts)
+        })
+        
+    except Exception as e:
+        logger.error(f"Database connection error: {str(e)}", exc_info=True)
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/api/ml/team/execute', methods=['POST'])
+@log_execution
+def execute_team_task():
+    """Execute a task using a team of agents"""
+    conn = None
+    cursor = None
+    start_time = datetime.now()
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "Request body is required"
+            }), 400
+
+        # Validate required fields
+        required_fields = ['team_config', 'task']
+        if not all(field in data for field in required_fields):
+            return jsonify({
+                "status": "error",
+                "message": f"Missing required fields: {', '.join(required_fields)}"
+            }), 400
+
+        # Create team instance
+        team = Team(
+            team_id=str(uuid.uuid4()),
+            name=data['team_config'].get('name', 'Task Team'),
+            description=data['team_config'].get('description', 'Team for task execution')
+        )
+
+        # Add team members
+        for member_config in data['team_config'].get('members', []):
+            member = TeamMember(
+                agent_id=member_config['agent_id'],
+                priority=member_config.get('priority', 1),
+                accuracy_threshold=member_config.get('accuracy_threshold', 0.8),
+                success_rate=member_config.get('success_rate', 0.9)
+            )
+            team.add_member(member)
+
+        if not team.members:
+            return jsonify({
+                "status": "error",
+                "message": "No team members specified"
+            }), 400
+
+        # Create task
+        task = TeamTask(
+            task_id=str(uuid.uuid4()),
+            description=data['task'].get('description', ''),
+            requirements=data['task'].get('requirements', {})
+        )
+        team.assign_task(task)
+
+        # Store initial task record
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            
+            insert_query = """
+                INSERT INTO team_messages (
+                    team_id, task_id, task_description, task_requirements, 
+                    team_config, status
+                ) VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            
+            cursor.execute(insert_query, (
+                team.team_id,
+                task.task_id,
+                task.description,
+                json.dumps(task.requirements),
+                json.dumps(data['team_config']),
+                'processing'
+            ))
+            
+            conn.commit()
+            logger.info(f"Stored initial team task record for task {task.task_id}")
+            
+        except Exception as db_error:
+            logger.error(f"Database error storing team task: {str(db_error)}", exc_info=True)
+            if conn:
+                conn.rollback()
+            raise
+        finally:
+            safe_close_connection(conn, cursor)
+
+        # Execute task with team
+        final_result = execute_task_with_team(team, task)
+        
+        # Calculate processing time
+        processing_time = int((datetime.now() - start_time).total_seconds())
+
+        # Update task record with results
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            
+            update_query = """
+                UPDATE team_messages 
+                SET status = %s,
+                    result = %s,
+                    processing_time = %s,
+                    agent_responses = %s,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE team_id = %s AND task_id = %s
+            """
+            
+            cursor.execute(update_query, (
+                final_result.get('final_status', 'failed'),
+                json.dumps(final_result),
+                processing_time,
+                json.dumps(final_result.get('conversation_context', [])),
+                team.team_id,
+                task.task_id
+            ))
+            
+            conn.commit()
+            logger.info(f"Updated team task record with results for task {task.task_id}")
+            
+        except Exception as db_error:
+            logger.error(f"Database error updating team task results: {str(db_error)}", exc_info=True)
+            if conn:
+                conn.rollback()
+            raise
+        finally:
+            safe_close_connection(conn, cursor)
+
+        return jsonify({
+            "status": "success",
+            "team": team.to_dict(),
+            "result": final_result,
+            "processing_time_seconds": processing_time
+        })
+
+    except Exception as e:
+        logger.error(f"Error executing team task: {str(e)}", exc_info=True)
+        
+        # Store error in database if we have team/task IDs
+        if 'team' in locals() and 'task' in locals():
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor(dictionary=True)
+                
+                update_query = """
+                    UPDATE team_messages 
+                    SET status = 'failed',
+                        error_message = %s,
+                        processing_time = %s,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE team_id = %s AND task_id = %s
+                """
+                
+                processing_time = int((datetime.now() - start_time).total_seconds())
+                
+                cursor.execute(update_query, (
+                    str(e),
+                    processing_time,
+                    team.team_id,
+                    task.task_id
+                ))
+                
+                conn.commit()
+                
+            except Exception as db_error:
+                logger.error(f"Database error storing team task error: {str(db_error)}", exc_info=True)
+            finally:
+                safe_close_connection(conn, cursor)
+        
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+            "details": traceback.format_exc()
+        }), 500
+
+@app.route('/api/ml/team/history', methods=['GET'])
+def get_team_history():
+    """Get history of team messages and tasks"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Get optional query parameters
+        team_id = request.args.get('team_id')
+        status = request.args.get('status')
+        limit = request.args.get('limit', 100)
+        
+        # Build query
+        query = "SELECT * FROM team_messages WHERE 1=1"
+        params = []
+        
+        if team_id:
+            query += " AND team_id = %s"
+            params.append(team_id)
+            
+        if status:
+            query += " AND status = %s"
+            params.append(status)
+            
+        query += " ORDER BY created_at DESC LIMIT %s"
+        params.append(int(limit))
+        
+        # Execute query
+        cursor.execute(query, tuple(params))
+        history = cursor.fetchall()
+        
+        # Convert datetime objects to strings
+        for record in history:
+            record['created_at'] = record['created_at'].isoformat() if record['created_at'] else None
+            record['updated_at'] = record['updated_at'].isoformat() if record['updated_at'] else None
+        
+        return jsonify({
+            "status": "success",
+            "history": history
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching team history: {str(e)}", exc_info=True)
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+    finally:
+        safe_close_connection(conn, cursor)
+
+def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
+    """Execute a task using a team of agents with proper coordination"""
+    try:
+        logger.info(f"Starting team execution for task {task.task_id}")
+        final_results = []
+        
+        # Track conversation context
+        conversation_context = []
+        
+        # Execute task with each team member in priority order
+        for member in team.members:
+            try:
+                # Initialize agent
+                agent = initialize_agent_from_db(member.agent_id)
+                if not agent:
+                    logger.error(f"Could not initialize agent {member.agent_id}")
+                    continue
+
+                # Set correlation ID for tracking
+                agent.set_correlation_id(task.task_id)
+
+                # Prepare message with context and requirements
+                message = {
+                    "task_description": task.description,
+                    "requirements": task.requirements,
+                    "conversation_context": conversation_context,
+                    "accuracy_threshold": member.accuracy_threshold,
+                    "success_rate": member.success_rate
+                }
+
+                # Execute with agent
+                result = agent.execute_with_tools(json.dumps(message))
+                
+                if result.get('status') == 'success':
+                    # Add to conversation context
+                    conversation_context.append({
+                        "agent_id": member.agent_id,
+                        "response": result.get('llm_response', '')
+                    })
+                    
+                    # Add to results
+                    final_results.append({
+                        "agent_id": member.agent_id,
+                        "priority": member.priority,
+                        "result": result
+                    })
+
+                    # Update task status
+                    task.status = "in_progress"
+                    task.results.append(result)
+
+            except Exception as agent_error:
+                logger.error(f"Error with agent {member.agent_id}: {str(agent_error)}", exc_info=True)
+                continue
+
+        # Aggregate results
+        aggregated_result = {
+            "status": "success",
+            "task_id": task.task_id,
+            "team_id": team.team_id,
+            "results": final_results,
+            "conversation_context": conversation_context,
+            "final_status": "completed" if final_results else "failed"
+        }
+
+        # Update task status
+        task.status = aggregated_result["final_status"]
+        task.updated_at = datetime.now()
+
+        return aggregated_result
+
+    except Exception as e:
+        logger.error(f"Error in team execution: {str(e)}", exc_info=True)
+        task.status = "failed"
+        task.updated_at = datetime.now()
+        return {
+            "status": "error",
+            "message": str(e),
+            "task_id": task.task_id,
+            "team_id": team.team_id
+        }
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True) 
