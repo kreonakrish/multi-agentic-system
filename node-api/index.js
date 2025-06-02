@@ -5,12 +5,35 @@ const mysql = require('mysql2/promise');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
+const chatRoutes = require('./routes/chat.routes');
+const logger = require('./utils/logger');
 
 const app = express();
 const PORT = 4000;
 
-app.use(cors());
+// CORS configuration
+const corsOptions = {
+    origin: 'http://localhost:3000', // Allow React app
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// Request logging middleware
+app.use((req, res, next) => {
+    logger.info(`${req.method} ${req.url}`, {
+        body: req.body,
+        query: req.query,
+        params: req.params
+    });
+    next();
+});
+
+// Routes
+app.use('/api/chat', chatRoutes);
 
 // MySQL connection pool
 const pool = mysql.createPool({

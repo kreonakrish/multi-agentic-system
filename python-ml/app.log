@@ -1411,3 +1411,405 @@ Considering the provided context, determine which tool(s) should be utilized and
 2025-06-01 20:35:43,289 - werkzeug - INFO -  * Debugger PIN: 368-215-762
 2025-06-01 20:35:44,310 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_team_execution.py', reloading
 2025-06-01 20:35:44,443 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 20:35:45,228 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 20:35:45,805 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 20:35:45,939 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 20:35:45,957 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 20:35:45,965 - werkzeug - INFO -  * Debugger PIN: 368-215-762
+2025-06-01 20:36:05,632 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-01 20:36:05,700 - __main__ - INFO - Stored initial team task record for task a9c7419e-ae75-4b66-a6d6-3458babbed8a
+2025-06-01 20:36:05,703 - __main__ - INFO - Starting team execution for task a9c7419e-ae75-4b66-a6d6-3458babbed8a
+2025-06-01 20:36:05,718 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 20:36:05,720 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 20:36:05,720 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 20:36:05,720 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "Write a hello world pyspark code", "requirements": {"min_accuracy": 0.85, "max_time": 1800, "specific_tools": ["pyspark"], "output_format": "python_code", "code_requirements": {"must_include": ["SparkSession", "create simple RDD", "basic transformation", "show output"], "style_guide": "PEP 8", "comments_required": true}}, "conversation_context": [], "accuracy_threshold": 0.9, "success_rate": 0.95}
+2025-06-01 20:36:05,720 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 20:36:05,720 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 20:36:05,720 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-01 20:36:13,951 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 20:36:13,962 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-01 20:36:13,962 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 20:36:13,966 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 20:36:13,966 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-01 20:36:13,966 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 20:36:13,974 - __main__ - INFO - Loaded memories for agent 11
+2025-06-01 20:36:13,977 - __main__ - INFO - Found 1 tools for agent 11
+2025-06-01 20:36:13,977 - __main__ - INFO - Added tool Nifi Tool to agent 11
+2025-06-01 20:36:13,977 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "Write a hello world pyspark code", "requirements": {"min_accuracy": 0.85, "max_time": 1800, "specific_tools": ["pyspark"], "output_format": "python_code", "code_requirements": {"must_include": ["SparkSession", "create simple RDD", "basic transformation", "show output"], "style_guide": "PEP 8", "comments_required": true}}, "conversation_context": [{"agent_id": 10, "response": "Here's a simple PySpark code example that fulfills the requirements.\n\n```python\n# Import the necessary modules\nfrom pyspark.sql import SparkSession\n\n# Create a SparkSession\nspark = SparkSession.builder \\\n    .appName(\"Hello World\") \\\n    .getOrCreate()\n\n# Create a simple RDD\ndata = [\"Hello\", \"World\"]\nrdd = spark.sparkContext.parallelize(data)\n\n# Perform a basic transformation\nrdd = rdd.map(lambda word: (word, 1))\n\n# Collect the data and print it\nresult = rdd.collect()\n\n# Show the output\nfor (word, count) in result:\n    print(\"{}: {}\".format(word, count))\n\n# Stop the SparkSession\nspark.stop()\n```\n\nThis code creates a SparkSession, creates a simple RDD from a list of strings, applies a basic transformation to each string in the RDD (mapping each string to a tuple of the string and 1), collects the data, and prints it. The SparkSession is then stopped. The code follows the PEP 8 style guide and includes necessary comments for clarity."}], "accuracy_threshold": 0.8, "success_rate": 0.9}
+2025-06-01 20:36:13,980 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 20:36:13,980 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 20:36:13,980 - multi_agent_system.agent.11 - INFO - Sending request to OpenAI API...
+2025-06-01 20:36:22,267 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 20:36:22,272 - multi_agent_system.agent.11 - INFO - Received response from OpenAI API
+2025-06-01 20:36:22,273 - multi_agent_system.agent.11 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 20:36:22,275 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 20:36:22,276 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing with tool: Nifi Tool
+2025-06-01 20:36:22,277 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 20:36:22,302 - __main__ - INFO - Updated team task record with results for task a9c7419e-ae75-4b66-a6d6-3458babbed8a
+2025-06-01 20:36:22,306 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-01 20:36:22,308 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 20:36:22] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-01 20:36:24,365 - __main__ - WARNING - Connection has uncommitted transaction, rolling back before return to pool
+2025-06-01 20:36:24,382 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 20:36:24] "GET /api/ml/team/history?team_id=dfdd0fab-e0fb-4f04-ad53-e898c2c17507&limit=5 HTTP/1.1" 200 -
+2025-06-01 20:47:48,212 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-01 20:47:48,243 - __main__ - INFO - Stored initial team task record for task 3b86379c-e583-469e-8112-61f5338c80da
+2025-06-01 20:47:48,243 - __main__ - INFO - Starting team execution for task 3b86379c-e583-469e-8112-61f5338c80da
+2025-06-01 20:47:48,258 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 20:47:48,258 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 20:47:48,258 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 20:47:48,266 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "Write a hello world pyspark code", "requirements": {"min_accuracy": 0.85, "max_time": 1800, "specific_tools": ["pyspark"], "output_format": "python_code", "code_requirements": {"must_include": ["SparkSession", "create simple RDD", "basic transformation", "show output"], "style_guide": "PEP 8", "comments_required": true}}, "conversation_context": [], "accuracy_threshold": 0.9, "success_rate": 0.95}
+2025-06-01 20:47:48,267 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 20:47:48,268 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 20:47:48,268 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-01 20:47:57,973 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 20:47:57,978 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-01 20:47:57,981 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 20:47:57,981 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 20:47:57,981 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-01 20:47:57,983 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 20:47:57,994 - __main__ - INFO - Loaded memories for agent 11
+2025-06-01 20:47:57,999 - __main__ - INFO - Found 1 tools for agent 11
+2025-06-01 20:47:58,000 - __main__ - INFO - Added tool Nifi Tool to agent 11
+2025-06-01 20:47:58,001 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "Write a hello world pyspark code", "requirements": {"min_accuracy": 0.85, "max_time": 1800, "specific_tools": ["pyspark"], "output_format": "python_code", "code_requirements": {"must_include": ["SparkSession", "create simple RDD", "basic transformation", "show output"], "style_guide": "PEP 8", "comments_required": true}}, "conversation_context": [{"agent_id": 10, "response": "Here is a simple example of a \"Hello, World!\" PySpark script. This script uses the SparkSession, creates a simple RDD, performs a basic transformation, and shows the output.\n\n```python\n# Import SparkSession from pyspark.sql\nfrom pyspark.sql import SparkSession\n\n# Create a SparkSession\nspark = SparkSession.builder.appName('HelloWorldApp').getOrCreate()\n\n# Create a simple RDD\ndata = ['Hello', 'World']\nrdd = spark.sparkContext.parallelize(data)\n\n# Perform a basic transformation using map() function\nrdd = rdd.map(lambda word: (word, 1))\n\n# Collect the results and print\nfor word in rdd.collect():\n    print(word)\n\n# Stop the SparkSession\nspark.stop()\n```\nThis script adheres to the PEP 8 style guide and includes comments explaining what each part of the code does. The SparkSession is created using the SparkSession.builder method. The appName('HelloWorldApp') method names the Spark application, which can be useful when running multiple Spark applications. The getOrCreate() method gets the existing SparkSession or, if there is no existing one, creates a new one. The parallelize method is used to create an RDD from the data list. The map() function applies a lambda function to each element of the RDD. The lambda function takes a word and returns a tuple containing the word and the number 1. The collect() method is used to retrieve all the elements of the RDD as an array to the driver program, which are then printed. The SparkSession is stopped at the end of the program."}], "accuracy_threshold": 0.8, "success_rate": 0.9}
+2025-06-01 20:47:58,001 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 20:47:58,001 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 20:47:58,005 - multi_agent_system.agent.11 - INFO - Sending request to OpenAI API...
+2025-06-01 20:48:08,313 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 20:48:08,318 - multi_agent_system.agent.11 - INFO - Received response from OpenAI API
+2025-06-01 20:48:08,318 - multi_agent_system.agent.11 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 20:48:08,318 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 20:48:08,318 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing with tool: Nifi Tool
+2025-06-01 20:48:08,318 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 20:48:08,344 - __main__ - INFO - Updated team task record with results for task 3b86379c-e583-469e-8112-61f5338c80da
+2025-06-01 20:48:08,351 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-01 20:48:08,351 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 20:48:08] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-01 20:48:10,409 - __main__ - WARNING - Connection has uncommitted transaction, rolling back before return to pool
+2025-06-01 20:48:10,409 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 20:48:10] "GET /api/ml/team/history?team_id=e3f7d0da-a698-4339-8ccb-00c4cb5a1d12&limit=5 HTTP/1.1" 200 -
+2025-06-01 21:28:07,646 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:28:15,961 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:33:23,475 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:33:24,149 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 21:33:24,540 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 21:33:24,597 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 21:33:24,597 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 21:33:24,597 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 21:33:25,301 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:33:25,620 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 21:33:25,789 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 21:33:25,807 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 21:33:25,813 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-01 21:38:16,370 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:38:16,844 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 21:38:17,150 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 21:38:17,189 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 21:38:17,189 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 21:38:17,189 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 21:38:17,797 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:38:18,197 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 21:38:18,374 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 21:38:18,393 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 21:38:18,398 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-01 21:40:14,326 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:40:14,756 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 21:40:15,016 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 21:40:15,053 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 21:40:15,053 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 21:40:15,059 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 21:40:15,616 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:40:15,991 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 21:40:16,136 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 21:40:16,156 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 21:40:16,171 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-01 21:44:27,318 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-01 21:44:27,346 - __main__ - INFO - Stored initial team task record for task 37b29815-e05e-43f2-917c-47083923a55e
+2025-06-01 21:44:27,351 - __main__ - INFO - Starting team execution for task 37b29815-e05e-43f2-917c-47083923a55e
+2025-06-01 21:44:27,368 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 21:44:27,380 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 21:44:27,380 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 21:44:27,380 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "Hello, can you help me with data analysis?", "requirements": {"min_accuracy": 0.85, "max_time": 30, "specific_tools": ["chat_analysis", "response_generation"], "output_format": "conversation", "conversation_requirements": {"must_include": ["greeting_if_needed", "context_awareness", "clear_response", "follow_up_hook"], "style_guide": "conversational", "max_length": 500}}, "conversation_context": [], "accuracy_threshold": 0.9, "success_rate": 0.95}
+2025-06-01 21:44:27,380 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 21:44:27,385 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 21:44:27,385 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-01 21:44:28,900 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-01 21:44:28,900 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 21:44:28,900 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 21:44:28,900 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-01 21:44:28,900 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 21:44:28,915 - __main__ - INFO - Loaded memories for agent 11
+2025-06-01 21:44:28,924 - __main__ - INFO - Found 1 tools for agent 11
+2025-06-01 21:44:28,924 - __main__ - INFO - Added tool Nifi Tool to agent 11
+2025-06-01 21:44:28,926 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "Hello, can you help me with data analysis?", "requirements": {"min_accuracy": 0.85, "max_time": 30, "specific_tools": ["chat_analysis", "response_generation"], "output_format": "conversation", "conversation_requirements": {"must_include": ["greeting_if_needed", "context_awareness", "clear_response", "follow_up_hook"], "style_guide": "conversational", "max_length": 500}}, "conversation_context": [{"agent_id": 10, "response": "Sure, I'd be happy to assist you with data analysis. Could you please provide me with more specific details about the type of data analysis you are looking to perform?"}], "accuracy_threshold": 0.8, "success_rate": 0.9}
+2025-06-01 21:44:28,928 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 21:44:28,928 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 21:44:28,929 - multi_agent_system.agent.11 - INFO - Sending request to OpenAI API...
+2025-06-01 21:44:31,620 - multi_agent_system.agent.11 - INFO - Received response from OpenAI API
+2025-06-01 21:44:31,620 - multi_agent_system.agent.11 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 21:44:31,627 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 21:44:31,627 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing with tool: Nifi Tool
+2025-06-01 21:44:31,631 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 21:44:31,647 - __main__ - INFO - Updated team task record with results for task 37b29815-e05e-43f2-917c-47083923a55e
+2025-06-01 21:44:31,664 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-01 21:44:31,665 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 21:44:31] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-01 21:44:31,679 - __main__ - WARNING - 404 Not Found: http://localhost:5000/api/ml/conversation/store
+2025-06-01 21:44:31,679 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 21:44:31] "[33mPOST /api/ml/conversation/store HTTP/1.1[0m" 404 -
+2025-06-01 21:49:40,589 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 21:49:40,953 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 21:49:42,002 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:49:42,552 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 21:49:42,858 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 21:49:42,886 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 21:49:42,904 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-01 21:49:58,115 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 21:49:58,356 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 21:49:59,109 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:49:59,422 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 21:49:59,585 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 21:49:59,602 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 21:49:59,604 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-01 21:50:55,684 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 21:50:55,864 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 21:50:56,750 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:50:57,193 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 21:50:57,390 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 21:50:57,416 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 21:50:57,421 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-01 21:58:45,409 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:58:45,920 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 21:58:46,084 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 21:58:46,122 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 21:58:46,122 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 21:58:46,129 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 21:58:46,747 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 21:58:47,154 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 21:58:47,276 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 21:58:47,300 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 21:58:47,308 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-01 22:02:20,091 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-01 22:02:20,097 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-01 22:02:20,100 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:02:20] "[31m[1mPOST /api/ml/team/execute HTTP/1.1[0m" 400 -
+2025-06-01 22:08:40,168 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-01 22:08:40,198 - __main__ - INFO - Stored initial team task record for task 7ec5c2f4-29db-4930-96c5-db741acb4be3
+2025-06-01 22:08:40,211 - __main__ - INFO - Starting team execution for task 7ec5c2f4-29db-4930-96c5-db741acb4be3
+2025-06-01 22:08:40,237 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 22:08:40,237 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 22:08:40,237 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 22:08:40,237 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "hi", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": []}}, "conversation_context": [], "accuracy_threshold": 0.9, "success_rate": 0.95}
+2025-06-01 22:08:40,251 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 22:08:40,252 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 22:08:40,252 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-01 22:08:41,929 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-01 22:08:41,929 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 22:08:41,929 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 22:08:41,929 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-01 22:08:41,929 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 22:08:41,947 - __main__ - INFO - Loaded memories for agent 11
+2025-06-01 22:08:41,957 - __main__ - INFO - Found 1 tools for agent 11
+2025-06-01 22:08:41,957 - __main__ - INFO - Added tool Nifi Tool to agent 11
+2025-06-01 22:08:41,957 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "hi", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": []}}, "conversation_context": [{"agent_id": 10, "response": "Hello! How can I assist you today?"}], "accuracy_threshold": 0.8, "success_rate": 0.9}
+2025-06-01 22:08:41,957 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 22:08:41,957 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 22:08:41,957 - multi_agent_system.agent.11 - INFO - Sending request to OpenAI API...
+2025-06-01 22:08:42,822 - multi_agent_system.agent.11 - INFO - Received response from OpenAI API
+2025-06-01 22:08:42,822 - multi_agent_system.agent.11 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 22:08:42,822 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 22:08:42,822 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing with tool: Nifi Tool
+2025-06-01 22:08:42,822 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 22:08:42,864 - __main__ - INFO - Updated team task record with results for task 7ec5c2f4-29db-4930-96c5-db741acb4be3
+2025-06-01 22:08:42,872 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-01 22:08:42,874 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:08:42] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-01 22:08:42,895 - __main__ - INFO - Starting execution of store_conversation
+2025-06-01 22:08:42,913 - __main__ - INFO - Stored conversation default-session
+2025-06-01 22:08:42,926 - __main__ - INFO - Completed execution of store_conversation
+2025-06-01 22:08:42,926 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:08:42] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-01 22:13:17,959 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-01 22:13:18,072 - __main__ - INFO - Stored initial team task record for task b40c2b1c-58e5-433e-af27-568f24321ae4
+2025-06-01 22:13:18,072 - __main__ - INFO - Starting team execution for task b40c2b1c-58e5-433e-af27-568f24321ae4
+2025-06-01 22:13:18,140 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 22:13:18,150 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 22:13:18,155 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 22:13:18,155 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "hi", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": [{"role": "user", "content": "hi"}, {"role": "bot", "content": "I apologize, but I could not generate a proper response.", "metadata": {}}]}}, "conversation_context": [], "accuracy_threshold": 0.9, "success_rate": 0.95}
+2025-06-01 22:13:18,155 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 22:13:18,155 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 22:13:18,155 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-01 22:13:19,326 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-01 22:13:19,326 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 22:13:19,340 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 22:13:19,340 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-01 22:13:19,340 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 22:13:19,414 - __main__ - INFO - Loaded memories for agent 11
+2025-06-01 22:13:19,420 - __main__ - INFO - Found 1 tools for agent 11
+2025-06-01 22:13:19,420 - __main__ - INFO - Added tool Nifi Tool to agent 11
+2025-06-01 22:13:19,435 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "hi", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": [{"role": "user", "content": "hi"}, {"role": "bot", "content": "I apologize, but I could not generate a proper response.", "metadata": {}}]}}, "conversation_context": [{"agent_id": 10, "response": "Hello! How can I assist you today?"}], "accuracy_threshold": 0.8, "success_rate": 0.9}
+2025-06-01 22:13:19,435 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 22:13:19,435 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 22:13:19,435 - multi_agent_system.agent.11 - INFO - Sending request to OpenAI API...
+2025-06-01 22:13:20,447 - multi_agent_system.agent.11 - INFO - Received response from OpenAI API
+2025-06-01 22:13:20,447 - multi_agent_system.agent.11 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 22:13:20,449 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 22:13:20,449 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing with tool: Nifi Tool
+2025-06-01 22:13:20,449 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 22:13:20,488 - __main__ - INFO - Updated team task record with results for task b40c2b1c-58e5-433e-af27-568f24321ae4
+2025-06-01 22:13:20,495 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-01 22:13:20,497 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:13:20] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-01 22:13:20,520 - __main__ - INFO - Starting execution of store_conversation
+2025-06-01 22:13:20,552 - __main__ - INFO - Stored conversation default-session
+2025-06-01 22:13:20,552 - __main__ - INFO - Completed execution of store_conversation
+2025-06-01 22:13:20,552 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:13:20] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-01 22:13:29,448 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-01 22:13:29,494 - __main__ - INFO - Stored initial team task record for task b3f97e3e-07f9-4bda-b5a3-f1f52d952c03
+2025-06-01 22:13:29,501 - __main__ - INFO - Starting team execution for task b3f97e3e-07f9-4bda-b5a3-f1f52d952c03
+2025-06-01 22:13:29,547 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 22:13:29,549 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 22:13:29,555 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 22:13:29,558 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "bar chart", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": [{"role": "user", "content": "hi"}, {"role": "bot", "content": "I apologize, but I could not generate a proper response.", "metadata": {}}, {"role": "user", "content": "hi"}, {"role": "bot", "content": "Hello! How can I assist you today? Hello! How can I assist you today?", "metadata": {"team_id": "1beff94b-a3df-4a31-b5c7-7c6bd98b7614", "processing_time": 2, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:20.505Z"}}]}}, "conversation_context": [], "accuracy_threshold": 0.9, "success_rate": 0.95}
+2025-06-01 22:13:29,558 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 22:13:29,558 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 22:13:29,558 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-01 22:13:33,037 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-01 22:13:33,037 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 22:13:33,037 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 22:13:33,037 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-01 22:13:33,048 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 22:13:33,075 - __main__ - INFO - Loaded memories for agent 11
+2025-06-01 22:13:33,075 - __main__ - INFO - Found 1 tools for agent 11
+2025-06-01 22:13:33,082 - __main__ - INFO - Added tool Nifi Tool to agent 11
+2025-06-01 22:13:33,084 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "bar chart", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": [{"role": "user", "content": "hi"}, {"role": "bot", "content": "I apologize, but I could not generate a proper response.", "metadata": {}}, {"role": "user", "content": "hi"}, {"role": "bot", "content": "Hello! How can I assist you today? Hello! How can I assist you today?", "metadata": {"team_id": "1beff94b-a3df-4a31-b5c7-7c6bd98b7614", "processing_time": 2, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:20.505Z"}}]}}, "conversation_context": [{"agent_id": 10, "response": "I'm sorry, but as an AI, I don't have the ability to create bar charts. However, I can guide you on how to create one using programming languages such as Python or R. Please provide me with more details about the data you wish to visualize in a bar chart and the programming language you'd prefer to use, and I'll do my best to assist you."}], "accuracy_threshold": 0.8, "success_rate": 0.9}
+2025-06-01 22:13:33,084 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 22:13:33,084 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 22:13:33,084 - multi_agent_system.agent.11 - INFO - Sending request to OpenAI API...
+2025-06-01 22:13:35,910 - multi_agent_system.agent.11 - INFO - Received response from OpenAI API
+2025-06-01 22:13:35,910 - multi_agent_system.agent.11 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 22:13:35,910 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 22:13:35,914 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing with tool: Nifi Tool
+2025-06-01 22:13:35,914 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 22:13:35,947 - __main__ - INFO - Updated team task record with results for task b3f97e3e-07f9-4bda-b5a3-f1f52d952c03
+2025-06-01 22:13:35,951 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-01 22:13:35,951 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:13:35] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-01 22:13:35,968 - __main__ - INFO - Starting execution of store_conversation
+2025-06-01 22:13:36,003 - __main__ - INFO - Stored conversation default-session
+2025-06-01 22:13:36,005 - __main__ - INFO - Completed execution of store_conversation
+2025-06-01 22:13:36,005 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:13:36] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-01 22:13:51,296 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-01 22:13:51,337 - __main__ - INFO - Stored initial team task record for task 63e7fa00-fd8c-48ae-b30e-0740ef07a519
+2025-06-01 22:13:51,341 - __main__ - INFO - Starting team execution for task 63e7fa00-fd8c-48ae-b30e-0740ef07a519
+2025-06-01 22:13:51,357 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 22:13:51,373 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 22:13:51,373 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 22:13:51,373 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "line chart", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": [{"role": "user", "content": "hi"}, {"role": "bot", "content": "I apologize, but I could not generate a proper response.", "metadata": {}}, {"role": "user", "content": "hi"}, {"role": "bot", "content": "Hello! How can I assist you today? Hello! How can I assist you today?", "metadata": {"team_id": "1beff94b-a3df-4a31-b5c7-7c6bd98b7614", "processing_time": 2, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:20.505Z"}}, {"role": "user", "content": "bar chart"}, {"role": "bot", "content": "I'm sorry, but as an AI, I don't have the ability to create bar charts. However, I can guide you on how to create one using programming languages such as Python or R. Please provide me with more details about the data you wish to visualize in a bar chart and the programming language you'd prefer to use, and I'll do my best to assist you. As an AI with Graph memory type, I'm unable to generate bar charts directly. However, I can guide you on how to create one using various programming languages such as Python or R. Could you please provide more details about the data you want to visualize in the bar chart and the programming language you prefer to use? I'll do my best to assist you.", "metadata": {"team_id": "b622433c-0ccb-4462-833f-9de6ff0a480c", "processing_time": 6, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:35.955Z"}}]}}, "conversation_context": [], "accuracy_threshold": 0.9, "success_rate": 0.95}
+2025-06-01 22:13:51,373 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 22:13:51,377 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 22:13:51,379 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-01 22:13:56,698 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-01 22:13:56,700 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 22:13:56,700 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 22:13:56,700 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-01 22:13:56,700 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 22:13:56,705 - __main__ - INFO - Loaded memories for agent 11
+2025-06-01 22:13:56,705 - __main__ - INFO - Found 1 tools for agent 11
+2025-06-01 22:13:56,721 - __main__ - INFO - Added tool Nifi Tool to agent 11
+2025-06-01 22:13:56,721 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "line chart", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": [{"role": "user", "content": "hi"}, {"role": "bot", "content": "I apologize, but I could not generate a proper response.", "metadata": {}}, {"role": "user", "content": "hi"}, {"role": "bot", "content": "Hello! How can I assist you today? Hello! How can I assist you today?", "metadata": {"team_id": "1beff94b-a3df-4a31-b5c7-7c6bd98b7614", "processing_time": 2, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:20.505Z"}}, {"role": "user", "content": "bar chart"}, {"role": "bot", "content": "I'm sorry, but as an AI, I don't have the ability to create bar charts. However, I can guide you on how to create one using programming languages such as Python or R. Please provide me with more details about the data you wish to visualize in a bar chart and the programming language you'd prefer to use, and I'll do my best to assist you. As an AI with Graph memory type, I'm unable to generate bar charts directly. However, I can guide you on how to create one using various programming languages such as Python or R. Could you please provide more details about the data you want to visualize in the bar chart and the programming language you prefer to use? I'll do my best to assist you.", "metadata": {"team_id": "b622433c-0ccb-4462-833f-9de6ff0a480c", "processing_time": 6, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:35.955Z"}}]}}, "conversation_context": [{"agent_id": 10, "response": "As an AI with Graph memory type, I can provide you with a step-by-step guide on how to create a line chart using a programming language such as Python or R.\n\nHowever, I will need additional information about the data you wish to visualize in a line chart and the programming language you prefer to use. Once I have these details, I will be able to provide a more accurate and helpful response.\n\nPlease note that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I strive for a minimum accuracy of 85% and aim to provide the guide within 300 seconds."}], "accuracy_threshold": 0.8, "success_rate": 0.9}
+2025-06-01 22:13:56,721 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 22:13:56,721 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 22:13:56,721 - multi_agent_system.agent.11 - INFO - Sending request to OpenAI API...
+2025-06-01 22:14:06,629 - multi_agent_system.agent.11 - INFO - Received response from OpenAI API
+2025-06-01 22:14:06,629 - multi_agent_system.agent.11 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 22:14:06,629 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 22:14:06,629 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing with tool: Nifi Tool
+2025-06-01 22:14:06,629 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 22:14:06,676 - __main__ - INFO - Updated team task record with results for task 63e7fa00-fd8c-48ae-b30e-0740ef07a519
+2025-06-01 22:14:06,693 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-01 22:14:06,693 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:14:06] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-01 22:14:06,708 - __main__ - INFO - Starting execution of store_conversation
+2025-06-01 22:14:06,752 - __main__ - INFO - Stored conversation default-session
+2025-06-01 22:14:06,755 - __main__ - INFO - Completed execution of store_conversation
+2025-06-01 22:14:06,758 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:14:06] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-01 22:14:12,262 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-01 22:14:12,295 - __main__ - INFO - Stored initial team task record for task 75542141-6529-4360-b6c5-4345eef102a3
+2025-06-01 22:14:12,295 - __main__ - INFO - Starting team execution for task 75542141-6529-4360-b6c5-4345eef102a3
+2025-06-01 22:14:12,307 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 22:14:12,310 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 22:14:12,310 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 22:14:12,341 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "pie chart", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": [{"role": "user", "content": "hi"}, {"role": "bot", "content": "I apologize, but I could not generate a proper response.", "metadata": {}}, {"role": "user", "content": "hi"}, {"role": "bot", "content": "Hello! How can I assist you today? Hello! How can I assist you today?", "metadata": {"team_id": "1beff94b-a3df-4a31-b5c7-7c6bd98b7614", "processing_time": 2, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:20.505Z"}}, {"role": "user", "content": "bar chart"}, {"role": "bot", "content": "I'm sorry, but as an AI, I don't have the ability to create bar charts. However, I can guide you on how to create one using programming languages such as Python or R. Please provide me with more details about the data you wish to visualize in a bar chart and the programming language you'd prefer to use, and I'll do my best to assist you. As an AI with Graph memory type, I'm unable to generate bar charts directly. However, I can guide you on how to create one using various programming languages such as Python or R. Could you please provide more details about the data you want to visualize in the bar chart and the programming language you prefer to use? I'll do my best to assist you.", "metadata": {"team_id": "b622433c-0ccb-4462-833f-9de6ff0a480c", "processing_time": 6, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:35.955Z"}}, {"role": "user", "content": "line chart"}, {"role": "bot", "content": "As an AI with Graph memory type, I can provide you with a step-by-step guide on how to create a line chart using a programming language such as Python or R.\n\nHowever, I will need additional information about the data you wish to visualize in a line chart and the programming language you prefer to use. Once I have these details, I will be able to provide a more accurate and helpful response.\n\nPlease note that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I strive for a minimum accuracy of 85% and aim to provide the guide within 300 seconds. As an AI, I don't have the ability to directly create line charts. However, I can guide you on how to create one using programming languages such as Python or R. \n\nFor Python, here's a simple example of how you could create a line chart using the matplotlib library:\n\n```python\nimport matplotlib.pyplot as plt\n\n# Sample data\nx = [1, 2, 3, 4, 5]\ny = [1, 4, 9, 16, 25]\n\n# Create the plot\nplt.plot(x, y)\n\n# Show the plot\nplt.show()\n```\n\nFor R, you might create a line chart using the plot function:\n\n```R\n# Sample data\nx <- c(1, 2, 3, 4, 5)\ny <- c(1, 4, 9, 16, 25)\n\n# Create the plot\nplot(x, y, type = \"l\")\n```\n\nIn either case, you'll need to replace the sample data with your actual data.\n\nPlease provide me with more details about the data you wish to visualize in a line chart and the programming language you'd prefer to use, and I'll do my best to tailor the guide to your needs.\n\nRemember that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I always aim for a minimum accuracy of 85% and strive to provide the guide within 300 seconds.", "metadata": {"team_id": "6b054b45-d26c-4e8c-b4c7-e296995bf3b9", "processing_time": 15, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:14:06.693Z"}}]}}, "conversation_context": [], "accuracy_threshold": 0.9, "success_rate": 0.95}
+2025-06-01 22:14:12,341 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 22:14:12,357 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 22:14:12,357 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-01 22:14:25,202 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-01 22:14:25,202 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 22:14:25,202 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 22:14:25,202 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-01 22:14:25,202 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 22:14:25,215 - __main__ - INFO - Loaded memories for agent 11
+2025-06-01 22:14:25,215 - __main__ - INFO - Found 1 tools for agent 11
+2025-06-01 22:14:25,215 - __main__ - INFO - Added tool Nifi Tool to agent 11
+2025-06-01 22:14:25,224 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "pie chart", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": [{"role": "user", "content": "hi"}, {"role": "bot", "content": "I apologize, but I could not generate a proper response.", "metadata": {}}, {"role": "user", "content": "hi"}, {"role": "bot", "content": "Hello! How can I assist you today? Hello! How can I assist you today?", "metadata": {"team_id": "1beff94b-a3df-4a31-b5c7-7c6bd98b7614", "processing_time": 2, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:20.505Z"}}, {"role": "user", "content": "bar chart"}, {"role": "bot", "content": "I'm sorry, but as an AI, I don't have the ability to create bar charts. However, I can guide you on how to create one using programming languages such as Python or R. Please provide me with more details about the data you wish to visualize in a bar chart and the programming language you'd prefer to use, and I'll do my best to assist you. As an AI with Graph memory type, I'm unable to generate bar charts directly. However, I can guide you on how to create one using various programming languages such as Python or R. Could you please provide more details about the data you want to visualize in the bar chart and the programming language you prefer to use? I'll do my best to assist you.", "metadata": {"team_id": "b622433c-0ccb-4462-833f-9de6ff0a480c", "processing_time": 6, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:35.955Z"}}, {"role": "user", "content": "line chart"}, {"role": "bot", "content": "As an AI with Graph memory type, I can provide you with a step-by-step guide on how to create a line chart using a programming language such as Python or R.\n\nHowever, I will need additional information about the data you wish to visualize in a line chart and the programming language you prefer to use. Once I have these details, I will be able to provide a more accurate and helpful response.\n\nPlease note that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I strive for a minimum accuracy of 85% and aim to provide the guide within 300 seconds. As an AI, I don't have the ability to directly create line charts. However, I can guide you on how to create one using programming languages such as Python or R. \n\nFor Python, here's a simple example of how you could create a line chart using the matplotlib library:\n\n```python\nimport matplotlib.pyplot as plt\n\n# Sample data\nx = [1, 2, 3, 4, 5]\ny = [1, 4, 9, 16, 25]\n\n# Create the plot\nplt.plot(x, y)\n\n# Show the plot\nplt.show()\n```\n\nFor R, you might create a line chart using the plot function:\n\n```R\n# Sample data\nx <- c(1, 2, 3, 4, 5)\ny <- c(1, 4, 9, 16, 25)\n\n# Create the plot\nplot(x, y, type = \"l\")\n```\n\nIn either case, you'll need to replace the sample data with your actual data.\n\nPlease provide me with more details about the data you wish to visualize in a line chart and the programming language you'd prefer to use, and I'll do my best to tailor the guide to your needs.\n\nRemember that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I always aim for a minimum accuracy of 85% and strive to provide the guide within 300 seconds.", "metadata": {"team_id": "6b054b45-d26c-4e8c-b4c7-e296995bf3b9", "processing_time": 15, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:14:06.693Z"}}]}}, "conversation_context": [{"agent_id": 10, "response": "Based on your previous interaction, it seems like you would like guidance on how to create a pie chart. However, as an AI, I am unable to directly generate pie charts. I can give you guidance on how to create one using programming languages such as Python or R. Please provide me with more details about the data you would like to visualize in a pie chart and the programming language you prefer to use.\n\nHere's a simple example of how you might create a pie chart in Python:\n\n```python\nimport matplotlib.pyplot as plt\n\n# Sample data\nsizes = [215, 130, 245, 210]\nlabels = ['A', 'B', 'C', 'D']\n\n# Create the pie chart\nplt.pie(sizes, labels=labels)\n\n# Display the pie chart\nplt.show()\n```\n\nYou can replace the sample data with your actual data. This will create a pie chart with 4 slices labeled 'A', 'B', 'C', 'D'.\n\nIf you prefer to use R, here's an example:\n\n```R\n# Sample data\nsizes <- c(215, 130, 245, 210)\nlabels <- c('A', 'B', 'C', 'D')\n\n# Create the pie chart\npie(sizes, labels = labels)\n```\n\nThis will create a similar pie chart in R. Again, you should replace the sample data with your actual data.\n\nPlease provide me with more details about the data you want to visualize in the pie chart and your preferred programming language, and I'll do my best to assist you. Remember that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I always aim for a minimum accuracy of 85% and strive to provide the guide within 300 seconds."}], "accuracy_threshold": 0.8, "success_rate": 0.9}
+2025-06-01 22:14:25,224 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 22:14:25,224 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 22:14:25,230 - multi_agent_system.agent.11 - INFO - Sending request to OpenAI API...
+2025-06-01 22:14:34,685 - multi_agent_system.agent.11 - INFO - Received response from OpenAI API
+2025-06-01 22:14:34,685 - multi_agent_system.agent.11 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 22:14:34,695 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 22:14:34,696 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing with tool: Nifi Tool
+2025-06-01 22:14:34,696 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 22:14:34,715 - __main__ - INFO - Updated team task record with results for task 75542141-6529-4360-b6c5-4345eef102a3
+2025-06-01 22:14:34,715 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-01 22:14:34,725 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:14:34] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-01 22:14:34,738 - __main__ - INFO - Starting execution of store_conversation
+2025-06-01 22:14:34,749 - __main__ - INFO - Stored conversation default-session
+2025-06-01 22:14:34,759 - __main__ - INFO - Completed execution of store_conversation
+2025-06-01 22:14:34,759 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:14:34] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-01 22:14:44,248 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-01 22:14:44,260 - __main__ - INFO - Stored initial team task record for task 0ba7af75-9950-4b68-a574-de48bd3f728a
+2025-06-01 22:14:44,267 - __main__ - INFO - Starting team execution for task 0ba7af75-9950-4b68-a574-de48bd3f728a
+2025-06-01 22:14:44,271 - __main__ - INFO - Loaded memories for agent 10
+2025-06-01 22:14:44,271 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-01 22:14:44,271 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-01 22:14:44,282 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "how to write a spark code", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": [{"role": "user", "content": "hi"}, {"role": "bot", "content": "I apologize, but I could not generate a proper response.", "metadata": {}}, {"role": "user", "content": "hi"}, {"role": "bot", "content": "Hello! How can I assist you today? Hello! How can I assist you today?", "metadata": {"team_id": "1beff94b-a3df-4a31-b5c7-7c6bd98b7614", "processing_time": 2, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:20.505Z"}}, {"role": "user", "content": "bar chart"}, {"role": "bot", "content": "I'm sorry, but as an AI, I don't have the ability to create bar charts. However, I can guide you on how to create one using programming languages such as Python or R. Please provide me with more details about the data you wish to visualize in a bar chart and the programming language you'd prefer to use, and I'll do my best to assist you. As an AI with Graph memory type, I'm unable to generate bar charts directly. However, I can guide you on how to create one using various programming languages such as Python or R. Could you please provide more details about the data you want to visualize in the bar chart and the programming language you prefer to use? I'll do my best to assist you.", "metadata": {"team_id": "b622433c-0ccb-4462-833f-9de6ff0a480c", "processing_time": 6, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:35.955Z"}}, {"role": "user", "content": "line chart"}, {"role": "bot", "content": "As an AI with Graph memory type, I can provide you with a step-by-step guide on how to create a line chart using a programming language such as Python or R.\n\nHowever, I will need additional information about the data you wish to visualize in a line chart and the programming language you prefer to use. Once I have these details, I will be able to provide a more accurate and helpful response.\n\nPlease note that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I strive for a minimum accuracy of 85% and aim to provide the guide within 300 seconds. As an AI, I don't have the ability to directly create line charts. However, I can guide you on how to create one using programming languages such as Python or R. \n\nFor Python, here's a simple example of how you could create a line chart using the matplotlib library:\n\n```python\nimport matplotlib.pyplot as plt\n\n# Sample data\nx = [1, 2, 3, 4, 5]\ny = [1, 4, 9, 16, 25]\n\n# Create the plot\nplt.plot(x, y)\n\n# Show the plot\nplt.show()\n```\n\nFor R, you might create a line chart using the plot function:\n\n```R\n# Sample data\nx <- c(1, 2, 3, 4, 5)\ny <- c(1, 4, 9, 16, 25)\n\n# Create the plot\nplot(x, y, type = \"l\")\n```\n\nIn either case, you'll need to replace the sample data with your actual data.\n\nPlease provide me with more details about the data you wish to visualize in a line chart and the programming language you'd prefer to use, and I'll do my best to tailor the guide to your needs.\n\nRemember that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I always aim for a minimum accuracy of 85% and strive to provide the guide within 300 seconds.", "metadata": {"team_id": "6b054b45-d26c-4e8c-b4c7-e296995bf3b9", "processing_time": 15, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:14:06.693Z"}}, {"role": "user", "content": "pie chart"}, {"role": "bot", "content": "Based on your previous interaction, it seems like you would like guidance on how to create a pie chart. However, as an AI, I am unable to directly generate pie charts. I can give you guidance on how to create one using programming languages such as Python or R. Please provide me with more details about the data you would like to visualize in a pie chart and the programming language you prefer to use.\n\nHere's a simple example of how you might create a pie chart in Python:\n\n```python\nimport matplotlib.pyplot as plt\n\n# Sample data\nsizes = [215, 130, 245, 210]\nlabels = ['A', 'B', 'C', 'D']\n\n# Create the pie chart\nplt.pie(sizes, labels=labels)\n\n# Display the pie chart\nplt.show()\n```\n\nYou can replace the sample data with your actual data. This will create a pie chart with 4 slices labeled 'A', 'B', 'C', 'D'.\n\nIf you prefer to use R, here's an example:\n\n```R\n# Sample data\nsizes <- c(215, 130, 245, 210)\nlabels <- c('A', 'B', 'C', 'D')\n\n# Create the pie chart\npie(sizes, labels = labels)\n```\n\nThis will create a similar pie chart in R. Again, you should replace the sample data with your actual data.\n\nPlease provide me with more details about the data you want to visualize in the pie chart and your preferred programming language, and I'll do my best to assist you. Remember that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I always aim for a minimum accuracy of 85% and strive to provide the guide within 300 seconds. Based on your request, it seems that you need help in creating a pie chart. However, as an AI, I am unable to directly generate pie charts. But I can guide you on how to create one using programming languages such as Python or R. \n\nHere's a simple example of how you might create a pie chart in Python:\n\n```python\nimport matplotlib.pyplot as plt\n\n# Sample data\nsizes = [215, 130, 245, 210]\nlabels = ['A', 'B', 'C', 'D']\n\n# Create the pie chart\nplt.pie(sizes, labels=labels)\n\n# Display the pie chart\nplt.show()\n```\nPlease replace the sample data with your actual data. This will create a pie chart with 4 slices labeled 'A', 'B', 'C', 'D'.\n\nIf you prefer to use R, here's an example:\n\n```R\n# Sample data\nsizes <- c(215, 130, 245, 210)\nlabels <- c('A', 'B', 'C', 'D')\n\n# Create the pie chart\npie(sizes, labels = labels)\n```\nThis will create a similar pie chart in R. Again, you should replace the sample data with your actual data.\n\nPlease provide me with more details about the data you want to visualize in the pie chart and your preferred programming language, and I'll do my best to assist you. Remember that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I aim for a minimum accuracy of 85% and strive to provide the guide within 300 seconds.", "metadata": {"team_id": "076f1400-a68a-4f7a-8723-fa8e340ad004", "processing_time": 22, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:14:34.720Z"}}]}}, "conversation_context": [], "accuracy_threshold": 0.9, "success_rate": 0.95}
+2025-06-01 22:14:44,288 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 22:14:44,288 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 22:14:44,288 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-01 22:14:55,367 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-01 22:14:55,367 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 22:14:55,367 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 22:14:55,367 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-01 22:14:55,367 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 22:14:55,379 - __main__ - INFO - Loaded memories for agent 11
+2025-06-01 22:14:55,379 - __main__ - INFO - Found 1 tools for agent 11
+2025-06-01 22:14:55,382 - __main__ - INFO - Added tool Nifi Tool to agent 11
+2025-06-01 22:14:55,382 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "how to write a spark code", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": [{"role": "user", "content": "hi"}, {"role": "bot", "content": "I apologize, but I could not generate a proper response.", "metadata": {}}, {"role": "user", "content": "hi"}, {"role": "bot", "content": "Hello! How can I assist you today? Hello! How can I assist you today?", "metadata": {"team_id": "1beff94b-a3df-4a31-b5c7-7c6bd98b7614", "processing_time": 2, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:20.505Z"}}, {"role": "user", "content": "bar chart"}, {"role": "bot", "content": "I'm sorry, but as an AI, I don't have the ability to create bar charts. However, I can guide you on how to create one using programming languages such as Python or R. Please provide me with more details about the data you wish to visualize in a bar chart and the programming language you'd prefer to use, and I'll do my best to assist you. As an AI with Graph memory type, I'm unable to generate bar charts directly. However, I can guide you on how to create one using various programming languages such as Python or R. Could you please provide more details about the data you want to visualize in the bar chart and the programming language you prefer to use? I'll do my best to assist you.", "metadata": {"team_id": "b622433c-0ccb-4462-833f-9de6ff0a480c", "processing_time": 6, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:13:35.955Z"}}, {"role": "user", "content": "line chart"}, {"role": "bot", "content": "As an AI with Graph memory type, I can provide you with a step-by-step guide on how to create a line chart using a programming language such as Python or R.\n\nHowever, I will need additional information about the data you wish to visualize in a line chart and the programming language you prefer to use. Once I have these details, I will be able to provide a more accurate and helpful response.\n\nPlease note that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I strive for a minimum accuracy of 85% and aim to provide the guide within 300 seconds. As an AI, I don't have the ability to directly create line charts. However, I can guide you on how to create one using programming languages such as Python or R. \n\nFor Python, here's a simple example of how you could create a line chart using the matplotlib library:\n\n```python\nimport matplotlib.pyplot as plt\n\n# Sample data\nx = [1, 2, 3, 4, 5]\ny = [1, 4, 9, 16, 25]\n\n# Create the plot\nplt.plot(x, y)\n\n# Show the plot\nplt.show()\n```\n\nFor R, you might create a line chart using the plot function:\n\n```R\n# Sample data\nx <- c(1, 2, 3, 4, 5)\ny <- c(1, 4, 9, 16, 25)\n\n# Create the plot\nplot(x, y, type = \"l\")\n```\n\nIn either case, you'll need to replace the sample data with your actual data.\n\nPlease provide me with more details about the data you wish to visualize in a line chart and the programming language you'd prefer to use, and I'll do my best to tailor the guide to your needs.\n\nRemember that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I always aim for a minimum accuracy of 85% and strive to provide the guide within 300 seconds.", "metadata": {"team_id": "6b054b45-d26c-4e8c-b4c7-e296995bf3b9", "processing_time": 15, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:14:06.693Z"}}, {"role": "user", "content": "pie chart"}, {"role": "bot", "content": "Based on your previous interaction, it seems like you would like guidance on how to create a pie chart. However, as an AI, I am unable to directly generate pie charts. I can give you guidance on how to create one using programming languages such as Python or R. Please provide me with more details about the data you would like to visualize in a pie chart and the programming language you prefer to use.\n\nHere's a simple example of how you might create a pie chart in Python:\n\n```python\nimport matplotlib.pyplot as plt\n\n# Sample data\nsizes = [215, 130, 245, 210]\nlabels = ['A', 'B', 'C', 'D']\n\n# Create the pie chart\nplt.pie(sizes, labels=labels)\n\n# Display the pie chart\nplt.show()\n```\n\nYou can replace the sample data with your actual data. This will create a pie chart with 4 slices labeled 'A', 'B', 'C', 'D'.\n\nIf you prefer to use R, here's an example:\n\n```R\n# Sample data\nsizes <- c(215, 130, 245, 210)\nlabels <- c('A', 'B', 'C', 'D')\n\n# Create the pie chart\npie(sizes, labels = labels)\n```\n\nThis will create a similar pie chart in R. Again, you should replace the sample data with your actual data.\n\nPlease provide me with more details about the data you want to visualize in the pie chart and your preferred programming language, and I'll do my best to assist you. Remember that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I always aim for a minimum accuracy of 85% and strive to provide the guide within 300 seconds. Based on your request, it seems that you need help in creating a pie chart. However, as an AI, I am unable to directly generate pie charts. But I can guide you on how to create one using programming languages such as Python or R. \n\nHere's a simple example of how you might create a pie chart in Python:\n\n```python\nimport matplotlib.pyplot as plt\n\n# Sample data\nsizes = [215, 130, 245, 210]\nlabels = ['A', 'B', 'C', 'D']\n\n# Create the pie chart\nplt.pie(sizes, labels=labels)\n\n# Display the pie chart\nplt.show()\n```\nPlease replace the sample data with your actual data. This will create a pie chart with 4 slices labeled 'A', 'B', 'C', 'D'.\n\nIf you prefer to use R, here's an example:\n\n```R\n# Sample data\nsizes <- c(215, 130, 245, 210)\nlabels <- c('A', 'B', 'C', 'D')\n\n# Create the pie chart\npie(sizes, labels = labels)\n```\nThis will create a similar pie chart in R. Again, you should replace the sample data with your actual data.\n\nPlease provide me with more details about the data you want to visualize in the pie chart and your preferred programming language, and I'll do my best to assist you. Remember that the accuracy of the guide will depend on the clarity and completeness of the details you provide about the data and your preferred programming language. I aim for a minimum accuracy of 85% and strive to provide the guide within 300 seconds.", "metadata": {"team_id": "076f1400-a68a-4f7a-8723-fa8e340ad004", "processing_time": 22, "confidence_score": 1, "agent_contributions": [{"agent_id": 10, "confidence": 0}, {"agent_id": 11, "confidence": 0}], "timestamp": "2025-06-02T03:14:34.720Z"}}]}}, "conversation_context": [{"agent_id": 10, "response": "Writing a Spark code involves several steps and can be done using different programming languages such as Scala, Java, Python, and R. Here is a simple example of how you can write a Spark code using Python (PySpark):\n\n```python\n# Import SparkSession from pyspark.sql\nfrom pyspark.sql import SparkSession\n\n# Create a SparkSession\nspark = SparkSession.builder \\\n    .appName('MyApp') \\\n    .getOrCreate()\n\n# Load data into a DataFrame\ndf = spark.read.csv('path/to/your/data.csv', header=True, inferSchema=True)\n\n# Perform operations on DataFrame\ndf.show()  # Displays the content of the DataFrame\n\n# Stop the SparkSession\nspark.stop()\n```\n\nIn this example, we first import the necessary module from PySpark. Then, we create a SparkSession which is the entry point to any Spark functionality. After that, we load a CSV file into a DataFrame. You can perform various operations on this DataFrame like filtering, aggregating, etc. Finally, we stop the SparkSession once we are done.\n\nPlease replace `'path/to/your/data.csv'` with the actual path to your CSV file. \n\nThis is a very basic example. Spark has many features like Spark SQL, MLlib (for machine learning), GraphX (for graph computation), and more. You can use these libraries to perform complex data analysis tasks.\n\nRemember to follow best practices like minimizing shuffles, using broadcast variables for large lookups, persisting intermediate RDDs when reused, and more.\n\nThis guide should have an accuracy of more than 85% and should have been provided within 300 seconds. Please let me know if you need help with more specific tasks in Spark."}], "accuracy_threshold": 0.8, "success_rate": 0.9}
+2025-06-01 22:14:55,388 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Getting context from memories
+2025-06-01 22:14:55,388 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-01 22:14:55,388 - multi_agent_system.agent.11 - INFO - Sending request to OpenAI API...
+2025-06-01 22:15:08,467 - multi_agent_system.agent.11 - INFO - Received response from OpenAI API
+2025-06-01 22:15:08,467 - multi_agent_system.agent.11 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-01 22:15:08,483 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing command with tools
+2025-06-01 22:15:08,483 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing with tool: Nifi Tool
+2025-06-01 22:15:08,485 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-01 22:15:08,506 - __main__ - INFO - Updated team task record with results for task 0ba7af75-9950-4b68-a574-de48bd3f728a
+2025-06-01 22:15:08,506 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-01 22:15:08,506 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:15:08] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-01 22:15:08,528 - __main__ - INFO - Starting execution of store_conversation
+2025-06-01 22:15:08,544 - __main__ - INFO - Stored conversation default-session
+2025-06-01 22:15:08,546 - __main__ - INFO - Completed execution of store_conversation
+2025-06-01 22:15:08,548 - werkzeug - INFO - 127.0.0.1 - - [01/Jun/2025 22:15:08] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-01 22:17:48,377 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-01 22:17:48,871 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 22:17:50,065 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 22:17:50,637 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 22:17:51,003 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 22:17:51,043 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 22:17:51,060 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-01 22:20:57,782 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 22:20:58,218 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 22:20:58,482 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 22:20:58,522 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-01 22:20:58,522 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-01 22:20:58,522 - werkzeug - INFO -  * Restarting with stat
+2025-06-01 22:20:59,092 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-01 22:20:59,440 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-01 22:20:59,582 - __main__ - INFO - Database tables initialized successfully
+2025-06-01 22:20:59,598 - werkzeug - WARNING -  * Debugger is active!
+2025-06-01 22:20:59,605 - werkzeug - INFO -  * Debugger PIN: 813-813-146

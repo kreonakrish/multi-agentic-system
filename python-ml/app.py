@@ -4,7 +4,7 @@ import mysql.connector
 from mysql.connector import pooling
 import os
 from datetime import datetime, timedelta
-from openai import OpenAI
+import openai  # Changed from 'from openai import OpenAI'
 from typing import Dict, Any, List, Optional
 import json
 from enum import Enum
@@ -17,7 +17,7 @@ import uuid
 import sys
 from dotenv import load_dotenv
 import decimal
-import openai
+import httpx
 
 # Configure logging first
 logging.basicConfig(
@@ -33,25 +33,26 @@ logger = logging.getLogger(__name__)
 # Load environment variables
 load_dotenv()
 
-# Verify OpenAI API Key
-openai_api_key = os.getenv('OPENAI_API_KEY')
-if not openai_api_key:
-    logger.error("OPENAI_API_KEY not found in environment variables!")
-    # Don't initialize client yet - we'll do it lazily when needed
-    client = None
-else:
-    logger.info("OPENAI_API_KEY found in environment")
-    client = OpenAI()  # This will automatically use OPENAI_API_KEY from environment variables
+# Initialize OpenAI client
+try:
+    if os.getenv('OPENAI_API_KEY'):
+        logger.info('OPENAI_API_KEY found in environment')
+        openai.api_key = os.getenv('OPENAI_API_KEY')  # Set the API key directly
+    else:
+        logger.error('OPENAI_API_KEY not found in environment')
+        raise ValueError('OPENAI_API_KEY not found in environment')
+except Exception as e:
+    logger.error(f'Error initializing OpenAI client: {str(e)}')
+    raise
 
 def get_openai_client():
     """Get or initialize OpenAI client with proper error handling"""
-    global client
-    if client is None:
+    if not openai.api_key:
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
             raise ValueError("OpenAI API key not found. Please set OPENAI_API_KEY environment variable.")
-        client = OpenAI()
-    return client
+        openai.api_key = api_key
+    return openai
 
 app = Flask(__name__)
 
@@ -525,29 +526,29 @@ class Agent:
             
             # Use OpenAI's chat completion
             try:
-                response = openai_client.chat.completions.create(
-                    model="gpt-4",  # Using gpt-4 as specified in the example
+                response = openai_client.ChatCompletion.create(  # Changed from openai_client.chat.completions.create
+                    model="gpt-4",
                     messages=messages,
                     temperature=0.7,
                     max_tokens=1000
                 )
                 
                 self.log('info', "Received response from OpenAI API")
-                self.log('debug', f"Model response: {response.choices[0].message.content}")
+                self.log('debug', f"Model response: {response.choices[0].message['content']}")  # Changed from response.choices[0].message.content
                 
                 return {
                     "status": "success",
-                    "response": response.choices[0].message.content,
+                    "response": response.choices[0].message['content'],  # Changed from response.choices[0].message.content
                     "model_used": "gpt-4"
                 }
-            except openai.RateLimitError as e:
+            except openai.error.RateLimitError as e:  # Changed from openai.RateLimitError
                 self.log('error', "OpenAI API rate limit exceeded", exc_info=True)
                 return {
                     "status": "error",
                     "message": "Rate limit exceeded. Please try again later.",
                     "error_type": "rate_limit"
                 }
-            except openai.APIError as e:
+            except openai.error.APIError as e:  # Changed from openai.APIError
                 self.log('error', f"OpenAI API error: {str(e)}", exc_info=True)
                 return {
                     "status": "error",
@@ -1901,11 +1902,24 @@ def get_tool(tool_id):
 
 # Initialize database tables
 def init_db():
-    """Initialize database tables if they don't exist"""
+    """Initialize the database with required tables"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
+        # Create conversations table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS conversations (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                conversation_id VARCHAR(255) UNIQUE NOT NULL,
+                content JSON,
+                metadata JSON,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_conversation_id (conversation_id)
+            )
+        """)
+
         # Create agents table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS agents (
@@ -2391,10 +2405,38 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
                 result = agent.execute_with_tools(json.dumps(message))
                 
                 if result.get('status') == 'success':
+                    # Format code blocks in response if present
+                    response_text = result.get('llm_response', '')
+                    if any(lang in response_text.lower() for lang in ['python', 'java', 'javascript', 'typescript', 'bash', 'sql']):
+                        # Extract and format code blocks
+                        formatted_response = []
+                        lines = response_text.split('\n')
+                        in_code_block = False
+                        current_block = []
+                        current_language = ''
+                        
+                        for line in lines:
+                            if line.startswith('```'):
+                                if in_code_block:
+                                    # End code block
+                                    formatted_response.append(f"```{current_language}\n{''.join(current_block)}\n```")
+                                    current_block = []
+                                    in_code_block = False
+                                else:
+                                    # Start code block
+                                    in_code_block = True
+                                    current_language = line[3:].strip()
+                            elif in_code_block:
+                                current_block.append(line + '\n')
+                            else:
+                                formatted_response.append(line)
+                        
+                        response_text = '\n'.join(formatted_response)
+                    
                     # Add to conversation context
                     conversation_context.append({
                         "agent_id": member.agent_id,
-                        "response": result.get('llm_response', '')
+                        "response": response_text
                     })
                     
                     # Add to results
@@ -2438,6 +2480,62 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
             "task_id": task.task_id,
             "team_id": team.team_id
         }
+
+@app.route('/api/ml/conversation/store', methods=['POST'])
+@log_execution
+def store_conversation():
+    """Store conversation history in the database"""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        required_fields = ['conversation_id', 'content', 'metadata']
+        if not all(field in data for field in required_fields):
+            return jsonify({'error': f'Missing required fields. Required: {required_fields}'}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        try:
+            # Store the conversation
+            insert_query = """
+                INSERT INTO conversations (
+                    conversation_id,
+                    content,
+                    metadata,
+                    created_at
+                ) VALUES (%s, %s, %s, NOW())
+                ON DUPLICATE KEY UPDATE
+                    content = VALUES(content),
+                    metadata = VALUES(metadata),
+                    updated_at = NOW()
+            """
+            
+            cursor.execute(insert_query, (
+                data['conversation_id'],
+                json.dumps(data['content']),
+                json.dumps(data['metadata'])
+            ))
+            
+            conn.commit()
+
+            logger.info(f"Stored conversation {data['conversation_id']}")
+            return jsonify({
+                'status': 'success',
+                'message': 'Conversation stored successfully',
+                'conversation_id': data['conversation_id']
+            })
+
+        finally:
+            safe_close_connection(conn, cursor)
+
+    except Exception as e:
+        logger.error(f"Error storing conversation: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to store conversation: {str(e)}'
+        }), 500
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True) 

@@ -13,11 +13,27 @@ import ListItemText from '@mui/material/ListItemText';
 import IconButton from '@mui/material/IconButton';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import SendIcon from '@mui/icons-material/Send';
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import python from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
+import javascript from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
+import java from 'react-syntax-highlighter/dist/esm/languages/hljs/java';
+import bash from 'react-syntax-highlighter/dist/esm/languages/hljs/bash';
+import typescript from 'react-syntax-highlighter/dist/esm/languages/hljs/typescript';
+import sql from 'react-syntax-highlighter/dist/esm/languages/hljs/sql';
 import BarChartComponent from './BarChartComponent';
 import LineChartComponent from './LineChartComponent';
 import PieChartComponent from './PieChartComponent';
 import { ConversationStep } from '../App';
 import { Document } from './DocumentList';
+
+// Register languages for syntax highlighting
+SyntaxHighlighter.registerLanguage('python', python);
+SyntaxHighlighter.registerLanguage('javascript', javascript);
+SyntaxHighlighter.registerLanguage('java', java);
+SyntaxHighlighter.registerLanguage('bash', bash);
+SyntaxHighlighter.registerLanguage('typescript', typescript);
+SyntaxHighlighter.registerLanguage('sql', sql);
 
 interface Message {
   sender: 'user' | 'bot';
@@ -151,72 +167,138 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your questi
     setInput('');
     setLoading(true);
     
-    // Simulate backend response with chart detection
-    setTimeout(() => {
-      let botMsg: Message;
-      let botStep: ConversationStep;
-      
-      if (/bar chart/i.test(input)) {
-        const data = {
-          type: 'bar' as const,
-          labels: ['A', 'B', 'C', 'D'],
-          values: [12, 19, 3, 5]
-        };
-        botMsg = {
-          sender: 'bot',
-          text: 'Here is a bar chart based on your question.',
-          data
-        };
-        botStep = {
-          role: 'bot',
-          content: 'Here is a bar chart based on your question.',
-          data
-        };
-      } else if (/line chart/i.test(input)) {
-        const data = {
-          type: 'line' as const,
-          labels: ['Jan', 'Feb', 'Mar', 'Apr'],
-          values: [5, 9, 7, 14]
-        };
-        botMsg = {
-          sender: 'bot',
-          text: 'Here is a line chart based on your question.',
-          data
-        };
-        botStep = {
-          role: 'bot',
-          content: 'Here is a line chart based on your question.',
-          data
-        };
-      } else if (/pie chart/i.test(input)) {
-        const data = {
-          type: 'pie' as const,
-          labels: ['X', 'Y', 'Z'],
-          values: [30, 50, 20]
-        };
-        botMsg = {
-          sender: 'bot',
-          text: 'Here is a pie chart based on your question.',
-          data
-        };
-        botStep = {
-          role: 'bot',
-          content: 'Here is a pie chart based on your question.',
-          data
-        };
-      } else {
-        botMsg = { sender: 'bot', text: 'This is a response from the bot.' };
-        botStep = { role: 'bot', content: 'This is a response from the bot.' };
+    try {
+      // Call the backend API
+      const response = await fetch('/api/chat/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: input,
+          userId: 'user-1', // TODO: Replace with actual user ID
+          sessionId: selectedTeam?.team_id || 'default-session',
+          context: {
+            team_id: selectedTeam?.team_id,
+            team_config: selectedTeam?.config || {
+              name: "Chat Response Team",
+              description: "Team for processing chat messages and generating responses",
+              members: [
+                {
+                  agent_id: 10,
+                  priority: 3,
+                  accuracy_threshold: 0.9,
+                  success_rate: 0.95,
+                  role: "context_analyzer"
+                },
+                {
+                  agent_id: 11,
+                  priority: 2,
+                  accuracy_threshold: 0.8,
+                  success_rate: 0.9,
+                  role: "response_generator"
+                }
+              ]
+            },
+            conversation_history: conversationHistory || []
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server responded with status ${response.status}`);
       }
+
+      const result = await response.json();
       
+      // Handle the orchestrator response format
+      const botResponse = result.data?.content || 'I apologize, but I could not generate a proper response.';
+      const metadata = result.data?.metadata || {};
+      
+      // Create bot message with metadata
+      const botMsg: Message = {
+        sender: 'bot',
+        text: botResponse,
+        data: {
+          team_id: metadata.team_id,
+          processing_time: metadata.processing_time,
+          confidence_score: metadata.confidence_score,
+          agent_contributions: metadata.agent_contributions,
+          timestamp: result.data?.timestamp
+        }
+      };
+
+      const botStep: ConversationStep = {
+        role: 'bot',
+        content: botResponse,
+        metadata: botMsg.data
+      };
+
       // Update both messages and conversation history
       setMessages(msgs => [...msgs, botMsg]);
       if (setConversationHistory) {
-        setConversationHistory((prev: ConversationStep[]) => [...prev, botStep]);
+        setConversationHistory(prev => [...prev, botStep]);
       }
+
+      // If there's a data response handler, call it with the metadata
+      if (onDataResponse) {
+        onDataResponse(botMsg.data);
+      }
+
+    } catch (error) {
+      console.error('Error sending message:', error);
       
+      // Add error message to chat
+      const errorMsg: Message = {
+        sender: 'bot',
+        text: error instanceof Error ? error.message : 'Sorry, I encountered an error processing your message. Please try again.'
+      };
+      
+      setMessages(msgs => [...msgs, errorMsg]);
+      
+      if (setConversationHistory) {
+        const errorStep: ConversationStep = {
+          role: 'bot',
+          content: error instanceof Error ? error.message : 'Sorry, I encountered an error processing your message. Please try again.'
+        };
+        setConversationHistory(prev => [...prev, errorStep]);
+      }
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
+  };
+
+  // Function to detect and format code blocks
+  const formatMessageText = (text: string) => {
+    // Split text into segments based on code blocks
+    const segments = text.split(/(```[a-z]*\n[\s\S]*?\n```)/g);
+    
+    return segments.map((segment, index) => {
+      // Check if this is a code block
+      const codeBlockMatch = segment.match(/```([a-z]*)\n([\s\S]*?)\n```/);
+      if (codeBlockMatch) {
+        const language = codeBlockMatch[1] || 'text';
+        const code = codeBlockMatch[2];
+        return (
+          <Box key={index} sx={{ my: 1 }}>
+            <SyntaxHighlighter
+              language={language}
+              style={docco}
+              customStyle={{
+                borderRadius: '4px',
+                padding: '12px',
+                margin: '0',
+                backgroundColor: '#f5f5f5'
+              }}
+            >
+              {code}
+            </SyntaxHighlighter>
+          </Box>
+        );
+      }
+      // Regular text
+      return <span key={index}>{segment}</span>;
+    });
   };
 
   return (
@@ -237,7 +319,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ placeholder = "Type your questi
               boxShadow: 'none',
               mb: 1,
             }}>
-              {msg.text}
+              {formatMessageText(msg.text)}
               {/* Render chart if data is present */}
               {msg.data && msg.data.type === 'bar' && (
                 <Box sx={{ width: '100%', mt: 1 }}>

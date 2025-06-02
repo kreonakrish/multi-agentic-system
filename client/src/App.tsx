@@ -168,7 +168,7 @@ function getToolDisplayNames(agentTools: any[], allTools: any[]): string {
 }
 
 // Enhanced conversation step type
-export type ConversationStep = {
+export interface ConversationStep {
   role: 'user' | 'agent' | 'tool' | 'bot';
   content: string;
   agentName?: string;
@@ -179,8 +179,19 @@ export type ConversationStep = {
     labels: string[];
     values: number[];
   };
+  metadata?: {
+    team_id?: string;
+    processing_time?: number;
+    confidence_score?: number;
+    agent_contributions?: Array<{
+      agent_id: number;
+      confidence: number;
+      role?: string;
+    }>;
+    timestamp?: string;
+  };
   attachments?: Document[];
-};
+}
 
 // Save the current conversation to the backend
 type ConversationRecord = {
