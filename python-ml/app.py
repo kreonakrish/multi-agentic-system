@@ -523,10 +523,46 @@ class Agent:
             # Log the request
             self.log('info', "Sending request to OpenAI API...", 
                     extra={'messages': messages})
+
+            # Store the message in database before sending to OpenAI
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor(dictionary=True)
+                
+                # Store initial message
+                conversation_id = str(uuid.uuid4())
+                insert_query = """
+                    INSERT INTO messages 
+                    (sender_id, receiver_id, content, interaction_type, conversation_id, team_id, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
+                
+                # Get the user message (last message in the list)
+                user_message = next((msg['content'] for msg in reversed(messages) if msg['role'] == 'user'), None)
+                if not user_message:
+                    user_message = messages[-1]['content']
+                
+                cursor.execute(insert_query, (
+                    self.agent_id,  # sender_id (agent sending to OpenAI)
+                    None,  # receiver_id (OpenAI doesn't have an ID)
+                    user_message,
+                    'foundation_model',
+                    conversation_id,
+                    self.team_id,
+                    'pending'
+                ))
+                
+                conn.commit()
+            except Exception as db_error:
+                self.log('error', f"Database error storing initial message: {str(db_error)}")
+                if conn:
+                    conn.rollback()
+            finally:
+                safe_close_connection(conn, cursor)
             
             # Use OpenAI's chat completion
             try:
-                response = openai_client.ChatCompletion.create(  # Changed from openai_client.chat.completions.create
+                response = openai_client.ChatCompletion.create(
                     model="gpt-4",
                     messages=messages,
                     temperature=0.7,
@@ -534,21 +570,52 @@ class Agent:
                 )
                 
                 self.log('info', "Received response from OpenAI API")
-                self.log('debug', f"Model response: {response.choices[0].message['content']}")  # Changed from response.choices[0].message.content
+                self.log('debug', f"Model response: {response.choices[0].message['content']}")
+                
+                # Store OpenAI's response in database
+                try:
+                    conn = get_db_connection()
+                    cursor = conn.cursor(dictionary=True)
+                    
+                    # Store OpenAI's response
+                    insert_query = """
+                        INSERT INTO messages 
+                        (sender_id, receiver_id, content, interaction_type, conversation_id, team_id, status)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """
+                    
+                    cursor.execute(insert_query, (
+                        None,  # sender_id (OpenAI sending to agent)
+                        self.agent_id,  # receiver_id
+                        response.choices[0].message['content'],
+                        'foundation_model',
+                        conversation_id,
+                        self.team_id,
+                        'processed'
+                    ))
+                    
+                    conn.commit()
+                except Exception as db_error:
+                    self.log('error', f"Database error storing OpenAI response: {str(db_error)}")
+                    if conn:
+                        conn.rollback()
+                finally:
+                    safe_close_connection(conn, cursor)
                 
                 return {
                     "status": "success",
-                    "response": response.choices[0].message['content'],  # Changed from response.choices[0].message.content
-                    "model_used": "gpt-4"
+                    "response": response.choices[0].message['content'],
+                    "model_used": "gpt-4",
+                    "conversation_id": conversation_id
                 }
-            except openai.error.RateLimitError as e:  # Changed from openai.RateLimitError
+            except openai.error.RateLimitError as e:
                 self.log('error', "OpenAI API rate limit exceeded", exc_info=True)
                 return {
                     "status": "error",
                     "message": "Rate limit exceeded. Please try again later.",
                     "error_type": "rate_limit"
                 }
-            except openai.error.APIError as e:  # Changed from openai.APIError
+            except openai.error.APIError as e:
                 self.log('error', f"OpenAI API error: {str(e)}", exc_info=True)
                 return {
                     "status": "error",
@@ -664,6 +731,46 @@ class Agent:
                 self.log('error', f"[execute_with_tools] LLM processing failed: {llm_response}")
                 return llm_response
 
+            # Store agent-to-agent interactions if this is part of a team task
+            try:
+                if isinstance(command, str) and command.startswith('{') and command.endswith('}'):
+                    # This is likely a team task message
+                    task_data = json.loads(command)
+                    if 'task_description' in task_data and 'conversation_context' in task_data:
+                        conn = get_db_connection()
+                        cursor = conn.cursor(dictionary=True)
+                        
+                        # Get the last agent from conversation context
+                        last_agent = None
+                        if task_data['conversation_context']:
+                            last_agent = task_data['conversation_context'][-1].get('agent_id')
+                        
+                        # Store the interaction
+                        insert_query = """
+                            INSERT INTO messages 
+                            (sender_id, receiver_id, content, processed_message, model_response, 
+                             interaction_type, conversation_id, team_id, status)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        """
+                        
+                        cursor.execute(insert_query, (
+                            last_agent,  # sender_id (previous agent or NULL if first)
+                            self.agent_id,  # receiver_id (current agent)
+                            json.dumps(task_data),  # content
+                            llm_response.get("response", ""),  # processed_message
+                            json.dumps(llm_response),  # model_response
+                            'team_task',  # interaction_type
+                            llm_response.get("conversation_id"),  # conversation_id
+                            self.team_id,  # team_id
+                            'processed'  # status
+                        ))
+                        
+                        conn.commit()
+                        safe_close_connection(conn, cursor)
+            except Exception as db_error:
+                self.log('error', f"[execute_with_tools] Database error storing team interaction: {str(db_error)}")
+                # Continue execution even if storage fails
+
             # Execute command with all tools
             self.log('info', "[execute_with_tools] Executing command with tools")
             tool_responses = []
@@ -716,6 +823,7 @@ class Agent:
                 "memory_type": self.memory_type,
                 "llm_response": llm_response["response"],
                 "model_used": llm_response["model_used"],
+                "conversation_id": llm_response.get("conversation_id"),
                 "tool_responses": tool_responses,
                 "validation_results": validation_results if end_prompt else None
             }

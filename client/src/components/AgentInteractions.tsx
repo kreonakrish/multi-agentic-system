@@ -126,7 +126,7 @@ const AgentInteractions: React.FC<AgentInteractionsProps> = ({
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Typography variant="h6" component="h3">
-        {sourceId && targetId ? 'Edge Interactions' : 'Agent Interactions'}
+        {sourceId && targetId ? 'Agent Interactions' : 'Agent Interactions'}
       </Typography>
       <Box sx={{ flex: 1, width: '100%' }}>
         <DataGrid
