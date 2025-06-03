@@ -219,6 +219,13 @@ async function saveConversationToBackend(conv: any) {
 
 const drawerWidth = 240;
 
+interface Conversation {
+  conversation_id: string;
+  title: string;
+  created_at: string;
+  // Add other fields as needed
+}
+
 const App = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(220);
@@ -275,6 +282,12 @@ const App = () => {
 
   // Add this state near other modal states
   const [agentSettingsOpen, setAgentSettingsOpen] = useState(false);
+  const [selectedEdge, setSelectedEdge] = useState<{ sourceId: number | null; targetId: number | null }>({ 
+    sourceId: null, 
+    targetId: null 
+  });
+
+  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
 
   function generateMermaidFromConversation(history: ConversationStep[]) {
     if (!history.length) {
@@ -858,6 +871,15 @@ const App = () => {
     } catch (error) {
       console.error('Error changing team:', error);
       alert('Failed to change team. Please try again.');
+    }
+  };
+
+  const handleEdgeClick = (sourceId: number, targetId: number) => {
+    // If sourceId is -1, it means we're clearing the selection
+    if (sourceId === -1) {
+      setSelectedEdge({ sourceId: null, targetId: null });
+    } else {
+      setSelectedEdge({ sourceId, targetId });
     }
   };
 
@@ -1519,9 +1541,14 @@ const App = () => {
                 />
       <AgentSettingsModal
         open={agentSettingsOpen}
-        onClose={() => setAgentSettingsOpen(false)}
+        onClose={() => {
+          setAgentSettingsOpen(false);
+          setSelectedEdge({ sourceId: null, targetId: null }); // Reset edge selection when closing
+        }}
         teams={teams}
-                />
+        selectedEdge={selectedEdge}
+        onEdgeClick={handleEdgeClick}
+      />
       </div>
   );
 };

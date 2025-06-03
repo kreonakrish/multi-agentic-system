@@ -1,32 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { Box, Typography, CircularProgress } from '@mui/material';
+import { Box, Typography, CircularProgress, Tooltip } from '@mui/material';
 
 interface AgentInteraction {
   id: number;
+  conversation_id: string;
   source_agent: string;
   target_agent: string;
   interaction_type: string;
   timestamp: string;
   status: string;
-  priority: number;
+  content: string;
+  processed_message: string;
+  model_response: string;
 }
 
 interface AgentInteractionsProps {
   selectedAgents?: string[];
   teamId?: number;
-  sourceId?: number;
-  targetId?: number;
+  sourceId?: number | null;
+  targetId?: number | null;
+  conversationId?: string;
 }
 
 const AgentInteractions: React.FC<AgentInteractionsProps> = ({ 
   selectedAgents, 
   teamId,
   sourceId,
-  targetId 
+  targetId,
+  conversationId
 }) => {
   const [interactions, setInteractions] = useState<AgentInteraction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [paginationModel, setPaginationModel] = useState({
     pageSize: 10,
     page: 0,
@@ -36,6 +42,7 @@ const AgentInteractions: React.FC<AgentInteractionsProps> = ({
     const fetchInteractions = async () => {
       try {
         setLoading(true);
+        setError(null);
         let url = '/api/agent-interactions';
         const params = new URLSearchParams();
         
@@ -48,30 +55,44 @@ const AgentInteractions: React.FC<AgentInteractionsProps> = ({
           params.append('source', sourceId.toString());
           params.append('target', targetId.toString());
         }
-        // Otherwise, use the selected agents filter
-        else if (selectedAgents?.length) {
-          params.append('agents', selectedAgents.join(','));
+        
+        // Add conversation ID if available
+        if (conversationId) {
+          params.append('conversation_id', conversationId);
         }
 
         if (params.toString()) {
           url += `?${params.toString()}`;
         }
 
+        console.log('Fetching interactions from:', url);
         const response = await fetch(url);
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
-          throw new Error('Failed to fetch interactions');
+          throw new Error(`Failed to fetch interactions: ${response.status} ${response.statusText}`);
         }
+        
         const data = await response.json();
+        console.log('Received interactions data:', data);
+        
+        if (!Array.isArray(data)) {
+          throw new Error('Expected array of interactions but received: ' + typeof data);
+        }
+        
         setInteractions(data);
+        console.log('Set interactions state with', data.length, 'items');
+        
       } catch (error) {
         console.error('Error fetching interactions:', error);
+        setError(error instanceof Error ? error.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
     };
 
     fetchInteractions();
-  }, [selectedAgents, teamId, sourceId, targetId]);
+  }, [selectedAgents, teamId, sourceId, targetId, conversationId]);
 
   const columns: GridColDef[] = [
     {
@@ -84,12 +105,12 @@ const AgentInteractions: React.FC<AgentInteractionsProps> = ({
     },
     {
       field: 'source_agent',
-      headerName: 'Source Agent',
+      headerName: 'From',
       width: 150,
     },
     {
       field: 'target_agent',
-      headerName: 'Target Agent',
+      headerName: 'To',
       width: 150,
     },
     {
@@ -103,10 +124,38 @@ const AgentInteractions: React.FC<AgentInteractionsProps> = ({
       width: 120,
     },
     {
-      field: 'priority',
-      headerName: 'Priority',
-      width: 100,
-      type: 'number',
+      field: 'content',
+      headerName: 'Message',
+      width: 300,
+      renderCell: (params) => (
+        <Tooltip title={params.value} placement="top">
+          <div style={{ 
+            whiteSpace: 'nowrap', 
+            overflow: 'hidden', 
+            textOverflow: 'ellipsis',
+            width: '100%'
+          }}>
+            {params.value}
+          </div>
+        </Tooltip>
+      )
+    },
+    {
+      field: 'processed_message',
+      headerName: 'Processed Message',
+      width: 300,
+      renderCell: (params) => (
+        <Tooltip title={params.value} placement="top">
+          <div style={{ 
+            whiteSpace: 'nowrap', 
+            overflow: 'hidden', 
+            textOverflow: 'ellipsis',
+            width: '100%'
+          }}>
+            {params.value}
+          </div>
+        </Tooltip>
+      )
     }
   ];
 
@@ -123,10 +172,27 @@ const AgentInteractions: React.FC<AgentInteractionsProps> = ({
     );
   }
 
+  if (error) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        height: '100%',
+        color: 'error.main'
+      }}>
+        <Typography>Error: {error}</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Typography variant="h6" component="h3">
-        {sourceId && targetId ? 'Agent Interactions' : 'Agent Interactions'}
+        Agent Interactions
+        {conversationId && <Typography variant="caption" display="block">
+          Conversation ID: {conversationId}
+        </Typography>}
       </Typography>
       <Box sx={{ flex: 1, width: '100%' }}>
         <DataGrid
@@ -145,6 +211,11 @@ const AgentInteractions: React.FC<AgentInteractionsProps> = ({
             },
           }}
         />
+        {interactions.length === 0 && (
+          <Typography sx={{ textAlign: 'center', mt: 2 }}>
+            No interactions found
+          </Typography>
+        )}
       </Box>
     </Box>
   );

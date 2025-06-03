@@ -2107,3 +2107,153 @@ Considering the provided context, determine which tool(s) should be utilized and
 2025-06-02 19:14:50,305 - __main__ - INFO - Stored conversation default-session
 2025-06-02 19:14:50,305 - __main__ - INFO - Completed execution of store_conversation
 2025-06-02 19:14:50,305 - werkzeug - INFO - 127.0.0.1 - - [02/Jun/2025 19:14:50] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-02 19:23:35,667 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-02 19:23:36,036 - werkzeug - INFO -  * Restarting with stat
+2025-06-02 19:23:36,841 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-02 19:23:37,336 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-02 19:23:37,577 - __main__ - INFO - Database tables initialized successfully
+2025-06-02 19:23:37,599 - werkzeug - WARNING -  * Debugger is active!
+2025-06-02 19:23:37,610 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-02 19:32:26,899 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-02 19:32:26,956 - __main__ - INFO - Stored initial team task record for task 21466504-d87b-45eb-ae83-e15f537528c4
+2025-06-02 19:32:26,958 - __main__ - INFO - Starting team execution for task 21466504-d87b-45eb-ae83-e15f537528c4
+2025-06-02 19:32:26,968 - __main__ - INFO - Loaded memories for agent 10
+2025-06-02 19:32:26,970 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-02 19:32:26,971 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-02 19:32:26,975 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "hi, how to call api using spark", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": []}}, "conversation_context": [], "accuracy_threshold": 0.9, "success_rate": 0.95}
+2025-06-02 19:32:26,975 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-02 19:32:26,975 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-02 19:32:26,975 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-02 19:32:27,009 - multi_agent_system.agent.10 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-02 19:32:38,921 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-02 19:32:38,938 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-02 19:32:38,957 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-02 19:32:38,958 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-02 19:32:38,959 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-02 19:32:38,968 - __main__ - INFO - Loaded memories for agent 11
+2025-06-02 19:32:38,971 - __main__ - INFO - Found 1 tools for agent 11
+2025-06-02 19:32:38,971 - __main__ - INFO - Added tool Nifi Tool to agent 11
+2025-06-02 19:32:38,974 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "hi, how to call api using spark", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": []}}, "conversation_context": [{"agent_id": 10, "response": "Apache Spark itself doesn't have built-in support for making API calls. However, you can make API calls within Spark transformations using any HTTP client in the language you're programming with.\n\nHere's a basic example of how you might do this in Python using the `requests` library:\n\n```python\nimport requests\nfrom pyspark.sql import SparkSession\n\nspark = SparkSession.builder.getOrCreate()\ndata = [(\"value1\",), (\"value2\",), (\"value3\",)]\ndf = spark.createDataFrame(data, [\"Column\"])\n\ndef make_api_call(value):\n    response = requests.get(f\"http://my-api.com/endpoint?param={value}\")\n    return response.json()\n\ndf.rdd.map(lambda row: make_api_call(row[\"Column\"])).collect()\n\n```\n\nIn this example, `make_api_call` is a function that makes an API call for each row in the DataFrame.\n\nPlease note, if the API rate limits or has high latency, this can become a bottleneck for Spark job. You may want to include error handling and retry logic in the `make_api_call` function.\n\nRemember to avoid actions that will collect the data to the driver node when working with big datasets, as this can cause an out-of-memory error. Actions like `collect()` or `toPandas()` can cause such issues."}], "accuracy_threshold": 0.8, "success_rate": 0.9}
+2025-06-02 19:32:38,976 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Getting context from memories
+2025-06-02 19:32:38,977 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-02 19:32:38,978 - multi_agent_system.agent.11 - INFO - Sending request to OpenAI API...
+2025-06-02 19:32:38,984 - multi_agent_system.agent.11 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-02 19:32:48,305 - multi_agent_system.agent.11 - INFO - Received response from OpenAI API
+2025-06-02 19:32:48,333 - multi_agent_system.agent.11 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-02 19:32:48,349 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing command with tools
+2025-06-02 19:32:48,354 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing with tool: Nifi Tool
+2025-06-02 19:32:48,355 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-02 19:32:48,379 - __main__ - INFO - Updated team task record with results for task 21466504-d87b-45eb-ae83-e15f537528c4
+2025-06-02 19:32:48,391 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-02 19:32:48,391 - werkzeug - INFO - 127.0.0.1 - - [02/Jun/2025 19:32:48] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-02 19:32:48,417 - __main__ - INFO - Starting execution of store_conversation
+2025-06-02 19:32:48,436 - __main__ - INFO - Stored conversation default-session
+2025-06-02 19:32:48,440 - __main__ - INFO - Completed execution of store_conversation
+2025-06-02 19:32:48,441 - werkzeug - INFO - 127.0.0.1 - - [02/Jun/2025 19:32:48] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-02 19:50:23,608 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-02 19:50:23,853 - werkzeug - INFO -  * Restarting with stat
+2025-06-02 19:50:25,068 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-02 19:50:25,509 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-02 19:50:25,664 - __main__ - INFO - Database tables initialized successfully
+2025-06-02 19:50:25,672 - werkzeug - WARNING -  * Debugger is active!
+2025-06-02 19:50:25,689 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-02 19:51:27,353 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-02 19:51:27,460 - werkzeug - INFO -  * Restarting with stat
+2025-06-02 19:51:28,017 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-02 19:51:28,385 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-02 19:51:28,530 - __main__ - INFO - Database tables initialized successfully
+2025-06-02 19:51:28,537 - werkzeug - WARNING -  * Debugger is active!
+2025-06-02 19:51:28,547 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-02 19:53:23,400 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-02 19:53:23,521 - werkzeug - INFO -  * Restarting with stat
+2025-06-02 19:53:24,137 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-02 19:53:24,555 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-02 19:53:24,653 - __main__ - INFO - Database tables initialized successfully
+2025-06-02 19:53:24,664 - werkzeug - WARNING -  * Debugger is active!
+2025-06-02 19:53:24,668 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-02 19:58:17,360 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-02 19:58:17,402 - __main__ - INFO - Stored initial team task record for task f3439d46-4504-4f0c-8d86-6c7e5603e8b4
+2025-06-02 19:58:17,412 - __main__ - INFO - Starting team execution for task f3439d46-4504-4f0c-8d86-6c7e5603e8b4
+2025-06-02 19:58:17,440 - __main__ - INFO - Loaded memories for agent 10
+2025-06-02 19:58:17,444 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-02 19:58:17,448 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-02 19:58:17,452 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "hi", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": []}}, "conversation_context": [], "accuracy_threshold": 0.9, "success_rate": 0.95}
+2025-06-02 19:58:17,452 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-02 19:58:17,453 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-02 19:58:17,454 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-02 19:58:17,469 - multi_agent_system.agent.10 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-02 19:58:18,942 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-02 19:58:18,969 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-02 19:58:18,987 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-02 19:58:18,987 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-02 19:58:18,987 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-02 19:58:19,000 - __main__ - INFO - Loaded memories for agent 11
+2025-06-02 19:58:19,004 - __main__ - INFO - Found 1 tools for agent 11
+2025-06-02 19:58:19,004 - __main__ - INFO - Added tool Nifi Tool to agent 11
+2025-06-02 19:58:19,004 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "hi", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": []}}, "conversation_context": [{"agent_id": 10, "response": "Hello! How can I assist you today?"}], "accuracy_threshold": 0.8, "success_rate": 0.9}
+2025-06-02 19:58:19,004 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Getting context from memories
+2025-06-02 19:58:19,004 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-02 19:58:19,004 - multi_agent_system.agent.11 - INFO - Sending request to OpenAI API...
+2025-06-02 19:58:19,013 - multi_agent_system.agent.11 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-02 19:58:21,565 - multi_agent_system.agent.11 - INFO - Received response from OpenAI API
+2025-06-02 19:58:21,586 - multi_agent_system.agent.11 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-02 19:58:21,599 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing command with tools
+2025-06-02 19:58:21,599 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing with tool: Nifi Tool
+2025-06-02 19:58:21,603 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-02 19:58:21,633 - __main__ - INFO - Updated team task record with results for task f3439d46-4504-4f0c-8d86-6c7e5603e8b4
+2025-06-02 19:58:21,640 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-02 19:58:21,642 - werkzeug - INFO - 127.0.0.1 - - [02/Jun/2025 19:58:21] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-02 19:58:21,662 - __main__ - INFO - Starting execution of store_conversation
+2025-06-02 19:58:21,684 - __main__ - INFO - Stored conversation default-session
+2025-06-02 19:58:21,684 - __main__ - INFO - Completed execution of store_conversation
+2025-06-02 19:58:21,684 - werkzeug - INFO - 127.0.0.1 - - [02/Jun/2025 19:58:21] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-02 20:02:45,636 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-02 20:02:45,862 - werkzeug - INFO -  * Restarting with stat
+2025-06-02 20:02:46,535 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-02 20:02:46,942 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-02 20:02:47,115 - __main__ - INFO - Database tables initialized successfully
+2025-06-02 20:02:47,142 - werkzeug - WARNING -  * Debugger is active!
+2025-06-02 20:02:47,149 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-02 20:14:24,030 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-02 20:14:24,281 - werkzeug - INFO -  * Restarting with stat
+2025-06-02 20:14:24,936 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-02 20:14:25,388 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-02 20:14:25,542 - __main__ - INFO - Database tables initialized successfully
+2025-06-02 20:14:25,564 - werkzeug - WARNING -  * Debugger is active!
+2025-06-02 20:14:25,568 - werkzeug - INFO -  * Debugger PIN: 813-813-146
+2025-06-02 20:16:36,968 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-02 20:16:36,996 - __main__ - INFO - Stored initial team task record for task 7b724d66-3baa-462f-9dc3-ff7678e87884
+2025-06-02 20:16:36,997 - __main__ - INFO - Starting team execution for task 7b724d66-3baa-462f-9dc3-ff7678e87884
+2025-06-02 20:16:37,001 - __main__ - INFO - Loaded memories for agent 10
+2025-06-02 20:16:37,001 - __main__ - INFO - Found 1 tools for agent 10
+2025-06-02 20:16:37,001 - __main__ - INFO - Added tool DBx Tool to agent 10
+2025-06-02 20:16:37,011 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "hi", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": []}}, "conversation_context": [], "accuracy_threshold": 0.9, "success_rate": 0.95}
+2025-06-02 20:16:37,011 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Getting context from memories
+2025-06-02 20:16:37,012 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-02 20:16:37,012 - multi_agent_system.agent.10 - INFO - Sending request to OpenAI API...
+2025-06-02 20:16:37,017 - multi_agent_system.agent.10 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-02 20:16:38,500 - multi_agent_system.agent.10 - INFO - Received response from OpenAI API
+2025-06-02 20:16:38,512 - multi_agent_system.agent.10 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-02 20:16:38,518 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing command with tools
+2025-06-02 20:16:38,518 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Executing with tool: DBx Tool
+2025-06-02 20:16:38,519 - multi_agent_system.agent.10 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-02 20:16:38,522 - __main__ - INFO - Loaded memories for agent 11
+2025-06-02 20:16:38,523 - __main__ - INFO - Found 1 tools for agent 11
+2025-06-02 20:16:38,523 - __main__ - INFO - Added tool Nifi Tool to agent 11
+2025-06-02 20:16:38,524 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "hi", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": "default-session", "conversation_history": []}}, "conversation_context": [{"agent_id": 10, "response": "Hello, how can I assist you today?"}], "accuracy_threshold": 0.8, "success_rate": 0.9}
+2025-06-02 20:16:38,525 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Getting context from memories
+2025-06-02 20:16:38,525 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-02 20:16:38,525 - multi_agent_system.agent.11 - INFO - Sending request to OpenAI API...
+2025-06-02 20:16:38,528 - multi_agent_system.agent.11 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-02 20:16:39,530 - multi_agent_system.agent.11 - INFO - Received response from OpenAI API
+2025-06-02 20:16:39,545 - multi_agent_system.agent.11 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-02 20:16:39,553 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing command with tools
+2025-06-02 20:16:39,553 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Executing with tool: Nifi Tool
+2025-06-02 20:16:39,554 - multi_agent_system.agent.11 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-02 20:16:39,568 - __main__ - INFO - Updated team task record with results for task 7b724d66-3baa-462f-9dc3-ff7678e87884
+2025-06-02 20:16:39,570 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-02 20:16:39,571 - werkzeug - INFO - 127.0.0.1 - - [02/Jun/2025 20:16:39] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-02 20:16:39,581 - __main__ - INFO - Starting execution of store_conversation
+2025-06-02 20:16:39,595 - __main__ - INFO - Stored conversation default-session
+2025-06-02 20:16:39,597 - __main__ - INFO - Completed execution of store_conversation
+2025-06-02 20:16:39,598 - werkzeug - INFO - 127.0.0.1 - - [02/Jun/2025 20:16:39] "POST /api/ml/conversation/store HTTP/1.1" 200 -

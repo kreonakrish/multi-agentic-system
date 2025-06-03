@@ -13,10 +13,11 @@ export interface AgentNode {
 export interface AgentHierarchyGraphProps {
   agents: AgentNode[];
   onEdgeClick?: (sourceId: number, targetId: number) => void;
+  onBackgroundClick?: () => void;
   selectedAgents: string[];
 }
 
-const AgentHierarchyGraph: React.FC<AgentHierarchyGraphProps> = ({ agents, onEdgeClick, selectedAgents }) => {
+const AgentHierarchyGraph: React.FC<AgentHierarchyGraphProps> = ({ agents, onEdgeClick, onBackgroundClick, selectedAgents }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null!);
   const { width = 400, height = 300 } = useResizeObserver<HTMLDivElement>({ ref: containerRef });
@@ -26,6 +27,16 @@ const AgentHierarchyGraph: React.FC<AgentHierarchyGraphProps> = ({ agents, onEdg
 
     const nodeRadius = 28;
     d3.select(svgRef.current).selectAll('*').remove();
+
+    const svg = d3.select(svgRef.current)
+        .attr('width', width)
+        .attr('height', height)
+        .on('click', (event) => {
+          // Only trigger if clicking directly on the SVG background
+          if (event.target === svgRef.current && onBackgroundClick) {
+            onBackgroundClick();
+          }
+        });
 
     // Add VIBGYOR color scale
     const getVIBGYORColor = (value: number) => {
@@ -140,10 +151,6 @@ const AgentHierarchyGraph: React.FC<AgentHierarchyGraphProps> = ({ agents, onEdg
           return width * (0.2 + (idx + 0.5) / (count + 1) * 0.6);
         }));
 
-    const svg = d3.select(svgRef.current)
-        .attr('width', width)
-        .attr('height', height);
-
     // Add arrow marker for directed edges
     svg.append('defs').selectAll('marker')
         .data(['end'])
@@ -199,56 +206,38 @@ const AgentHierarchyGraph: React.FC<AgentHierarchyGraphProps> = ({ agents, onEdg
         })
         .attr('stroke-width', (d: LinkType) => {
           const sourceId = typeof d.source === 'object' ? d.source.id : d.source;
-          const sourceNode = nodes.find(n => n.id === sourceId);
-          if (!sourceNode) return 0.5;
-          const accuracy = sourceNode.accuracy || 100;
-          const success = sourceNode.success || 100;
-          // Reduced width range (0.5-3.75)
-          const weight = ((accuracy + success) / 200) * 3.25 + 0.5;
-          console.log(`Edge width for ${sourceNode.name}: ${weight}px`);
-          return weight;
+          const targetId = typeof d.target === 'object' ? d.target.id : d.target;
+          const isSelected = selectedAgents.includes(sourceId.toString()) && selectedAgents.includes(targetId.toString());
+          return isSelected ? 3 : 1.5;
         })
-        .on('mouseover', function (event, d: LinkType) {
+        .style('cursor', 'pointer')
+        .on('click', (event: MouseEvent, d: LinkType) => {
+          event.stopPropagation();
+          const sourceId = typeof d.source === 'object' ? d.source.id : d.source;
+          const targetId = typeof d.target === 'object' ? d.target.id : d.target;
+          if (onEdgeClick) {
+            onEdgeClick(Number(sourceId), Number(targetId));
+          }
+        })
+        .on('mouseover', (event: MouseEvent, d: LinkType) => {
+          if (!tooltip) return;
+          tooltip.style('display', 'block');
           const sourceId = typeof d.source === 'object' ? d.source.id : d.source;
           const targetId = typeof d.target === 'object' ? d.target.id : d.target;
           const sourceNode = nodes.find(n => n.id === sourceId);
           const targetNode = nodes.find(n => n.id === targetId);
-          if (tooltip) {
-            const combinedValue = sourceNode ? ((sourceNode.accuracy || 0) + (sourceNode.success || 0)) / 2 : 0;
-            tooltip
-                .style('display', 'block')
-                .style('left', (event.pageX + 16) + 'px')
-                .style('top', (event.pageY - 16) + 'px')
-                .html(`${sourceNode?.name} → ${targetNode?.name}<br>` +
-                      `Priority: ${targetNode?.priority}<br>` +
-                      `Accuracy: ${sourceNode?.accuracy}%<br>` +
-                      `Success: ${sourceNode?.success}%<br>` +
-                      `Combined Score: ${combinedValue.toFixed(1)}%`);
-          }
-          // Highlight the edge
-          d3.select(this)
-            .attr('stroke-opacity', 1)
-            .attr('stroke-width', function() {
-              return parseFloat(d3.select(this).attr('stroke-width')) * 1.5;
-            });
+          tooltip.html(`
+            <div>From: ${sourceNode?.name}</div>
+            <div>To: ${targetNode?.name}</div>
+            <div style="font-size: 10px; margin-top: 4px;">Click to view interactions</div>
+          `);
+          tooltip
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 10) + 'px');
         })
-        .on('mouseout', function () {
-          if (tooltip) {
-            tooltip.style('display', 'none');
-          }
-          // Reset edge styling
-          d3.select(this)
-            .attr('stroke-opacity', 0.8)
-            .attr('stroke-width', function() {
-              return parseFloat(d3.select(this).attr('stroke-width')) / 1.5;
-            });
-        })
-        .on('click', (event, d: LinkType) => {
-          if (onEdgeClick) {
-            const sourceId = typeof d.source === 'object' ? d.source.id : d.source;
-            const targetId = typeof d.target === 'object' ? d.target.id : d.target;
-            onEdgeClick(Number(sourceId), Number(targetId));
-          }
+        .on('mouseout', () => {
+          if (!tooltip) return;
+          tooltip.style('display', 'none');
         });
 
     // Create nodes
@@ -323,7 +312,7 @@ const AgentHierarchyGraph: React.FC<AgentHierarchyGraphProps> = ({ agents, onEdg
       simulation.stop();
       if (tooltip) tooltip.remove();
     };
-  }, [agents, width, height, onEdgeClick, selectedAgents]);
+  }, [agents, width, height, onEdgeClick, onBackgroundClick, selectedAgents]);
 
   return (
       <div ref={containerRef} style={{ width: '100%', height: 400, position: 'relative' }}>

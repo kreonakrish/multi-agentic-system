@@ -17,13 +17,20 @@ interface AgentSettingsModalProps {
   open: boolean;
   onClose: () => void;
   teams: any[];
+  selectedEdge: { sourceId: number | null; targetId: number | null };
+  onEdgeClick: (sourceId: number, targetId: number) => void;
 }
 
-const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ open, onClose, teams }) => {
+const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ 
+  open, 
+  onClose, 
+  teams,
+  selectedEdge,
+  onEdgeClick
+}) => {
   const [selectedTeam, setSelectedTeam] = useState<number | undefined>();
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [teamAgents, setTeamAgents] = useState<any[]>([]);
-  const [selectedEdge, setSelectedEdge] = useState<{ source: number; target: number } | null>(null);
 
   useEffect(() => {
     // Fetch team agents when a team is selected
@@ -47,34 +54,28 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ open, onClose, 
 
   // Handle edge click from the hierarchy graph
   const handleEdgeClick = (sourceId: number, targetId: number) => {
-    setSelectedEdge({ source: sourceId, target: targetId });
+    onEdgeClick(sourceId, targetId);
   };
 
   return (
     <Dialog 
       open={open} 
-      onClose={onClose} 
-      maxWidth="lg" 
+      onClose={onClose}
+      maxWidth="xl"
       fullWidth
       PaperProps={{
-        sx: {
-          height: '80vh',
-          maxHeight: '80vh'
-        }
+        sx: { height: '80vh' }
       }}
     >
       <DialogTitle>Agent Settings</DialogTitle>
       <DialogContent>
-        <Box sx={{ height: 'calc(100% - 32px)' }}>
-          <FormControl fullWidth sx={{ mb: 2 }}>
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <FormControl fullWidth>
             <InputLabel>Select Team</InputLabel>
             <Select
               value={selectedTeam || ''}
-              onChange={(e) => {
-                setSelectedTeam(e.target.value as number);
-                setSelectedEdge(null); // Reset selected edge when team changes
-              }}
               label="Select Team"
+              onChange={(e) => setSelectedTeam(e.target.value as number)}
             >
               {teams.map(team => (
                 <MenuItem key={team.id} value={team.id}>
@@ -83,21 +84,20 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ open, onClose, 
               ))}
             </Select>
           </FormControl>
-          
+
           {selectedTeam && (
             <PanelGroup direction="horizontal">
-              {/* Left Panel - Agent Hierarchy Graph */}
               <Panel defaultSize={50} minSize={30}>
                 <Box sx={{ height: '100%', p: 2 }}>
                   <AgentHierarchyGraph
                     agents={teamAgents}
                     selectedAgents={selectedAgents}
                     onEdgeClick={handleEdgeClick}
+                    onBackgroundClick={() => onEdgeClick(-1, -1)}
                   />
                 </Box>
               </Panel>
               
-              {/* Resize Handle */}
               <PanelResizeHandle 
                 style={{
                   width: '8px',
@@ -109,17 +109,12 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ open, onClose, 
                 }}
               />
               
-              {/* Right Panel - Agent Interactions */}
               <Panel defaultSize={50} minSize={30}>
                 <Box sx={{ height: '100%', p: 2, bgcolor: 'background.paper' }}>
                   <AgentInteractions
-                    selectedAgents={selectedEdge ? [
-                      teamAgents.find(a => a.id === selectedEdge.source)?.name,
-                      teamAgents.find(a => a.id === selectedEdge.target)?.name
-                    ].filter(Boolean) : selectedAgents}
                     teamId={selectedTeam}
-                    sourceId={selectedEdge?.source}
-                    targetId={selectedEdge?.target}
+                    sourceId={selectedEdge.sourceId}
+                    targetId={selectedEdge.targetId}
                   />
                 </Box>
               </Panel>

@@ -1118,30 +1118,49 @@ app.get('/api/agent-interactions', async (req, res) => {
   try {
     let query = `
       SELECT 
-        ai.*,
-        sa.name as source_agent,
-        ta.name as target_agent
-      FROM agent_interactions ai
-      JOIN agents sa ON ai.source_agent_id = sa.id
-      JOIN agents ta ON ai.target_agent_id = ta.id
+        m.id,
+        m.conversation_id,
+        COALESCE(sa.name, 'OpenAI') as source_agent,
+        COALESCE(ta.name, 'OpenAI') as target_agent,
+        m.interaction_type,
+        m.status,
+        m.created_at as timestamp,
+        m.content,
+        m.processed_message,
+        m.model_response
+      FROM messages m
+      LEFT JOIN agents sa ON m.sender_id = sa.id
+      LEFT JOIN agents ta ON m.receiver_id = ta.id
       WHERE 1=1
     `;
     const params = [];
 
     if (team_id) {
-      query += ' AND ai.team_id = ?';
+      query += ' AND m.team_id = ?';
       params.push(team_id);
     }
 
     if (source && target) {
-      query += ' AND ai.source_agent_id = ? AND ai.target_agent_id = ?';
+      query += ' AND m.sender_id = ? AND m.receiver_id = ?';
       params.push(source, target);
     }
 
-    query += ' ORDER BY ai.timestamp DESC';
+    query += ' ORDER BY m.created_at DESC';
+
+    console.log('Executing query:', query);
+    console.log('With params:', params);
 
     const [rows] = await pool.query(query, params);
-    res.json(rows);
+    
+    // Format the response
+    const formattedRows = rows.map(row => ({
+      ...row,
+      timestamp: row.timestamp.toISOString(),
+      model_response: row.model_response ? JSON.parse(row.model_response) : null
+    }));
+
+    console.log(`Found ${formattedRows.length} interactions`);
+    res.json(formattedRows);
   } catch (err) {
     console.error('Error fetching agent interactions:', err);
     res.status(500).json({ error: 'Failed to fetch agent interactions' });
