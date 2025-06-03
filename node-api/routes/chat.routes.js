@@ -1,11 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const chatController = require('../controllers/chat.controller');
+const createChatController = require('../controllers/chat.controller');
 
-// Process chat message
-router.post('/message', chatController.processMessage);
+module.exports = (pool) => {
+    const chatController = createChatController(pool);
 
-// Get chat history
-router.get('/history/:sessionId', chatController.getHistory);
+    // Process chat message
+    router.post('/message', chatController.processMessage.bind(chatController));
 
-module.exports = router; 
+    // Get chat history
+    router.get('/history/:sessionId', chatController.getHistory.bind(chatController));
+
+    return router;
+}; 

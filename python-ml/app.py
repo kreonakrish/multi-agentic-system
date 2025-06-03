@@ -1540,6 +1540,8 @@ def start_agent_workflow(agent_id):
 
 def initialize_agent_from_db(agent_id: int) -> Agent:
     """Helper function to initialize an agent from database"""
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -1551,7 +1553,11 @@ def initialize_agent_from_db(agent_id: int) -> Agent:
             LEFT JOIN team_agents ta ON a.id = ta.agent_id
             WHERE a.id = %s
         """, (agent_id,))
-        agent_data = cursor.fetchone()
+        agent_data = cursor.fetchone()  # Ensure we fetch the result
+        
+        # Consume any remaining results
+        while cursor.fetchone() is not None:
+            pass
         
         if not agent_data:
             logger.error(f"Agent {agent_id} not found in database")
@@ -1566,23 +1572,46 @@ def initialize_agent_from_db(agent_id: int) -> Agent:
             agent_data.get("team_id")  # Now getting team_id from join
         )
 
-        # Load agent's memories
+        # Close the current cursor before creating new ones
+        cursor.close()
+        cursor = None
+
+        # Load agent's memories with a new cursor
+        memory_cursor = conn.cursor(dictionary=True)
         try:
-            agent.load_memories(cursor)
-            logger.info(f"Loaded memories for agent {agent_id}")
+            memory_cursor.execute("""
+                SELECT * FROM agent_memory 
+                WHERE agent_id = %s 
+                ORDER BY updated_at DESC
+            """, (agent_id,))
+            agent.memories = memory_cursor.fetchall()  # Fetch all results at once
+            
+            # Consume any remaining results
+            while memory_cursor.fetchone() is not None:
+                pass
+                
+            logger.info(f"Loaded {len(agent.memories)} memories for agent {agent_id}")
         except Exception as e:
             logger.error(f"Error loading memories for agent {agent_id}: {e}", exc_info=True)
+        finally:
+            memory_cursor.close()
 
-        # Get agent's tools
+        # Get agent's tools with a new cursor
+        tools_cursor = conn.cursor(dictionary=True)
         try:
-            cursor.execute("""
+            tools_cursor.execute("""
                 SELECT t.* 
                 FROM tools t
                 JOIN agent_tools at ON t.id = at.tool_id
                 WHERE at.agent_id = %s
             """, (agent_id,))
             
-            tools_data = cursor.fetchall()
+            tools_data = tools_cursor.fetchall()  # Fetch all results at once
+            
+            # Consume any remaining results
+            while tools_cursor.fetchone() is not None:
+                pass
+                
             logger.info(f"Found {len(tools_data)} tools for agent {agent_id}")
             
             for tool_data in tools_data:
@@ -1600,6 +1629,8 @@ def initialize_agent_from_db(agent_id: int) -> Agent:
                 
         except Exception as e:
             logger.error(f"Error loading tools for agent {agent_id}: {e}", exc_info=True)
+        finally:
+            tools_cursor.close()
 
         return agent
 
@@ -1607,9 +1638,15 @@ def initialize_agent_from_db(agent_id: int) -> Agent:
         logger.error(f"Error initializing agent {agent_id}: {e}", exc_info=True)
         return None
     finally:
-        if 'cursor' in locals():
-            cursor.close()
-        if 'conn' in locals():
+        if cursor:
+            try:
+                # Consume any remaining results before closing
+                while cursor and cursor.fetchone() is not None:
+                    pass
+                cursor.close()
+            except Exception as e:
+                logger.error(f"Error closing cursor: {e}", exc_info=True)
+        if conn:
             conn.close()
 
 # Error handlers with logging
@@ -2277,9 +2314,12 @@ def execute_team_task():
                 "message": f"Missing required fields: {', '.join(required_fields)}"
             }), 400
 
-        # Create team instance
+        # Get team_id from config, fallback to UUID if not provided
+        team_id = str(data['team_config'].get('team_id', uuid.uuid4()))
+        
+        # Create team instance with the provided team_id
         team = Team(
-            team_id=str(uuid.uuid4()),
+            team_id=team_id,
             name=data['team_config'].get('name', 'Task Team'),
             description=data['team_config'].get('description', 'Team for task execution')
         )
@@ -2487,79 +2527,157 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
         # Track conversation context
         conversation_context = []
         
-        # Execute task with each team member in priority order
-        for member in team.members:
+        # Get team agents from database
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            # Convert team_id to int if it's numeric
             try:
-                # Initialize agent
-                agent = initialize_agent_from_db(member.agent_id)
-                if not agent:
-                    logger.error(f"Could not initialize agent {member.agent_id}")
+                numeric_team_id = int(team.team_id)
+            except (ValueError, TypeError):
+                numeric_team_id = team.team_id
+                
+            logger.info(f"Fetching agents for team {numeric_team_id} (original team_id: {team.team_id})")
+            
+            # Fetch all agents for this team with their properties
+            cursor.execute("""
+                SELECT ta.agent_id, ta.accuracy, ta.success, ta.priority, a.name
+                FROM team_agents ta
+                JOIN agents a ON ta.agent_id = a.id
+                WHERE ta.team_id = %s
+                ORDER BY ta.priority DESC, ta.success DESC, ta.accuracy DESC
+            """, (numeric_team_id,))
+            
+            team_agents = cursor.fetchall()
+            logger.info(f"Found {len(team_agents)} agents for team {team.team_id}")
+            
+            if not team_agents:
+                raise Exception(f"No agents found for team {team.team_id}")
+
+            # Group agents by priority
+            priority_groups = {}
+            for agent_data in team_agents:
+                priority = agent_data['priority']
+                if priority not in priority_groups:
+                    priority_groups[priority] = []
+                priority_groups[priority].append(agent_data)
+
+            # Sort priorities in descending order (highest priority first)
+            sorted_priorities = sorted(priority_groups.keys(), reverse=True)
+            logger.info(f"Executing agents in priority groups: {sorted_priorities}")
+
+            # Execute agents priority by priority
+            for priority in sorted_priorities:
+                agents_in_group = priority_groups[priority]
+                logger.info(f"Executing priority {priority} group with {len(agents_in_group)} agents")
+
+                # Filter agents based on accuracy and success thresholds
+                qualified_agents = [
+                    agent for agent in agents_in_group
+                    if (agent['accuracy'] or 0) >= task.requirements.get('min_accuracy', 0) and
+                    (agent['success'] or 0) >= task.requirements.get('min_success_rate', 0)
+                ]
+
+                if not qualified_agents:
+                    logger.warning(f"No qualified agents found in priority {priority} group")
                     continue
 
-                # Set correlation ID for tracking
-                agent.set_correlation_id(task.task_id)
+                # Initialize all agents in this priority group
+                priority_group_results = []
+                for agent_data in qualified_agents:
+                    try:
+                        # Initialize agent
+                        agent = initialize_agent_from_db(agent_data['agent_id'])
+                        if not agent:
+                            logger.error(f"Could not initialize agent {agent_data['agent_id']}")
+                            continue
 
-                # Prepare message with context and requirements
-                message = {
-                    "task_description": task.description,
-                    "requirements": task.requirements,
-                    "conversation_context": conversation_context,
-                    "accuracy_threshold": member.accuracy_threshold,
-                    "success_rate": member.success_rate
-                }
+                        logger.info(f"Executing with agent {agent_data['agent_id']} ({agent_data['name']}) - "
+                                  f"Priority: {priority}, Accuracy: {agent_data['accuracy']}, "
+                                  f"Success Rate: {agent_data['success']}")
 
-                # Execute with agent
-                result = agent.execute_with_tools(json.dumps(message))
+                        # Set correlation ID for tracking
+                        agent.set_correlation_id(task.task_id)
+
+                        # Prepare message with context and requirements
+                        message = {
+                            "task_description": task.description,
+                            "requirements": task.requirements,
+                            "conversation_context": conversation_context,
+                            "accuracy_threshold": agent_data['accuracy'] or 0.8,
+                            "success_rate": agent_data['success'] or 0.9,
+                            "priority": priority
+                        }
+
+                        # Execute with agent
+                        result = agent.execute_with_tools(json.dumps(message))
+                        
+                        if result.get('status') == 'success':
+                            # Format code blocks in response if present
+                            response_text = result.get('llm_response', '')
+                            if any(lang in response_text.lower() for lang in ['python', 'java', 'javascript', 'typescript', 'bash', 'sql']):
+                                # Extract and format code blocks
+                                formatted_response = []
+                                lines = response_text.split('\n')
+                                in_code_block = False
+                                current_block = []
+                                current_language = ''
+                                
+                                for line in lines:
+                                    if line.startswith('```'):
+                                        if in_code_block:
+                                            # End code block
+                                            formatted_response.append(f"```{current_language}\n{''.join(current_block)}\n```")
+                                            current_block = []
+                                            in_code_block = False
+                                        else:
+                                            # Start code block
+                                            in_code_block = True
+                                            current_language = line[3:].strip()
+                                    elif in_code_block:
+                                        current_block.append(line + '\n')
+                                    else:
+                                        formatted_response.append(line)
+                                
+                                response_text = '\n'.join(formatted_response)
+                            
+                            # Add to conversation context
+                            conversation_context.append({
+                                "agent_id": agent_data['agent_id'],
+                                "agent_name": agent_data['name'],
+                                "priority": priority,
+                                "accuracy": agent_data['accuracy'],
+                                "success_rate": agent_data['success'],
+                                "response": response_text
+                            })
+                            
+                            # Add to priority group results
+                            priority_group_results.append({
+                                "agent_id": agent_data['agent_id'],
+                                "agent_name": agent_data['name'],
+                                "priority": priority,
+                                "accuracy": agent_data['accuracy'],
+                                "success_rate": agent_data['success'],
+                                "result": result
+                            })
+
+                    except Exception as agent_error:
+                        logger.error(f"Error with agent {agent_data['agent_id']}: {str(agent_error)}", exc_info=True)
+                        continue
+
+                # Add all results from this priority group
+                final_results.extend(priority_group_results)
                 
-                if result.get('status') == 'success':
-                    # Format code blocks in response if present
-                    response_text = result.get('llm_response', '')
-                    if any(lang in response_text.lower() for lang in ['python', 'java', 'javascript', 'typescript', 'bash', 'sql']):
-                        # Extract and format code blocks
-                        formatted_response = []
-                        lines = response_text.split('\n')
-                        in_code_block = False
-                        current_block = []
-                        current_language = ''
-                        
-                        for line in lines:
-                            if line.startswith('```'):
-                                if in_code_block:
-                                    # End code block
-                                    formatted_response.append(f"```{current_language}\n{''.join(current_block)}\n```")
-                                    current_block = []
-                                    in_code_block = False
-                                else:
-                                    # Start code block
-                                    in_code_block = True
-                                    current_language = line[3:].strip()
-                            elif in_code_block:
-                                current_block.append(line + '\n')
-                            else:
-                                formatted_response.append(line)
-                        
-                        response_text = '\n'.join(formatted_response)
-                    
-                    # Add to conversation context
-                    conversation_context.append({
-                        "agent_id": member.agent_id,
-                        "response": response_text
-                    })
-                    
-                    # Add to results
-                    final_results.append({
-                        "agent_id": member.agent_id,
-                        "priority": member.priority,
-                        "result": result
-                    })
-
-                    # Update task status
+                # Update task status
+                if priority_group_results:
                     task.status = "in_progress"
-                    task.results.append(result)
+                    task.results.extend(priority_group_results)
 
-            except Exception as agent_error:
-                logger.error(f"Error with agent {member.agent_id}: {str(agent_error)}", exc_info=True)
-                continue
+                logger.info(f"Completed execution of priority {priority} group with {len(priority_group_results)} successful results")
+
+        finally:
+            safe_close_connection(conn, cursor)
 
         # Aggregate results
         aggregated_result = {
@@ -2568,7 +2686,18 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
             "team_id": team.team_id,
             "results": final_results,
             "conversation_context": conversation_context,
-            "final_status": "completed" if final_results else "failed"
+            "final_status": "completed" if final_results else "failed",
+            "execution_summary": {
+                "total_agents": len(team_agents),
+                "successful_executions": len(final_results),
+                "priority_groups": sorted_priorities,
+                "execution_order": [
+                    {
+                        "priority": group["priority"],
+                        "agents": [f"{group['agent_name']} (ID: {group['agent_id']})" for group in final_results if group["priority"] == group["priority"]]
+                    } for group in final_results
+                ]
+            }
         }
 
         # Update task status

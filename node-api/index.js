@@ -5,11 +5,24 @@ const mysql = require('mysql2/promise');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
-const chatRoutes = require('./routes/chat.routes');
 const logger = require('./utils/logger');
 
 const app = express();
 const PORT = 4000;
+
+// MySQL connection pool
+const pool = mysql.createPool({
+    host: 'localhost',
+    user: 'admin',
+    password: 'gUest@Sep2',
+    database: 'multi_agentic_system',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
+// Import routes after pool is initialized
+const chatRoutes = require('./routes/chat.routes');
 
 // CORS configuration
 const corsOptions = {
@@ -33,18 +46,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use('/api/chat', chatRoutes);
-
-// MySQL connection pool
-const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'admin',
-  password: 'gUest@Sep2',
-  database: 'multi_agentic_system',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+app.use('/api/chat', chatRoutes(pool));
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
