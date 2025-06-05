@@ -1,0 +1,25 @@
+-- Drop existing documents table
+DROP TABLE IF EXISTS documents;
+
+-- Create documents table with correct structure
+CREATE TABLE documents (
+    id INT NOT NULL AUTO_INCREMENT,
+    team_id INT DEFAULT NULL,
+    conversation_id INT DEFAULT NULL,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(100) DEFAULT 'unknown',
+    size BIGINT DEFAULT 0,
+    file_type VARCHAR(100) DEFAULT 'unknown',
+    file_size BIGINT DEFAULT 0,
+    file_path VARCHAR(1000) NOT NULL,
+    url VARCHAR(1000) GENERATED ALWAYS AS (CONCAT('/api/documents/download/', id)) STORED,
+    content TEXT DEFAULT NULL,
+    metadata JSON DEFAULT NULL,
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY team_id (team_id),
+    KEY conversation_id (conversation_id),
+    CONSTRAINT documents_ibfk_1 FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE,
+    CONSTRAINT documents_ibfk_2 FOREIGN KEY (conversation_id) REFERENCES conversations (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci; 
