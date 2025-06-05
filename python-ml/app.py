@@ -21,20 +21,14 @@ import httpx
 import requests
 import pandas as pd
 from io import StringIO
+import re
 
 # Configure logging first
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('app.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
+from app.config.logging_config import configure_logging
+configure_logging()
 
-# Disable propagation to avoid conflicts
-logger.propagate = False
+# Get the logger for this module
+logger = logging.getLogger('multi_agent_system')
 
 # Load environment variables
 load_dotenv()
@@ -43,10 +37,10 @@ load_dotenv()
 try:
     if os.getenv('OPENAI_API_KEY'):
         logger.info('OPENAI_API_KEY found in environment')
-        openai.api_key = os.getenv('OPENAI_API_KEY')  # Set the API key directly
+        openai.api_key = os.getenv('OPENAI_API_KEY')
     else:
         logger.warning('OPENAI_API_KEY not found in environment, using mock API key for testing')
-        openai.api_key = 'sk-test-key'  # Use a mock API key for testing
+        openai.api_key = 'sk-test-key'
 except Exception as e:
     logger.error(f'Error initializing OpenAI client: {str(e)}')
     raise
@@ -448,24 +442,35 @@ class Agent:
         self.interaction_history = []
         self.correlation_id = None
         self.logger = logging.getLogger(f'multi_agent_system.agent.{agent_id}')
+        
+        # Log agent initialization
+        self.log('info', 'Agent initialized', 
+                memory_type=memory_type,
+                foundation_model=foundation_model,
+                team_id=team_id)
 
     def set_correlation_id(self, correlation_id: str):
         """Set correlation ID for tracking agent actions"""
         self.correlation_id = correlation_id
+        self.log('info', 'Correlation ID set', correlation_id=correlation_id)
 
     def log(self, level: str, message: str, **kwargs):
         """Structured logging for agent actions"""
         # Extract exc_info from kwargs if present
         exc_info = kwargs.pop('exc_info', None)
         
-        # Build extra dict without exc_info
+        # Add default context
         extra = {
             'correlation_id': self.correlation_id or 'NO_CORRELATION_ID',
             'agent_id': self.agent_id,
             'agent_name': self.name,
             'team_id': self.team_id,
-            **kwargs
+            'memory_type': self.memory_type,
+            'foundation_model': self.foundation_model
         }
+        
+        # Add additional context from kwargs
+        extra.update(kwargs)
         
         # Call logger with proper exc_info handling
         if exc_info:
@@ -614,13 +619,6 @@ class Agent:
         return "\n".join(context)
 
     def process_with_llm(self, messages: List[Dict[str, str]]) -> Dict[str, Any]:
-        """
-        Process messages with the appropriate LLM (OpenAI by default, or production model if specified)
-        """
-        if self.use_prod:
-            # TODO: Implement production model integration
-            return {"status": "error", "message": "Production model not implemented yet"}
-        
         try:
             # Get OpenAI client with error handling
             try:
@@ -628,124 +626,73 @@ class Agent:
             except ValueError as e:
                 self.log('error', f"OpenAI client initialization failed: {str(e)}")
                 return {"status": "error", "message": str(e)}
-            
-            # Log the request
-            self.log('info', "Sending request to OpenAI API...", 
-                    extra={'messages': messages})
 
-            # Store the message in database before sending to OpenAI
+            # Log the request to OpenAI
+            self.log('info', 'Sending request to OpenAI API...', 
+                    openai_request={
+                        'model': 'gpt-4',
+                        'messages': messages,
+                        'temperature': 0.7,
+                        'max_tokens': 1000
+                    })
+            
+            # Use OpenAI's chat completion
+            response = openai_client.ChatCompletion.create(
+                model="gpt-4",
+                messages=messages,
+                temperature=0.7,
+                max_tokens=1000
+            )
+            
+            # Log the response from OpenAI
+            self.log('info', 'Received response from OpenAI API',
+                    openai_response={
+                        'content': response.choices[0].message['content'],
+                        'finish_reason': response.choices[0].finish_reason,
+                        'usage': response.usage._previous
+                    })
+            
+            self.log('debug', f"Model response: {response.choices[0].message['content']}")
+            
+            # Store OpenAI's response in database
             try:
                 conn = get_db_connection()
                 cursor = conn.cursor(dictionary=True)
                 
-                # Store initial message
-                conversation_id = str(uuid.uuid4())
+                # Store OpenAI's response
                 insert_query = """
                     INSERT INTO messages 
                     (sender_id, receiver_id, content, interaction_type, conversation_id, team_id, status)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """
                 
-                # Get the user message (last message in the list)
-                user_message = next((msg['content'] for msg in reversed(messages) if msg['role'] == 'user'), None)
-                if not user_message:
-                    user_message = messages[-1]['content']
-                
                 cursor.execute(insert_query, (
-                    self.agent_id,  # sender_id (agent sending to OpenAI)
-                    None,  # receiver_id (OpenAI doesn't have an ID)
-                    user_message,
+                    None,  # sender_id (OpenAI sending to agent)
+                    self.agent_id,  # receiver_id
+                    response.choices[0].message['content'],
                     'foundation_model',
-                    conversation_id,
+                    self.correlation_id,
                     self.team_id,
-                    'pending'
+                    'processed'
                 ))
                 
                 conn.commit()
             except Exception as db_error:
-                self.log('error', f"Database error storing initial message: {str(db_error)}")
+                self.log('error', f"Database error storing OpenAI response: {str(db_error)}")
                 if conn:
                     conn.rollback()
             finally:
                 safe_close_connection(conn, cursor)
             
-            # Use OpenAI's chat completion
-            try:
-                response = openai_client.ChatCompletion.create(
-                    model="gpt-4",
-                    messages=messages,
-                    temperature=0.7,
-                    max_tokens=1000
-                )
-                
-                self.log('info', "Received response from OpenAI API")
-                self.log('debug', f"Model response: {response.choices[0].message['content']}")
-                
-                # Store OpenAI's response in database
-                try:
-                    conn = get_db_connection()
-                    cursor = conn.cursor(dictionary=True)
-                    
-                    # Store OpenAI's response
-                    insert_query = """
-                        INSERT INTO messages 
-                        (sender_id, receiver_id, content, interaction_type, conversation_id, team_id, status)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """
-                    
-                    cursor.execute(insert_query, (
-                        None,  # sender_id (OpenAI sending to agent)
-                        self.agent_id,  # receiver_id
-                        response.choices[0].message['content'],
-                        'foundation_model',
-                        conversation_id,
-                        self.team_id,
-                        'processed'
-                    ))
-                    
-                    conn.commit()
-                except Exception as db_error:
-                    self.log('error', f"Database error storing OpenAI response: {str(db_error)}")
-                    if conn:
-                        conn.rollback()
-                finally:
-                    safe_close_connection(conn, cursor)
-                
-                return {
-                    "status": "success",
-                    "response": response.choices[0].message['content'],
-                    "model_used": "gpt-4",
-                    "conversation_id": conversation_id
-                }
-            except openai.error.RateLimitError as e:
-                self.log('error', "OpenAI API rate limit exceeded", exc_info=True)
-                return {
-                    "status": "error",
-                    "message": "Rate limit exceeded. Please try again later.",
-                    "error_type": "rate_limit"
-                }
-            except openai.error.APIError as e:
-                self.log('error', f"OpenAI API error: {str(e)}", exc_info=True)
-                return {
-                    "status": "error",
-                    "message": f"OpenAI API error: {str(e)}",
-                    "error_type": "api_error"
-                }
-            except Exception as e:
-                self.log('error', f"Unexpected error in OpenAI API call: {str(e)}", exc_info=True)
-                return {
-                    "status": "error",
-                    "message": f"Unexpected error: {str(e)}",
-                    "details": traceback.format_exc()
-                }
-                
+            return {
+                'status': 'success',
+                'response': response.choices[0].message['content'],  # Changed from llm_response to response
+                'usage': response.usage._previous
+            }
+            
         except Exception as e:
             self.log('error', f"Error in process_with_llm: {str(e)}", exc_info=True)
-            return {
-                "status": "error",
-                "message": f"Error processing with LLM: {str(e)}",
-                "details": traceback.format_exc()
-            }
+            raise
 
     def format_messages_for_llm(self, command: str, context: str = "") -> List[Dict[str, str]]:
         """
@@ -803,6 +750,10 @@ class Agent:
         """
         Validate if the response satisfies the end prompt using the foundation model
         """
+        logger.info(f"[validate_response_with_llm] Starting validation for agent {self.agent_id}")
+        logger.info(f"[validate_response_with_llm] End prompt: {end_prompt}")
+        logger.debug(f"[validate_response_with_llm] Response to validate: {response}")
+        
         validation_messages = [
             {
                 "role": "system",
@@ -815,6 +766,9 @@ class Agent:
         ]
 
         try:
+            logger.info("[validate_response_with_llm] Sending validation request to OpenAI")
+            logger.debug(f"[validate_response_with_llm] Validation messages: {json.dumps(validation_messages, indent=2)}")
+            
             validation_response = get_openai_client().chat.completions.create(
                 model="gpt-4",
                 messages=validation_messages,
@@ -823,19 +777,40 @@ class Agent:
             )
             
             validation_result = validation_response.choices[0].message.content
+            logger.info("[validate_response_with_llm] Received validation response from OpenAI")
+            logger.debug(f"[validate_response_with_llm] Raw validation result: {validation_result}")
             
             try:
                 validation_json = json.loads(validation_result)
                 
-                # Check if response contains GitHub URL
-                if validation_json.get("github_url"):
-                    # Default values for GitHub Agent
+                # Log validation outcome
+                if validation_json.get("valid", False):
+                    logger.info("[validate_response_with_llm] Validation successful")
+                    logger.info(f"[validate_response_with_llm] Validation reason: {validation_json.get('reason')}")
+                else:
+                    logger.warning("[validate_response_with_llm] Validation failed")
+                    logger.warning(f"[validate_response_with_llm] Failure reason: {validation_json.get('reason')}")
+                    # Log the complete context when validation fails
+                    logger.warning("=== Validation Failure Context ===")
+                    logger.warning(f"Agent ID: {self.agent_id}")
+                    logger.warning(f"End Prompt: {end_prompt}")
+                    logger.warning(f"Response being validated: {response}")
+                    logger.warning(f"Messages sent to OpenAI: {json.dumps(validation_messages, indent=2)}")
+                    logger.warning(f"OpenAI response: {validation_result}")
+                    logger.warning("===============================")
+                
+                # Check if LLM response has a GitHub CSV raw URL
+                pattern = r'https://raw\.githubusercontent\.com/[^\s\'"]'
+                match = re.search(pattern, validation_json)
+                if match:
+                    github_url = match.group(0)
+                    logger.info(f"[validate_response_with_llm] Found GitHub URL: {github_url}")
                     github_agent_context = {
                         "team_id": 77,
                         "conversation_settings_id": 131,
                         "agent_id": 92
                     }
-                    
+
                     # Download data from GitHub
                     github_data = self.download_github_data(validation_json["github_url"])
                     
@@ -844,7 +819,6 @@ class Agent:
                         "status": "success",
                         "valid": validation_json.get("valid", False),
                         "reason": validation_json.get("reason", "No reason provided"),
-                        "github_url": validation_json["github_url"],
                         "github_data": github_data,
                         "agent_context": github_agent_context
                     }
@@ -856,7 +830,9 @@ class Agent:
                     "reason": validation_json.get("reason", "No reason provided")
                 }
                 
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as json_error:
+                logger.error(f"[validate_response_with_llm] Failed to parse validation response: {str(json_error)}")
+                logger.error(f"[validate_response_with_llm] Raw response that failed parsing: {validation_result}")
                 return {
                     "status": "error",
                     "message": "Failed to parse validation response",
@@ -864,66 +840,53 @@ class Agent:
                 }
                 
         except Exception as e:
+            logger.error(f"[validate_response_with_llm] Validation failed with error: {str(e)}", exc_info=True)
             return {"status": "error", "message": f"Validation failed: {str(e)}"}
 
-    def execute_with_tools(self, command: str, end_prompt: Optional[str] = None) -> Dict[str, Any]:
-        """Execute a command with all available tools"""
+    def execute_with_tools(self, command: str) -> Dict[str, Any]:
+        """Execute command with all available tools"""
         try:
-            self.log('info', "[execute_with_tools] Starting execution", command=command)
+            self.log('info', '[execute_with_tools] Starting execution')
             
-            # Get context from memories
-            context = self.get_context_from_memories()
+            # Format messages for LLM
+            messages = self.format_messages_for_llm(command)
             
-            # Get LLM response
-            llm_response = self.get_llm_response(command, context)
+            # Get response from LLM
+            llm_response = self.process_with_llm(messages)
+            if llm_response.get('status') == 'error':
+                return llm_response
             
-            # Initialize tool responses
-            tool_responses = []
-            validation_results = []
-            
-            # Execute each tool
+            # Execute tools based on LLM response
+            tool_results = []
             for tool in self.tools:
                 try:
-                    self.log('debug', f"[execute_with_tools] Executing tool {tool.tool_id}")
-                    tool_response = tool.execute(command)
-                    tool_responses.append(tool_response)
-                    self.log('debug', f"[execute_with_tools] Tool response: {tool_response}")
-                    
-                    # Validate response if end_prompt is provided
-                    if end_prompt:
-                        validation_result = self.validate_response_with_llm(
-                            json.dumps(tool_response),
-                            end_prompt
-                        )
-                        validation_results.append(validation_result)
-                        self.log('debug', f"[execute_with_tools] Validation result: {validation_result}")
+                    result = tool.execute(llm_response['response'])  # Changed from llm_response to response
+                    tool_results.append({
+                        "tool_name": tool.tool_name,
+                        "status": "success",
+                        "result": result
+                    })
                 except Exception as tool_error:
-                    self.log('error', f"[execute_with_tools] Error executing tool {tool.tool_id}: {str(tool_error)}", exc_info=True)
-                    tool_responses.append({
+                    self.log('error', f"Error executing tool {tool.tool_name}: {str(tool_error)}")
+                    tool_results.append({
+                        "tool_name": tool.tool_name,
                         "status": "error",
-                        "message": f"Tool execution failed: {str(tool_error)}"
+                        "error": str(tool_error)
                     })
             
-            # Compile final response
-            final_response = {
-                "status": "success",
-                "context": context,
-                "memory_type": self.memory_type,
-                "llm_response": llm_response["response"],
-                "model_used": llm_response["model_used"],
-                "conversation_id": llm_response.get("conversation_id"),
-                "tool_responses": tool_responses,
-                "validation_results": validation_results if end_prompt else None
-            }
+            self.log('info', '[execute_with_tools] Successfully completed execution')
             
-            self.log('info', "[execute_with_tools] Successfully completed execution")
-            return final_response
+            return {
+                "status": "success",
+                "llm_response": llm_response['response'],  # Changed from llm_response to response
+                "tool_results": tool_results
+            }
             
         except Exception as e:
             self.log('error', f"[execute_with_tools] Unhandled error: {str(e)}", exc_info=True)
             return {
                 "status": "error",
-                "message": f"Error executing command: {str(e)}",
+                "message": str(e),
                 "details": traceback.format_exc()
             }
 
@@ -2131,145 +2094,6 @@ def init_db():
     cursor = conn.cursor()
     
     try:
-        # Create conversations table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS conversations (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                conversation_id VARCHAR(255) UNIQUE NOT NULL,
-                content JSON,
-                metadata JSON,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                INDEX idx_conversation_id (conversation_id)
-            )
-        """)
-
-        # Create agents table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS agents (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                memory_type VARCHAR(50) NOT NULL,
-                foundation_model VARCHAR(50) NOT NULL,
-                status VARCHAR(20) DEFAULT 'inactive',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )
-        """)
-        
-        # Create team_messages table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS team_messages (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                team_id VARCHAR(36) NOT NULL,
-                task_id VARCHAR(36) NOT NULL,
-                task_description TEXT NOT NULL,
-                task_requirements JSON,
-                team_config JSON,
-                status VARCHAR(20) DEFAULT 'pending',
-                result JSON,
-                error_message TEXT,
-                processing_time INT,
-                agent_responses JSON,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                INDEX idx_team_id (team_id),
-                INDEX idx_task_id (task_id),
-                INDEX idx_status (status)
-            )
-        """)
-        
-        # Create agent_memory table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS agent_memory (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                agent_id INT NOT NULL,
-                memory_type VARCHAR(50) NOT NULL,
-                start_prompt TEXT,
-                end_prompt TEXT,
-                context TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                FOREIGN KEY (agent_id) REFERENCES agents(id)
-            )
-        """)
-        
-        # Drop and recreate messages table to update schema
-        cursor.execute("DROP TABLE IF EXISTS messages")
-        cursor.execute("""
-            CREATE TABLE messages (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                sender_id INT NULL,  -- Allow NULL for system/user messages
-                receiver_id INT NOT NULL,
-                content TEXT NOT NULL,
-                processed_message TEXT,
-                model_response TEXT,
-                interaction_type VARCHAR(50) DEFAULT 'direct',
-                conversation_id VARCHAR(36),
-                team_id INT,
-                status VARCHAR(20) DEFAULT 'pending',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                FOREIGN KEY (receiver_id) REFERENCES agents(id),
-                FOREIGN KEY (sender_id) REFERENCES agents(id)
-            )
-        """)
-
-        # Create tools table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS tools (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                tool_name VARCHAR(255) NOT NULL,
-                description TEXT,
-                type VARCHAR(50) NOT NULL,
-                hostname VARCHAR(255),
-                username VARCHAR(255),
-                password VARCHAR(255),
-                auth_method VARCHAR(50),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )
-        """)
-
-        # Create agent_tools table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS agent_tools (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                agent_id INT NOT NULL,
-                tool_id INT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (agent_id) REFERENCES agents(id),
-                FOREIGN KEY (tool_id) REFERENCES tools(id)
-            )
-        """)
-        
-        # Check if test agent exists
-        cursor.execute("SELECT id FROM agents WHERE id = 10")
-        if not cursor.fetchone():
-            # Create test agent
-            cursor.execute("""
-                INSERT INTO agents (id, name, memory_type, foundation_model, status)
-                VALUES (10, 'Databricks Agent', 'SHORT_TERM_MEMORY', 'gpt-4', 'active')
-            """)
-            logger.info("Created test agent with ID 10")
-
-        # Check if test tool exists
-        cursor.execute("SELECT id FROM tools WHERE id = 5")
-        if not cursor.fetchone():
-            # Create test tool
-            cursor.execute("""
-                INSERT INTO tools (id, tool_name, description, type, hostname, auth_method)
-                VALUES (5, 'DBX Tool', 'Databricks Integration Tool', 'WebService', 'databricks.example.com', 'token')
-            """)
-            logger.info("Created test tool with ID 5")
-
-            # Associate tool with agent
-            cursor.execute("""
-                INSERT IGNORE INTO agent_tools (agent_id, tool_id)
-                VALUES (10, 5)
-            """)
-            logger.info("Associated tool 5 with agent 10")
-        
         conn.commit()
         logger.info("Database tables initialized successfully")
         
@@ -2283,7 +2107,7 @@ def init_db():
             conn.close()
 
 # Initialize database on startup
-init_db()
+# init_db()
 
 @app.route('/api/debug/db-contents', methods=['GET'])
 def get_db_contents():

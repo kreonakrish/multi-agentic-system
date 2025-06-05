@@ -18,86 +18,137 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
     conversation_context: List[Dict[str, Any]] = []
     
     try:
-        logger.info(f"Starting task execution with team {team.team_id}")
+        logger.info(f"[execute_task_with_team] Starting task execution")
+        logger.info(f"[execute_task_with_team] Team ID: {team.team_id}")
+        logger.info(f"[execute_task_with_team] Task ID: {task.task_id}")
+        logger.info(f"[execute_task_with_team] Task Description: {task.description}")
+        logger.debug(f"[execute_task_with_team] Task Requirements: {json.dumps(task.requirements, indent=2)}")
         
-        # Initialize all team members
+        # Initialize all team members and sort them by priority, accuracy, and success rate
         active_agents = []
-        for agent_id in team.members:
+        logger.info("[execute_task_with_team] Initializing team members...")
+        
+        for member in team.members:
             try:
-                agent = initialize_agent_from_db(agent_id)
+                logger.info(f"[execute_task_with_team] Initializing member - Agent ID: {member.agent_id}, "
+                          f"Priority: {member.priority.value}, Accuracy: {member.accuracy_threshold}, "
+                          f"Success Rate: {member.success_rate}")
+                
+                agent = initialize_agent_from_db(member.agent_id)
                 if agent:
+                    # Store member properties with the agent for sorting
+                    agent.priority = member.priority.value
+                    agent.accuracy_threshold = member.accuracy_threshold
+                    agent.success_rate = member.success_rate
                     active_agents.append(agent)
-                    logger.info(f"Agent {agent_id} initialized for task {task.task_id}")
+                    logger.info(f"[execute_task_with_team] Successfully initialized agent {member.agent_id}")
+                else:
+                    logger.warning(f"[execute_task_with_team] Agent {member.agent_id} initialization returned None")
             except Exception as e:
-                logger.error(f"Failed to initialize agent {agent_id}: {str(e)}")
+                logger.error(f"[execute_task_with_team] Failed to initialize agent {member.agent_id}: {str(e)}", 
+                           exc_info=True)
         
         if not active_agents:
+            logger.error("[execute_task_with_team] No active agents available for task execution")
             raise ValueError("No active agents available for task execution")
+            
+        # Sort agents by priority (highest first), accuracy (highest first), and success rate (highest first)
+        active_agents.sort(key=lambda x: (-x.priority, -x.accuracy_threshold, -x.success_rate))
+        logger.info("[execute_task_with_team] Agents sorted by priority, accuracy, and success rate")
+        logger.info("Execution order:")
+        for idx, agent in enumerate(active_agents, 1):
+            logger.info(f"  {idx}. Agent {agent.agent_id} - Priority: {agent.priority}, "
+                       f"Accuracy: {agent.accuracy_threshold}, Success Rate: {agent.success_rate}")
         
-        # Process task requirements
-        task_context = {
-            'task_id': task.task_id,
-            'description': task.description,
-            'requirements': task.requirements,
-            'team_size': len(active_agents),
-            'start_time': start_time.isoformat()
-        }
+        # Execute task with sorted agents
+        successful_agents = 0
+        final_results = []
         
-        # Execute task with each agent
-        for agent in active_agents:
+        for idx, agent in enumerate(active_agents, 1):
             try:
-                # Prepare agent context
-                agent_context = {
-                    'agent_id': agent.agent_id,
-                    'name': agent.name,
-                    'tools': [t._asdict() for t in agent.tools],
-                    'task': task_context
+                logger.info(f"\n[execute_task_with_team] Executing agent {idx}/{len(active_agents)}")
+                logger.info(f"[execute_task_with_team] Agent details - ID: {agent.agent_id}, "
+                          f"Priority: {agent.priority}, Accuracy: {agent.accuracy_threshold}, "
+                          f"Success Rate: {agent.success_rate}")
+                
+                # Prepare message with context
+                message = {
+                    "task_description": task.description,
+                    "requirements": task.requirements,
+                    "conversation_context": conversation_context
                 }
                 
-                # Execute agent's part of the task
-                agent_result = execute_agent_task(agent, task, agent_context)
+                logger.debug(f"[execute_task_with_team] Sending message to agent: {json.dumps(message, indent=2)}")
                 
-                # Record interaction in conversation context
-                conversation_context.append({
-                    'agent_id': agent.agent_id,
-                    'timestamp': datetime.utcnow().isoformat(),
-                    'context': agent_context,
-                    'result': agent_result
-                })
+                # Execute with agent
+                result = agent.execute_with_tools(json.dumps(message))
+                logger.info(f"[execute_task_with_team] Received result from agent {agent.agent_id}")
+                logger.debug(f"[execute_task_with_team] Agent result: {json.dumps(result, indent=2)}")
                 
-                logger.info(f"Agent {agent.agent_id} completed their part of task {task.task_id}")
-                
+                if result.get("status") == "success":
+                    successful_agents += 1
+                    logger.info(f"[execute_task_with_team] Agent {agent.agent_id} execution successful")
+                    
+                    # Extract response text for context
+                    response_text = result.get("llm_response", "")
+                    if isinstance(response_text, dict):
+                        response_text = json.dumps(response_text)
+                    
+                    # Add to conversation context
+                    context_entry = {
+                        "agent_id": agent.agent_id,
+                        "priority": agent.priority,
+                        "accuracy": agent.accuracy_threshold,
+                        "success_rate": agent.success_rate,
+                        "response": response_text
+                    }
+                    conversation_context.append(context_entry)
+                    logger.debug(f"[execute_task_with_team] Added to conversation context: {json.dumps(context_entry, indent=2)}")
+                    
+                    # Add to final results
+                    result_entry = {
+                        "agent_id": agent.agent_id,
+                        "priority": agent.priority,
+                        "accuracy": agent.accuracy_threshold,
+                        "success_rate": agent.success_rate,
+                        "result": result
+                    }
+                    final_results.append(result_entry)
+                    logger.debug(f"[execute_task_with_team] Added to final results: {json.dumps(result_entry, indent=2)}")
+                else:
+                    logger.warning(f"[execute_task_with_team] Agent {agent.agent_id} execution failed")
+                    logger.warning(f"[execute_task_with_team] Failure details: {json.dumps(result, indent=2)}")
+                    
             except Exception as e:
-                logger.error(f"Error during agent {agent.agent_id} execution: {str(e)}")
-                conversation_context.append({
-                    'agent_id': agent.agent_id,
-                    'timestamp': datetime.utcnow().isoformat(),
-                    'error': str(e)
-                })
-        
-        # Calculate final status based on conversation context
-        successful_agents = sum(1 for c in conversation_context if 'error' not in c)
-        final_status = 'completed' if successful_agents == len(active_agents) else 'partial'
+                logger.error(f"[execute_task_with_team] Error with agent {agent.agent_id}: {str(e)}", exc_info=True)
+                continue
         
         # Calculate execution time
         end_time = datetime.utcnow()
         execution_time = (end_time - start_time).total_seconds()
         
-        # Update team metrics
-        team.update_metrics(final_status == 'completed', execution_time)
+        # Determine final status
+        final_status = "completed" if successful_agents > 0 else "failed"
+        logger.info(f"[execute_task_with_team] Task execution completed")
+        logger.info(f"[execute_task_with_team] Final status: {final_status}")
+        logger.info(f"[execute_task_with_team] Execution time: {execution_time:.2f} seconds")
+        logger.info(f"[execute_task_with_team] Successful agents: {successful_agents}/{len(active_agents)}")
         
-        return {
+        result = {
             'final_status': final_status,
             'execution_time': execution_time,
             'successful_agents': successful_agents,
             'total_agents': len(active_agents),
             'conversation_context': conversation_context,
-            'task_context': task_context,
+            'results': final_results,
             'completion_time': end_time.isoformat()
         }
         
+        logger.debug(f"[execute_task_with_team] Final result: {json.dumps(result, indent=2)}")
+        return result
+        
     except Exception as e:
-        logger.error(f"Task execution failed: {str(e)}")
+        logger.error(f"[execute_task_with_team] Task execution failed with error: {str(e)}", exc_info=True)
         return {
             'final_status': 'failed',
             'error': str(e),

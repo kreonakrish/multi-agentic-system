@@ -29,6 +29,18 @@ def send_message(agent_id: int) -> Dict[str, Any]:
     """Send a message from an agent"""
     try:
         data = request.get_json()
+        logger.info('Processing send message request',
+                   extra={
+                       'endpoint': f'/api/ml/agent/{agent_id}/send',
+                       'params': {
+                           'agent_id': agent_id,
+                           'target_agent_id': data.get('target_agent_id'),
+                           'message': data.get('message'),
+                           'interaction_type': data.get('interaction_type', 'direct'),
+                           'team_id': data.get('team_id')
+                       }
+                   })
+        
         result = agent_service.send_message(
             agent_id,
             data.get('target_agent_id'),
@@ -48,6 +60,15 @@ def send_message(agent_id: int) -> Dict[str, Any]:
 def receive_message(agent_id: int, interaction_id: int) -> Dict[str, Any]:
     """Receive a message for an agent"""
     try:
+        logger.info('Processing receive message request',
+                   extra={
+                       'endpoint': f'/api/ml/agent/{agent_id}/receive/{interaction_id}',
+                       'params': {
+                           'agent_id': agent_id,
+                           'interaction_id': interaction_id
+                       }
+                   })
+        
         result = agent_service.receive_message(agent_id, interaction_id)
         return jsonify(result)
     except Exception as e:
@@ -63,7 +84,22 @@ def execute_all_tools(agent_id: int) -> Dict[str, Any]:
     """Execute all tools for an agent"""
     try:
         data = request.get_json()
-        result = agent_service.execute_all_tools(agent_id, data.get('command'))
+        logger.info('Processing execute all tools request',
+                   extra={
+                       'endpoint': f'/api/ml/agent/{agent_id}/execute_all',
+                       'params': {
+                           'agent_id': agent_id,
+                           'command': data.get('command'),
+                           'team_id': data.get('team_id'),
+                           'conversation_settings_id': data.get('conversation_settings_id'),
+                           'end_prompt': data.get('end_prompt')
+                       }
+                   })
+        
+        result = agent_service.execute_all_tools(
+            agent_id,
+            data.get('command')
+        )
         return jsonify(result)
     except Exception as e:
         logger.error(f"Error executing tools for agent {agent_id}: {str(e)}")

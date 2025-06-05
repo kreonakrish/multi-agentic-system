@@ -127,9 +127,10 @@ class Team:
         self.team_id = team_id
         self.name = name
         self.description = description
-        self.members: Dict[int, TeamMember] = {}  # agent_id -> TeamMember
-        self.created_at = created_at or datetime.utcnow()
-        self.updated_at = updated_at or datetime.utcnow()
+        self.members: List[TeamMember] = []
+        self.tasks: List[TeamTask] = []
+        self.created_at = created_at or datetime.now()
+        self.updated_at = updated_at or datetime.now()
         self.metrics: Dict[str, Any] = {
             'total_tasks': 0,
             'successful_tasks': 0,
@@ -144,7 +145,8 @@ class Team:
             'team_id': self.team_id,
             'name': self.name,
             'description': self.description,
-            'members': {str(agent_id): member.to_dict() for agent_id, member in self.members.items()},
+            'members': [member.to_dict() for member in self.members],
+            'tasks': [task.to_dict() for task in self.tasks],
             'metrics': self.metrics,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
@@ -162,9 +164,14 @@ class Team:
         )
         
         # Load members
-        members_data = data.get('members', {})
-        for agent_id, member_data in members_data.items():
-            team.members[int(agent_id)] = TeamMember.from_dict(member_data)
+        members_data = data.get('members', [])
+        for member_data in members_data:
+            team.members.append(TeamMember.from_dict(member_data))
+        
+        # Load tasks
+        tasks_data = data.get('tasks', [])
+        for task_data in tasks_data:
+            team.tasks.append(TeamTask.from_dict(task_data))
         
         # Load metrics
         team.metrics = data.get('metrics', team.metrics)
@@ -172,21 +179,25 @@ class Team:
 
     def add_member(self, member: TeamMember) -> None:
         """Add a member to the team"""
-        if member.agent_id not in self.members:
-            self.members[member.agent_id] = member
-            self.updated_at = datetime.utcnow()
-            logger.info(f"Agent {member.agent_id} added to team {self.team_id}")
+        self.members.append(member)
+        # Sort members by priority (highest first), then accuracy_threshold (highest first), then success_rate (highest first)
+        self.members.sort(key=lambda x: (
+            -x.priority.value,  # Negative to sort in descending order
+            -x.accuracy_threshold,  # Negative for descending order
+            -x.success_rate  # Negative for descending order
+        ))
+        self.updated_at = datetime.now()
+        logger.info(f"Agent {member.agent_id} added to team {self.team_id}")
 
     def remove_member(self, agent_id: int) -> None:
         """Remove a member from the team"""
-        if agent_id in self.members:
-            del self.members[agent_id]
-            self.updated_at = datetime.utcnow()
-            logger.info(f"Agent {agent_id} removed from team {self.team_id}")
+        self.members = [member for member in self.members if member.agent_id != agent_id]
+        self.updated_at = datetime.now()
+        logger.info(f"Agent {agent_id} removed from team {self.team_id}")
 
     def get_member(self, agent_id: int) -> Optional[TeamMember]:
         """Get a team member by agent ID"""
-        return self.members.get(agent_id)
+        return next((member for member in self.members if member.agent_id == agent_id), None)
 
     def update_metrics(self, task_success: bool, completion_time: float) -> None:
         """Update team metrics after task completion"""
@@ -203,7 +214,7 @@ class Team:
             (current_avg * (total_tasks - 1) + completion_time) / total_tasks
         )
         
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now()
 
     def get_success_rate(self) -> float:
         """Calculate the team's success rate"""
@@ -214,14 +225,14 @@ class Team:
 
     def get_active_members(self) -> List[TeamMember]:
         """Get list of active team members"""
-        cutoff_time = datetime.utcnow() - datetime.timedelta(hours=24)
+        cutoff_time = datetime.now() - datetime.timedelta(hours=24)
         return [
-            member for member in self.members.values()
+            member for member in self.members
             if member.last_active > cutoff_time
         ]
 
     def assign_task(self, task: TeamTask) -> None:
         """Assign a task to the team"""
-        self.current_task = task
-        self.updated_at = datetime.utcnow()
+        self.tasks.append(task)
+        self.updated_at = datetime.now()
         logger.info(f"Task {task.task_id} assigned to team {self.team_id}") 

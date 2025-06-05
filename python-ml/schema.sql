@@ -1,6 +1,4 @@
--- Create database if not exists
-CREATE DATABASE IF NOT EXISTS multi_agentic_system;
-USE multi_agentic_system;
+use multi_agentic_system;
 
 CREATE TABLE agent_interactions (
   id int NOT NULL AUTO_INCREMENT,
@@ -43,7 +41,7 @@ CREATE TABLE agent_tools (
   KEY tool_id (tool_id),
   CONSTRAINT agent_tools_ibfk_1 FOREIGN KEY (agent_id) REFERENCES agents (id) ON DELETE CASCADE,
   CONSTRAINT agent_tools_ibfk_2 FOREIGN KEY (tool_id) REFERENCES tools (id) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE agents (
   id int NOT NULL AUTO_INCREMENT,
@@ -54,7 +52,7 @@ CREATE TABLE agents (
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
-) ENGINE=InnoDB AUTO_INCREMENT=117 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=119 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE conversation_settings (
   id int NOT NULL AUTO_INCREMENT,
@@ -68,7 +66,7 @@ CREATE TABLE conversation_settings (
   PRIMARY KEY (id),
   KEY idx_team_id (team_id),
   CONSTRAINT conversation_settings_ibfk_1 FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=137 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE conversation_steps (
   id int NOT NULL AUTO_INCREMENT,
@@ -111,24 +109,35 @@ CREATE TABLE conversations (
   KEY idx_conversations_team_id (team_id),
   CONSTRAINT conversations_ibfk_1 FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE SET NULL,
   CONSTRAINT fk_settings_id FOREIGN KEY (settings_id) REFERENCES conversation_settings (id)
-) ENGINE=InnoDB AUTO_INCREMENT=77 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=190 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE documents (
-  id varchar(36) NOT NULL,
+  id int NOT NULL AUTO_INCREMENT,
   team_id int DEFAULT NULL,
+  conversation_id int DEFAULT NULL,
   name varchar(255) NOT NULL,
-  type varchar(100) NOT NULL,
-  url varchar(1000) NOT NULL,
+  type varchar(100) DEFAULT 'unknown',
+  size bigint DEFAULT '0',
+  file_type varchar(100) DEFAULT 'unknown',
+  file_size bigint DEFAULT '0',
+  file_path varchar(1000) NOT NULL,
+  url varchar(1000) DEFAULT NULL,
+  content text,
+  metadata json DEFAULT NULL,
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   uploaded_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY team_id (team_id),
-  CONSTRAINT documents_ibfk_1 FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY conversation_id (conversation_id),
+  CONSTRAINT documents_ibfk_1 FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE,
+  CONSTRAINT documents_ibfk_2 FOREIGN KEY (conversation_id) REFERENCES conversations (id) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE messages (
   id int NOT NULL AUTO_INCREMENT,
   sender_id int DEFAULT NULL,
-  receiver_id int NOT NULL,
+  receiver_id int DEFAULT NULL,
   content text NOT NULL,
   processed_message text,
   model_response text,
@@ -139,10 +148,10 @@ CREATE TABLE messages (
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  KEY receiver_id (receiver_id),
-  KEY sender_id (sender_id),
-  CONSTRAINT messages_ibfk_1 FOREIGN KEY (receiver_id) REFERENCES agents (id),
-  CONSTRAINT messages_ibfk_2 FOREIGN KEY (sender_id) REFERENCES agents (id)
+  KEY messages_ibfk_1 (receiver_id),
+  KEY messages_ibfk_2 (sender_id),
+  CONSTRAINT messages_ibfk_1 FOREIGN KEY (receiver_id) REFERENCES agents (id) ON DELETE SET NULL,
+  CONSTRAINT messages_ibfk_2 FOREIGN KEY (sender_id) REFERENCES agents (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE team_agents (
@@ -157,7 +166,7 @@ CREATE TABLE team_agents (
   KEY agent_id (agent_id),
   CONSTRAINT team_agents_ibfk_1 FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE,
   CONSTRAINT team_agents_ibfk_2 FOREIGN KEY (agent_id) REFERENCES agents (id) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=205 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=219 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE team_configurations (
   id int NOT NULL AUTO_INCREMENT,
@@ -188,7 +197,7 @@ CREATE TABLE team_messages (
   KEY idx_team_id (team_id),
   KEY idx_task_id (task_id),
   KEY idx_status (status)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=134 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE team_tool_permissions (
   id int NOT NULL AUTO_INCREMENT,
@@ -201,19 +210,19 @@ CREATE TABLE team_tool_permissions (
   KEY tool_id (tool_id),
   CONSTRAINT team_tool_permissions_ibfk_1 FOREIGN KEY (team_id) REFERENCES teams (id),
   CONSTRAINT team_tool_permissions_ibfk_2 FOREIGN KEY (tool_id) REFERENCES tools (id)
-) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=129 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE teams (
   id int NOT NULL AUTO_INCREMENT,
   name varchar(255) NOT NULL,
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
-) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE tools (
   id int NOT NULL AUTO_INCREMENT,
   tool_name varchar(255) NOT NULL,
-  tool_type enum('Database', 'APIService', 'WebService', 'Python', 'React', 'GitHub') NOT NULL,
+  tool_type varchar(255) DEFAULT NULL,
   hostname varchar(255) DEFAULT NULL,
   username varchar(255) DEFAULT NULL,
   password varchar(255) DEFAULT NULL,
@@ -221,7 +230,7 @@ CREATE TABLE tools (
   description text,
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE workflow_steps (
   id int NOT NULL AUTO_INCREMENT,

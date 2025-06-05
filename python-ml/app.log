@@ -6252,3 +6252,147 @@ KeyError: "Attempt to overwrite 'exc_info' in LogRecord"
 2025-06-05 00:39:23,044 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution
 2025-06-05 00:39:23,075 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 00:39:23] "POST /api/ml/team/execute HTTP/1.1" 200 -
 2025-06-05 00:39:23,123 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 00:39:23] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-05 01:03:34,217 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 01:03:34,265 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-05 01:03:34,267 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-05 01:03:34,269 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 01:03:35,852 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 01:03:35,868 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 01:03:35,868 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 01:03:50,244 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution
+2025-06-05 01:03:50,244 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-05 01:03:50,276 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-05 01:03:51,428 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-05 01:03:51,442 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-05 01:03:51,458 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 01:03:51] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-05 01:03:51,490 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 01:03:51] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-05 01:04:04,762 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution
+2025-06-05 01:04:04,762 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-05 01:04:04,778 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-05 01:04:05,914 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-05 01:04:05,921 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-05 01:04:05,933 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 01:04:05] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-05 01:04:05,953 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 01:04:05] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-05 01:04:11,652 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution
+2025-06-05 01:04:11,653 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-05 01:04:11,655 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-05 01:04:13,440 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-05 01:04:13,462 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-05 01:04:13,478 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 01:04:13] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-05 01:04:13,494 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 01:04:13] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-05 01:04:40,227 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution
+2025-06-05 01:04:40,227 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-05 01:04:40,227 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-05 01:04:43,628 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-05 01:04:43,641 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-05 01:04:43,654 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 01:04:43] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-05 01:04:43,672 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 01:04:43] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-05 01:05:27,068 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution
+2025-06-05 01:05:27,068 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-05 01:05:27,072 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-05 01:05:35,283 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-05 01:05:35,481 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-05 01:05:35,505 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 01:05:35] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-05 01:05:35,521 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 01:05:35] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-05 01:14:57,061 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-05 01:14:57,696 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 01:15:00,543 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 01:15:00,599 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 01:15:00,607 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 01:19:07,765 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-05 01:19:07,884 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 01:19:09,492 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 01:19:09,516 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 01:19:09,521 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 01:20:37,726 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-05 01:20:37,891 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 01:20:39,552 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 01:20:39,577 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 01:20:39,577 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 01:21:35,311 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-05 01:21:35,434 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 01:21:37,048 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 01:21:37,075 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 01:21:37,079 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 01:21:56,358 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-05 01:21:56,507 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 01:21:58,199 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 01:21:58,215 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 01:21:58,229 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 01:22:18,387 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution
+2025-06-05 09:42:53,886 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 09:42:53,963 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-05 09:42:53,964 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-05 09:42:53,967 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 09:42:55,550 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 09:42:55,579 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 09:42:55,580 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 10:22:14,849 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution
+2025-06-05 10:22:14,865 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-05 10:22:14,899 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-05 10:22:16,687 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-05 10:22:16,718 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-05 10:22:16,765 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 10:22:16] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-05 10:22:16,813 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 10:22:16] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-05 10:22:38,372 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution
+2025-06-05 10:22:38,372 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-05 10:22:38,386 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-05 10:22:39,766 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-05 10:22:39,774 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-05 10:22:39,814 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 10:22:39] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-05 10:22:39,855 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 10:22:39] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-05 10:30:22,684 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution
+2025-06-05 10:30:22,684 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-05 10:30:22,691 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-05 10:30:28,458 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-05 10:30:28,473 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-05 10:30:28,505 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 10:30:28] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-05 10:30:28,521 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 10:30:28] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-05 11:28:44,169 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app\\models\\team.py', reloading
+2025-06-05 11:28:44,870 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 11:28:47,669 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 11:28:47,734 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 11:28:47,739 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 11:29:05,033 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app\\utils\\task_executor.py', reloading
+2025-06-05 11:29:05,167 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 11:29:06,873 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 11:29:06,893 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 11:29:06,896 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 11:30:26,972 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app\\models\\team.py', reloading
+2025-06-05 11:30:27,141 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 11:30:28,939 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 11:30:28,962 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 11:30:28,970 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 11:34:23,178 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-05 11:34:23,335 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 11:34:25,110 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 11:34:25,137 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 11:34:25,147 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 11:34:55,847 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app\\utils\\task_executor.py', reloading
+2025-06-05 11:34:56,014 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 11:34:57,834 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 11:34:57,849 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 11:34:57,861 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 11:36:05,813 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-05 11:36:05,961 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 11:36:07,531 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 11:36:07,551 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 11:36:07,554 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 11:36:50,185 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution
+2025-06-05 11:36:50,185 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-05 11:36:50,196 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-05 11:36:56,757 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-05 11:36:56,772 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-05 11:36:56,790 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 11:36:56] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-05 11:36:56,824 - werkzeug - INFO - 127.0.0.1 - - [05/Jun/2025 11:36:56] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-05 11:40:16,751 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app\\config\\logging_config.py', reloading
+2025-06-05 11:40:17,018 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 11:40:19,255 - multi_agent_system - INFO - Database connection pool initialized
+2025-06-05 11:40:19,284 - werkzeug - WARNING -  * Debugger is active!
+2025-06-05 11:40:19,299 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-05 11:40:34,565 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-05 11:40:34,730 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 11:40:56,591 - werkzeug - INFO -  * Restarting with stat
+2025-06-05 11:41:22,048 - werkzeug - INFO -  * Restarting with stat
