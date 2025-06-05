@@ -54,7 +54,7 @@ app.use('/api/chat', chatRoutes(pool));
 app.use('/api/agent-interactions', agentInteractionsRoutes(pool));
 app.use('/api/tools', toolRoutes(pool));
 app.use('/api/documents', documentsRouter);
-app.use('/api/agents', agentRoutes);
+app.use('/api/agents', agentRoutes(pool));
 
 // Configure multer for file upload
 const storage = multer.diskStorage({

@@ -146,33 +146,17 @@ class AgentService:
     def execute_all_tools(self, agent_id: int, command: str) -> Dict[str, Any]:
         """Execute all tools for an agent"""
         try:
-            agent = self.agents.get(agent_id)
+            # Initialize agent from database
+            agent = initialize_agent_from_db(agent_id)
             if not agent:
                 raise ValueError(f"Agent {agent_id} not found")
             
-            # Use OpenAI to analyze and enhance the command
-            try:
-                response = self.openai.ChatCompletion.create(
-                    model=agent.foundation_model,
-                    messages=[
-                        {"role": "system", "content": "You are an AI assistant helping to analyze and enhance tool commands."},
-                        {"role": "user", "content": f"Analyze and enhance this command: {command}"}
-                    ]
-                )
-                enhanced_command = response.choices[0].message.content
-            except Exception as e:
-                logger.error(f"Error enhancing command with OpenAI: {str(e)}")
-                enhanced_command = command  # Fallback to original command
+            # Execute command with all tools
+            logger.info(f"Agent {agent_id} executing tools with command: {command}")
+            result = agent.execute_with_tools(command)
             
-            logger.info(f"Agent {agent_id} executing tools with command: {enhanced_command}")
-            return {
-                'status': 'success',
-                'agent_id': agent_id,
-                'original_command': command,
-                'enhanced_command': enhanced_command,
-                'tools_executed': agent.tools,
-                'result': 'Tools executed successfully'
-            }
+            return result
+            
         except Exception as e:
             logger.error(f"Failed to execute tools for agent {agent_id}: {str(e)}")
             raise 

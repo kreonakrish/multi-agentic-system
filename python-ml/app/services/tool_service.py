@@ -1,5 +1,5 @@
 from typing import Dict, Any, List, Type
-from app.core.tools import Tool, DatabaseTool, APITool, WebServiceTool
+from app.core.tools import Tool, DatabaseTool, APITool, WebServiceTool, GitHubTool
 from app.utils.logger import logger
 
 class ToolService:
@@ -10,7 +10,8 @@ class ToolService:
         self.tool_types: Dict[str, Type[Tool]] = {
             'database': DatabaseTool,
             'api': APITool,
-            'webservice': WebServiceTool
+            'webservice': WebServiceTool,
+            'github': GitHubTool
         }
 
     def create_tool(self, tool_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -51,6 +52,11 @@ class ToolService:
                     **common_params,
                     service_type=tool_data.get('service_type', 'REST'),
                     timeout=tool_data.get('timeout', 30)
+                )
+            elif tool_type == 'github':
+                tool = tool_class(
+                    **common_params,
+                    max_rows=tool_data.get('max_rows', 100)
                 )
             
             self.tools[tool.tool_id] = tool
@@ -96,6 +102,10 @@ class ToolService:
                 'service_type': tool.service_type,
                 'timeout': tool.timeout
             })
+        elif isinstance(tool, GitHubTool):
+            info.update({
+                'max_rows': tool.max_rows
+            })
             
         return info
 
@@ -115,12 +125,6 @@ class ToolService:
 
     def delete_tool(self, tool_id: int) -> None:
         """Delete a tool"""
-        try:
-            tool = self.get_tool(tool_id)
-            if tool.is_connected:
-                tool.disconnect()
-            del self.tools[tool_id]
-            logger.info(f"Tool {tool_id} deleted successfully")
-        except Exception as e:
-            logger.error(f"Failed to delete tool {tool_id}: {str(e)}")
-            raise 
+        if tool_id not in self.tools:
+            raise ValueError(f"Tool {tool_id} not found")
+        del self.tools[tool_id] 

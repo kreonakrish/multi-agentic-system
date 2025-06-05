@@ -1,12 +1,17 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
 from app.utils.logger import logger
+import requests
+import pandas as pd
+from io import StringIO
+import json
 
 class Tool(ABC):
     """Abstract base class for all tools"""
     
     def __init__(self, tool_id: int, tool_name: str, hostname: str,
-                 username: str, password: str, auth_method: str):
+                 username: str, password: str, auth_method: str,
+                 description: str = ""):
         self.tool_id = tool_id
         self.tool_name = tool_name
         self.hostname = hostname
@@ -65,8 +70,9 @@ class DatabaseTool(Tool):
     
     def __init__(self, tool_id: int, tool_name: str, hostname: str,
                  username: str, password: str, auth_method: str,
-                 database: str, port: Optional[int] = None):
-        super().__init__(tool_id, tool_name, hostname, username, password, auth_method)
+                 database: str, port: Optional[int] = None,
+                 description: str = ""):
+        super().__init__(tool_id, tool_name, hostname, username, password, auth_method, description)
         self.database = database
         self.port = port or 3306
 
@@ -109,8 +115,9 @@ class APITool(Tool):
     
     def __init__(self, tool_id: int, tool_name: str, hostname: str,
                  username: str, password: str, auth_method: str,
-                 api_version: str = 'v1', timeout: int = 30):
-        super().__init__(tool_id, tool_name, hostname, username, password, auth_method)
+                 api_version: str = 'v1', timeout: int = 30,
+                 description: str = ""):
+        super().__init__(tool_id, tool_name, hostname, username, password, auth_method, description)
         self.api_version = api_version
         self.timeout = timeout
 
@@ -149,8 +156,9 @@ class WebServiceTool(Tool):
     
     def __init__(self, tool_id: int, tool_name: str, hostname: str,
                  username: str, password: str, auth_method: str,
-                 service_type: str = 'REST', timeout: int = 30):
-        super().__init__(tool_id, tool_name, hostname, username, password, auth_method)
+                 service_type: str = 'REST', timeout: int = 30,
+                 description: str = ""):
+        super().__init__(tool_id, tool_name, hostname, username, password, auth_method, description)
         self.service_type = service_type
         self.timeout = timeout
 
@@ -169,4 +177,118 @@ class WebServiceTool(Tool):
             return response
         except Exception as e:
             logger.error(f"Web service execution error: {str(e)}")
-            raise 
+            raise
+
+class GitHubTool(Tool):
+    """Tool for GitHub data operations"""
+    
+    def __init__(self, tool_id: int, tool_name: str, hostname: str,
+                 username: str, password: str, auth_method: str,
+                 max_rows: int = 100, description: str = ""):
+        super().__init__(tool_id, tool_name, hostname, username, password, auth_method, description)
+        self.max_rows = max_rows
+
+    def execute(self, command: str) -> Dict[str, Any]:
+        """Execute a GitHub data command"""
+        try:
+            logger.info(f"Executing GitHub command: {command}")
+            
+            # Extract GitHub URL from command
+            import re
+            url_pattern = r'https://(?:raw\.)?githubusercontent\.com/[^\s)}"\']*'
+            urls = re.findall(url_pattern, command)
+            
+            if not urls:
+                logger.warning("No GitHub URL found in command")
+                response = self.get_default_response(command)
+                response.update({
+                    "status": "error",
+                    "message": "No GitHub URL found in command"
+                })
+                return response
+            
+            # Use the first URL found
+            github_url = urls[0]
+            
+            # Download and process the data
+            try:
+                # Download the data
+                response = requests.get(github_url)
+                response.raise_for_status()
+                
+                # Determine file type from URL
+                file_type = github_url.split('.')[-1].lower()
+                
+                if file_type == 'csv':
+                    # Parse CSV data
+                    df = pd.read_csv(StringIO(response.text))
+                    
+                    # Get total number of rows
+                    total_rows = len(df)
+                    
+                    # Limit rows if needed
+                    if total_rows > self.max_rows:
+                        df = df.head(self.max_rows)
+                    
+                    # Convert to JSON
+                    json_data = df.to_dict(orient='records')
+                    
+                    # Get column information
+                    columns = list(df.columns)
+                    
+                    # Create response
+                    tool_response = self.get_default_response(command)
+                    tool_response.update({
+                        "status": "success",
+                        "message": f"Successfully downloaded and processed GitHub data from {github_url}",
+                        "github_data": {
+                            "data": json_data,
+                            "total_rows": total_rows,
+                            "returned_rows": len(json_data),
+                            "columns": columns,
+                            "source_url": github_url,
+                            "file_type": file_type
+                        }
+                    })
+                    return tool_response
+                    
+                else:
+                    # For non-CSV files, return raw data
+                    tool_response = self.get_default_response(command)
+                    tool_response.update({
+                        "status": "success",
+                        "message": f"Successfully downloaded GitHub data from {github_url}",
+                        "github_data": {
+                            "data": response.text,
+                            "source_url": github_url,
+                            "file_type": file_type
+                        }
+                    })
+                    return tool_response
+                    
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Failed to download GitHub data: {str(e)}")
+                response = self.get_default_response(command)
+                response.update({
+                    "status": "error",
+                    "message": f"Failed to download GitHub data: {str(e)}"
+                })
+                return response
+                
+            except Exception as e:
+                logger.error(f"Error processing GitHub data: {str(e)}")
+                response = self.get_default_response(command)
+                response.update({
+                    "status": "error",
+                    "message": f"Error processing GitHub data: {str(e)}"
+                })
+                return response
+                
+        except Exception as e:
+            logger.error(f"GitHub tool execution error: {str(e)}")
+            response = self.get_default_response(command)
+            response.update({
+                "status": "error",
+                "message": f"GitHub tool execution error: {str(e)}"
+            })
+            return response 

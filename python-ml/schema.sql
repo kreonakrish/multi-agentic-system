@@ -213,7 +213,7 @@ CREATE TABLE teams (
 CREATE TABLE tools (
   id int NOT NULL AUTO_INCREMENT,
   tool_name varchar(255) NOT NULL,
-  tool_type varchar(255) DEFAULT NULL,
+  tool_type enum('Database', 'APIService', 'WebService', 'Python', 'React', 'GitHub') NOT NULL,
   hostname varchar(255) DEFAULT NULL,
   username varchar(255) DEFAULT NULL,
   password varchar(255) DEFAULT NULL,
