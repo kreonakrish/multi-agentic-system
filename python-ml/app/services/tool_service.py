@@ -29,7 +29,8 @@ class ToolService:
                 'hostname': tool_data['hostname'],
                 'username': tool_data.get('username', ''),
                 'password': tool_data.get('password', ''),
-                'auth_method': tool_data.get('auth_method', 'none')
+                'auth_method': tool_data.get('auth_method', 'none'),
+                'description': tool_data.get('description', '')
             }
             
             # Additional parameters based on tool type
@@ -75,6 +76,7 @@ class ToolService:
             'type': tool.__class__.__name__,
             'hostname': tool.hostname,
             'auth_method': tool.auth_method,
+            'description': tool.description,
             'is_connected': tool.is_connected
         }
         

@@ -13,6 +13,7 @@ class Tool(ABC):
         self.username = username
         self._password = password  # Note the protected attribute
         self.auth_method = auth_method
+        self.description = description
         self._is_connected = False
 
     @property
@@ -48,6 +49,7 @@ class Tool(ABC):
             "tool_type": self.__class__.__name__,
             "hostname": self.hostname,
             "auth_method": self.auth_method,
+            "description": self.description,
             "command": command,
             "status": "success",
             "message": f"Tool {self.tool_name} ({self.__class__.__name__}) executed successfully"

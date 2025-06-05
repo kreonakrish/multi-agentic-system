@@ -4,6 +4,11 @@ from app.utils.logger import logger
 from app.utils.enums import InteractionType, AgentStatus
 from app.config.openai_config import get_openai_client
 from app.utils.db import get_db_connection, safe_close_connection
+import requests
+import pandas as pd
+from io import StringIO
+import re
+import json
 
 def initialize_agent_from_db(agent_id: int) -> Optional[Agent]:
     """
@@ -66,6 +71,7 @@ class AgentService:
     def __init__(self):
         self.agents: Dict[int, Agent] = {}
         self.openai = get_openai_client()
+        self.base_url = "http://localhost:5000"  # Update with your actual base URL
 
     def initialize_agent(self, agent_id: int) -> Dict[str, Any]:
         """Initialize an agent with the given ID"""
@@ -175,4 +181,125 @@ class AgentService:
             }
         except Exception as e:
             logger.error(f"Failed to execute tools for agent {agent_id}: {str(e)}")
-            raise 
+            raise
+
+    def validate_response_with_llm(self, response: str, end_prompt: str) -> Dict[str, Any]:
+        """Validate a response using LLM with enhanced data retrieval"""
+        try:
+            logger.info('Starting response validation with LLM')
+            
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a validation assistant. Your task is to validate responses and extract URLs if present. Return a JSON response with validation result and URL if found."
+                },
+                {
+                    "role": "user",
+                    "content": f"Validate this response against the requirements:\nResponse: {response}\nRequirements: {end_prompt}\n\nProvide your response in JSON format with 'valid' (boolean), 'reason' (string), and 'url' (string if found, null if not) fields."
+                }
+            ]
+            
+            validation_result = self.process_with_llm(messages)
+            if validation_result["status"] != "success":
+                return validation_result
+            
+            # Parse the LLM response as JSON
+            try:
+                validation_json = json.loads(validation_result["response"])
+                
+                # If validation is successful, check for URL and call helper function
+                if validation_json.get("valid", False) and validation_json.get("url"):
+                    data_result = self.helper_tool_function(validation_json["url"])
+                    validation_json["data"] = data_result
+                
+                return {
+                    "status": "success",
+                    "valid": validation_json.get("valid", False),
+                    "reason": validation_json.get("reason", ""),
+                    "url": validation_json.get("url"),
+                    "data": validation_json.get("data")
+                }
+            except json.JSONDecodeError:
+                return {
+                    "status": "error",
+                    "message": "Failed to parse LLM response as JSON"
+                }
+            
+        except Exception as e:
+            logger.error(f"Error in validate_response_with_llm: {str(e)}", exc_info=True)
+            return {
+                "status": "error",
+                "message": f"Validation failed: {str(e)}"
+            }
+
+    def helper_tool_function(self, url: str) -> Dict[str, Any]:
+        """Helper function to retrieve and process data from tools"""
+        try:
+            logger.info(f'Starting helper tool function with URL: {url}')
+            
+            # Get tool description from API
+            tool_response = requests.get(f"{self.base_url}/api/tools/46")
+            if tool_response.status_code != 200:
+                raise Exception(f"Failed to get tool info: {tool_response.text}")
+            
+            tool_data = tool_response.json()
+            description = tool_data.get('description', '')
+            
+            # Parse the description to get dataset information
+            datasets = {}
+            for line in description.split('\n'):
+                if '|' in line:
+                    parts = line.split('|')
+                    if len(parts) >= 3:
+                        name = parts[1].strip()
+                        url_part = parts[2].strip()
+                        if name and 'http' in url_part:
+                            # Extract URL from markdown link if present
+                            url_match = re.search(r'\[(.*?)\]\((.*?)\)', url_part)
+                            if url_match:
+                                datasets[name] = url_match.group(2)
+                            else:
+                                datasets[name] = url_part
+
+            # Find the matching dataset
+            matching_dataset = None
+            for name, dataset_url in datasets.items():
+                if url.lower() in dataset_url.lower():
+                    matching_dataset = {"name": name, "url": dataset_url}
+                    break
+
+            if not matching_dataset:
+                return {
+                    "status": "error",
+                    "message": "URL not found in available datasets"
+                }
+
+            # Fetch data from GitHub
+            data_response = requests.get(matching_dataset["url"])
+            if data_response.status_code != 200:
+                raise Exception(f"Failed to fetch data: {data_response.text}")
+
+            # Parse CSV data
+            csv_data = pd.read_csv(StringIO(data_response.text))
+            
+            # Get basic statistics
+            stats = {
+                "row_count": len(csv_data),
+                "column_count": len(csv_data.columns),
+                "columns": list(csv_data.columns),
+                "sample_data": csv_data.head(5).to_dict('records')
+            }
+
+            return {
+                "status": "success",
+                "dataset_name": matching_dataset["name"],
+                "dataset_url": matching_dataset["url"],
+                "statistics": stats
+            }
+
+        except Exception as e:
+            logger.error(f"Error in helper_tool_function: {str(e)}", exc_info=True)
+            return {
+                "status": "error",
+                "message": f"Data retrieval failed: {str(e)}"
+            }

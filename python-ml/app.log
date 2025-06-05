@@ -5299,3 +5299,175 @@ ValueError: Unknown tool type: APIService
 2025-06-04 22:09:45,265 - __main__ - INFO - Stored conversation 77
 2025-06-04 22:09:45,269 - __main__ - INFO - Completed execution of store_conversation
 2025-06-04 22:09:45,269 - werkzeug - INFO - 127.0.0.1 - - [04/Jun/2025 22:09:45] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-04 22:38:25,918 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-04 22:38:26,036 - __main__ - INFO - Stored initial team task record for task c6e01eca-e2ad-4cb7-aa68-52c2bcfdea2c
+2025-06-04 22:38:26,046 - __main__ - INFO - Starting team execution for task c6e01eca-e2ad-4cb7-aa68-52c2bcfdea2c
+2025-06-04 22:38:26,060 - __main__ - INFO - Fetching agents for team 77 (original team_id: 77)
+2025-06-04 22:38:26,075 - __main__ - INFO - Found 1 agents for team 77
+2025-06-04 22:38:26,077 - __main__ - INFO - Executing agents in priority groups: [3]
+2025-06-04 22:38:26,077 - __main__ - INFO - Executing priority 3 group with 1 agents
+2025-06-04 22:38:26,098 - __main__ - INFO - Loaded 0 memories for agent 92
+2025-06-04 22:38:26,101 - __main__ - INFO - Found 1 tools for agent 92
+2025-06-04 22:38:26,101 - __main__ - INFO - Added tool Github Tool to agent 92
+2025-06-04 22:38:26,103 - __main__ - INFO - Executing with agent 92 (Receiver Agent) - Priority: 3, Accuracy: 100, Success Rate: 100
+2025-06-04 22:38:26,105 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "can you read the data from github related to Avocado Prices", "requirements": {"min_accuracy": 0.85, "max_time": 300, "output_format": "text", "context": {"user_id": "user-1", "session_id": 77, "conversation_history": [{"role": "user", "content": "hi", "timestamp": "2025-06-05T03:09:43.271Z"}, {"role": "bot", "content": "Hello! How can I assist you today?", "metadata": {"team_id": "77", "processing_time": 1, "confidence_score": 1, "agent_contributions": [{"agent_id": 92, "confidence": 0}], "timestamp": "2025-06-05T03:09:45.240Z"}, "timestamp": "2025-06-05T03:38:25.754Z"}]}}, "conversation_context": [], "accuracy_threshold": 100, "success_rate": 100, "priority": 3}
+2025-06-04 22:38:26,105 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Getting context from memories
+2025-06-04 22:38:26,105 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-04 22:38:26,105 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-04 22:38:26,122 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-04 22:38:34,014 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-04 22:38:34,033 - multi_agent_system.agent.92 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-04 22:38:34,045 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Executing command with tools
+2025-06-04 22:38:34,045 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Executing with tool: Github Tool
+2025-06-04 22:38:34,045 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-04 22:38:34,045 - __main__ - INFO - Completed execution of priority 3 group with 1 successful results
+2025-06-04 22:38:34,045 - __main__ - WARNING - Connection has uncommitted transaction, rolling back before return to pool
+2025-06-04 22:38:34,079 - __main__ - INFO - Updated team task record with results for task c6e01eca-e2ad-4cb7-aa68-52c2bcfdea2c
+2025-06-04 22:38:34,079 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-04 22:38:34,079 - werkzeug - INFO - 127.0.0.1 - - [04/Jun/2025 22:38:34] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-04 22:38:34,094 - __main__ - INFO - Starting execution of store_conversation
+2025-06-04 22:38:34,108 - __main__ - INFO - Stored conversation 77
+2025-06-04 22:38:34,112 - __main__ - INFO - Completed execution of store_conversation
+2025-06-04 22:38:34,112 - werkzeug - INFO - 127.0.0.1 - - [04/Jun/2025 22:38:34] "POST /api/ml/conversation/store HTTP/1.1" 200 -
+2025-06-04 23:04:40,455 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app\\services\\tool_service.py', reloading
+2025-06-04 23:04:41,115 - werkzeug - INFO -  * Restarting with stat
+2025-06-04 23:04:42,168 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-04 23:04:42,618 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-04 23:04:42,913 - __main__ - INFO - Database tables initialized successfully
+2025-06-04 23:04:42,956 - werkzeug - WARNING -  * Debugger is active!
+2025-06-04 23:04:42,961 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-04 23:05:35,503 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app\\services\\tool_service.py', reloading
+2025-06-04 23:05:35,604 - werkzeug - INFO -  * Restarting with stat
+2025-06-04 23:05:36,203 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-04 23:05:36,624 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-04 23:05:36,750 - __main__ - INFO - Database tables initialized successfully
+2025-06-04 23:05:36,756 - werkzeug - WARNING -  * Debugger is active!
+2025-06-04 23:05:36,769 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-04 23:12:32,355 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-04 23:12:32,788 - werkzeug - INFO -  * Restarting with stat
+2025-06-04 23:12:44,038 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-04 23:12:44,433 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-04 23:12:44,619 - __main__ - INFO - Database tables initialized successfully
+2025-06-04 23:12:44,659 - werkzeug - WARNING -  * Debugger is active!
+2025-06-04 23:12:44,672 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-04 23:12:54,998 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app\\services\\agent_service.py', reloading
+2025-06-04 23:12:55,146 - werkzeug - INFO -  * Restarting with stat
+2025-06-04 23:12:56,227 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-04 23:12:56,609 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-04 23:12:56,761 - __main__ - INFO - Database tables initialized successfully
+2025-06-04 23:12:56,792 - werkzeug - WARNING -  * Debugger is active!
+2025-06-04 23:12:56,797 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-04 23:16:08,496 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app.py', reloading
+2025-06-04 23:16:08,667 - werkzeug - INFO -  * Restarting with stat
+2025-06-04 23:16:09,636 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-04 23:16:09,978 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-04 23:16:10,079 - __main__ - INFO - Database tables initialized successfully
+2025-06-04 23:16:10,100 - werkzeug - WARNING -  * Debugger is active!
+2025-06-04 23:16:10,109 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-04 23:16:17,248 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app\\core\\tools.py', reloading
+2025-06-04 23:16:17,385 - werkzeug - INFO -  * Restarting with stat
+2025-06-04 23:16:18,416 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-04 23:16:18,777 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-04 23:16:18,856 - __main__ - INFO - Database tables initialized successfully
+2025-06-04 23:16:18,877 - werkzeug - WARNING -  * Debugger is active!
+2025-06-04 23:16:18,882 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-04 23:18:54,104 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app\\services\\agent_service.py', reloading
+2025-06-04 23:18:54,376 - werkzeug - INFO -  * Restarting with stat
+2025-06-04 23:18:55,478 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-04 23:18:55,820 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-04 23:18:55,963 - __main__ - INFO - Database tables initialized successfully
+2025-06-04 23:18:55,975 - werkzeug - WARNING -  * Debugger is active!
+2025-06-04 23:18:55,979 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-04 23:19:19,274 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app\\services\\agent_service.py', reloading
+2025-06-04 23:19:19,435 - werkzeug - INFO -  * Restarting with stat
+2025-06-04 23:19:20,247 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-04 23:19:20,746 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-04 23:19:20,868 - __main__ - INFO - Database tables initialized successfully
+2025-06-04 23:19:20,888 - werkzeug - WARNING -  * Debugger is active!
+2025-06-04 23:19:20,895 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-04 23:21:59,318 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_executions.py', reloading
+2025-06-04 23:21:59,656 - werkzeug - INFO -  * Restarting with stat
+2025-06-04 23:22:01,092 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-04 23:22:01,442 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-04 23:22:01,584 - __main__ - INFO - Database tables initialized successfully
+2025-06-04 23:22:01,601 - werkzeug - WARNING -  * Debugger is active!
+2025-06-04 23:22:01,601 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-04 23:22:36,949 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-04 23:22:36,965 - __main__ - ERROR - Agent 1 not found in database
+2025-06-04 23:22:36,974 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-04 23:22:36,975 - werkzeug - INFO - 127.0.0.1 - - [04/Jun/2025 23:22:36] "[33mPOST /api/ml/agent/1/execute_all HTTP/1.1[0m" 404 -
+2025-06-04 23:22:38,998 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-04 23:22:39,033 - __main__ - INFO - Stored initial team task record for task 0262c783-edcd-45d8-9206-eae82f2b92eb
+2025-06-04 23:22:39,033 - __main__ - INFO - Starting team execution for task 0262c783-edcd-45d8-9206-eae82f2b92eb
+2025-06-04 23:22:39,033 - __main__ - INFO - Fetching agents for team 77 (original team_id: 77)
+2025-06-04 23:22:39,033 - __main__ - INFO - Found 1 agents for team 77
+2025-06-04 23:22:39,033 - __main__ - INFO - Executing agents in priority groups: [3]
+2025-06-04 23:22:39,033 - __main__ - INFO - Executing priority 3 group with 1 agents
+2025-06-04 23:22:39,046 - __main__ - INFO - Loaded 0 memories for agent 92
+2025-06-04 23:22:39,050 - __main__ - INFO - Found 1 tools for agent 92
+2025-06-04 23:22:39,050 - __main__ - INFO - Added tool Github Tool to agent 92
+2025-06-04 23:22:39,053 - __main__ - INFO - Executing with agent 92 (Receiver Agent) - Priority: 3, Accuracy: 100, Success Rate: 100
+2025-06-04 23:22:39,054 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "Analyze and provide insights from the avocado price dataset", "requirements": {"context": {"conversation_settings_id": 131, "tool_id": 46, "conversation_history": []}}, "conversation_context": [], "accuracy_threshold": 100, "success_rate": 100, "priority": 3}
+2025-06-04 23:22:39,054 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Getting context from memories
+2025-06-04 23:22:39,055 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-04 23:22:39,055 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-04 23:22:39,065 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-04 23:22:42,632 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-04 23:22:42,659 - multi_agent_system.agent.92 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-04 23:22:42,672 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Executing command with tools
+2025-06-04 23:22:42,672 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Executing with tool: Github Tool
+2025-06-04 23:22:42,672 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-04 23:22:42,672 - __main__ - INFO - Completed execution of priority 3 group with 1 successful results
+2025-06-04 23:22:42,672 - __main__ - WARNING - Connection has uncommitted transaction, rolling back before return to pool
+2025-06-04 23:22:42,689 - __main__ - INFO - Updated team task record with results for task 0262c783-edcd-45d8-9206-eae82f2b92eb
+2025-06-04 23:22:42,691 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-04 23:22:42,691 - werkzeug - INFO - 127.0.0.1 - - [04/Jun/2025 23:22:42] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-04 23:23:41,878 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\test_executions.py', reloading
+2025-06-04 23:23:42,002 - werkzeug - INFO -  * Restarting with stat
+2025-06-04 23:23:42,986 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-04 23:23:43,403 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-04 23:23:43,535 - __main__ - INFO - Database tables initialized successfully
+2025-06-04 23:23:43,556 - werkzeug - WARNING -  * Debugger is active!
+2025-06-04 23:23:43,561 - werkzeug - INFO -  * Debugger PIN: 131-289-223
+2025-06-04 23:23:48,334 - __main__ - INFO - Starting execution of execute_all_tools
+2025-06-04 23:23:48,345 - __main__ - INFO - Loaded 0 memories for agent 92
+2025-06-04 23:23:48,349 - __main__ - INFO - Found 1 tools for agent 92
+2025-06-04 23:23:48,350 - __main__ - INFO - Added tool Github Tool to agent 92
+2025-06-04 23:23:48,353 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution with command: Get me the latest avocado price trends from the dataset
+2025-06-04 23:23:48,353 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Getting context from memories
+2025-06-04 23:23:48,353 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-04 23:23:48,353 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-04 23:23:48,369 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-04 23:23:51,696 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-04 23:23:51,718 - multi_agent_system.agent.92 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-04 23:23:51,718 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Executing command with tools
+2025-06-04 23:23:51,718 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Executing with tool: Github Tool
+2025-06-04 23:23:51,718 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-04 23:23:51,721 - __main__ - INFO - Completed execution of execute_all_tools
+2025-06-04 23:23:51,723 - werkzeug - INFO - 127.0.0.1 - - [04/Jun/2025 23:23:51] "POST /api/ml/agent/92/execute_all HTTP/1.1" 200 -
+2025-06-04 23:23:53,762 - __main__ - INFO - Starting execution of execute_team_task
+2025-06-04 23:23:53,762 - __main__ - INFO - Stored initial team task record for task 927821cb-c5c6-4366-b162-7c4c659ce623
+2025-06-04 23:23:53,762 - __main__ - INFO - Starting team execution for task 927821cb-c5c6-4366-b162-7c4c659ce623
+2025-06-04 23:23:53,773 - __main__ - INFO - Fetching agents for team 77 (original team_id: 77)
+2025-06-04 23:23:53,776 - __main__ - INFO - Found 1 agents for team 77
+2025-06-04 23:23:53,777 - __main__ - INFO - Executing agents in priority groups: [3]
+2025-06-04 23:23:53,777 - __main__ - INFO - Executing priority 3 group with 1 agents
+2025-06-04 23:23:53,781 - __main__ - INFO - Loaded 0 memories for agent 92
+2025-06-04 23:23:53,788 - __main__ - INFO - Found 1 tools for agent 92
+2025-06-04 23:23:53,789 - __main__ - INFO - Added tool Github Tool to agent 92
+2025-06-04 23:23:53,790 - __main__ - INFO - Executing with agent 92 (Receiver Agent) - Priority: 3, Accuracy: 100, Success Rate: 100
+2025-06-04 23:23:53,790 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Starting execution with command: {"task_description": "Analyze and provide insights from the avocado price dataset", "requirements": {"context": {"conversation_settings_id": 131, "tool_id": 46, "conversation_history": []}}, "conversation_context": [], "accuracy_threshold": 100, "success_rate": 100, "priority": 3}
+2025-06-04 23:23:53,790 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Getting context from memories
+2025-06-04 23:23:53,790 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Processing command with LLM
+2025-06-04 23:23:53,790 - multi_agent_system.agent.92 - INFO - Sending request to OpenAI API...
+2025-06-04 23:23:53,791 - multi_agent_system.agent.92 - ERROR - Database error storing initial message: 1048 (23000): Column 'receiver_id' cannot be null
+2025-06-04 23:23:56,934 - multi_agent_system.agent.92 - INFO - Received response from OpenAI API
+2025-06-04 23:23:56,948 - multi_agent_system.agent.92 - INFO - [execute_with_tools] LLM processing status: success
+2025-06-04 23:23:56,952 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Executing command with tools
+2025-06-04 23:23:56,952 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Executing with tool: Github Tool
+2025-06-04 23:23:56,952 - multi_agent_system.agent.92 - INFO - [execute_with_tools] Successfully completed execution
+2025-06-04 23:23:56,961 - __main__ - INFO - Completed execution of priority 3 group with 1 successful results
+2025-06-04 23:23:56,961 - __main__ - WARNING - Connection has uncommitted transaction, rolling back before return to pool
+2025-06-04 23:23:56,969 - __main__ - INFO - Updated team task record with results for task 927821cb-c5c6-4366-b162-7c4c659ce623
+2025-06-04 23:23:56,978 - __main__ - INFO - Completed execution of execute_team_task
+2025-06-04 23:23:56,979 - werkzeug - INFO - 127.0.0.1 - - [04/Jun/2025 23:23:56] "POST /api/ml/team/execute HTTP/1.1" 200 -
