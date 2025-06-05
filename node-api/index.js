@@ -23,11 +23,15 @@ const pool = mysql.createPool({
 
 // Import routes after pool is initialized
 const chatRoutes = require('./routes/chat.routes');
+const agentInteractionsRoutes = require('./routes/agent-interactions.routes');
+const toolRoutes = require('./routes/tool.routes');
+const documentsRouter = require('./routes/documents.routes');
+const agentRoutes = require('./routes/agent.routes');
 
 // CORS configuration
 const corsOptions = {
-    origin: 'http://localhost:3000', // Allow React app
-    methods: ['GET', 'POST'],
+    origin: ['http://localhost:3000', 'http://localhost:4000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 };
@@ -47,6 +51,10 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api/chat', chatRoutes(pool));
+app.use('/api/agent-interactions', agentInteractionsRoutes(pool));
+app.use('/api/tools', toolRoutes(pool));
+app.use('/api/documents', documentsRouter);
+app.use('/api/agents', agentRoutes);
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
@@ -227,7 +235,7 @@ app.get('/api/agents', async (req, res) => {
     const toolsByAgent = {};
     for (const row of agentTools) {
       if (!toolsByAgent[row.agent_id]) toolsByAgent[row.agent_id] = [];
-      toolsByAgent[row.agent_id].push({ id: row.id, toolName: row.tool_name });
+      toolsByAgent[row.agent_id].push({ id: row.id, tool_name: row.tool_name });
     }
     // Attach tools to each agent
     const agentsWithTools = agents.map(agent => ({
@@ -880,26 +888,6 @@ app.delete('/api/conversations/:id', async (req, res) => {
   }
 });
 
-// Endpoint to get connected sources for a team
-app.get('/api/connected-sources/:teamId', async (req, res) => {
-  const { teamId } = req.params;
-  try {
-    // Get all tools (hostname, tool_type) used by agents in the team
-    const [rows] = await pool.query(`
-      SELECT DISTINCT t.hostname, t.tool_type
-      FROM team_agents ta
-      JOIN agents a ON ta.agent_id = a.id
-      JOIN agent_tools at ON a.id = at.agent_id
-      JOIN tools t ON at.tool_id = t.id
-      WHERE ta.team_id = ?
-    `, [teamId]);
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch connected sources' });
-  }
-});
-
 // AGENT-TOOLS RELATIONSHIP ENDPOINTS
 // Assign a tool to an agent
 app.post('/api/agent-tools', async (req, res) => {
@@ -993,88 +981,6 @@ app.get('/api/setup', async (req, res) => {
     res.status(500).json({ error: 'Failed to setup database' });
   }
 });
-
-// Upload document
-app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-
-    const { team_id } = req.body;
-    if (!team_id) {
-      return res.status(400).json({ error: 'team_id is required' });
-    }
-
-    const fileUrl = `/uploads/${req.file.filename}`;
-    const doc = {
-      id: Date.now().toString(),
-      team_id,
-      name: req.file.originalname,
-      type: req.file.mimetype,
-      url: fileUrl,
-      uploaded_at: new Date().toISOString().slice(0, 19).replace('T', ' ') // Format: YYYY-MM-DD HH:MM:SS
-    };
-
-    await pool.query(
-      'INSERT INTO documents (id, team_id, name, type, url, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)',
-      [doc.id, doc.team_id, doc.name, doc.type, doc.url, doc.uploaded_at]
-    );
-
-    res.json(doc);
-  } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ error: 'Failed to upload file' });
-  }
-});
-
-// Get documents for a team
-app.get('/api/documents', async (req, res) => {
-  try {
-    const { team_id } = req.query;
-    if (!team_id) {
-      return res.status(400).json({ error: 'team_id is required' });
-    }
-
-    const [rows] = await pool.query(
-      'SELECT * FROM documents WHERE team_id = ? ORDER BY uploaded_at DESC',
-      [team_id]
-    );
-
-    res.json(rows);
-  } catch (error) {
-    console.error('Get documents error:', error);
-    res.status(500).json({ error: 'Failed to get documents' });
-  }
-});
-
-// Delete document
-app.delete('/api/documents/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    // Get the document to find the file path
-    const [rows] = await pool.query('SELECT url FROM documents WHERE id = ?', [id]);
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Document not found' });
-    }
-
-    // Delete from database
-    await pool.query('DELETE FROM documents WHERE id = ?', [id]);
-
-    // Delete the file
-    const filePath = path.join(__dirname, rows[0].url);
-    await fs.unlink(filePath);
-
-    res.json({ message: 'Document deleted successfully' });
-  } catch (error) {
-    console.error('Delete error:', error);
-    res.status(500).json({ error: 'Failed to delete document' });
-  }
-});
-
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Get a single team with its agents
 app.get('/api/teams/:id', async (req, res) => {

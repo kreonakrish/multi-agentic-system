@@ -42,6 +42,8 @@ router.post('/', async (req, res) => {
 // Get team by ID
 router.get('/:id', async (req, res) => {
     try {
+        logger.info(`Fetching team data for ID: ${req.params.id}`);
+        
         const [team] = await db.query(`
             SELECT t.*, 
                    COUNT(DISTINCT ta.agent_id) as agent_count,
@@ -54,8 +56,11 @@ router.get('/:id', async (req, res) => {
         `, [req.params.id]);
         
         if (team.length === 0) {
+            logger.warn(`Team not found with ID: ${req.params.id}`);
             return res.status(404).json({ error: 'Team not found' });
         }
+        
+        logger.info(`Found team: ${JSON.stringify(team[0])}`);
         
         // Get team's agents
         const [agents] = await db.query(`
@@ -65,13 +70,20 @@ router.get('/:id', async (req, res) => {
             WHERE ta.team_id = ?
         `, [req.params.id]);
         
+        logger.info(`Found ${agents.length} agents for team`);
+        
         // Get team's tools with permissions
-        const [tools] = await db.query(`
+        const toolsQuery = `
             SELECT t.*, ttp.permission_level 
             FROM tools t
             JOIN team_tool_permissions ttp ON t.id = ttp.tool_id
             WHERE ttp.team_id = ?
-        `, [req.params.id]);
+        `;
+        logger.info(`Executing tools query: ${toolsQuery} with team ID: ${req.params.id}`);
+        
+        const [tools] = await db.query(toolsQuery, [req.params.id]);
+        
+        logger.info(`Found ${tools.length} tools for team: ${JSON.stringify(tools)}`);
         
         team[0].agents = agents;
         team[0].tools = tools;

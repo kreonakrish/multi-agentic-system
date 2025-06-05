@@ -7,14 +7,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import { Document as StoreDocument } from '../store/types';
 
-export type Document = {
-    id: string;
-    name: string;
-    url: string;
-    uploadedAt?: string;
-    size?: number;
-};
+export type Document = StoreDocument;
 
 interface DocumentListProps {
     documents: Document[];
@@ -70,8 +65,8 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete, onDown
                                 primary={doc.name}
                                 secondary={
                                     <>
-                                        {doc.uploadedAt && new Date(doc.uploadedAt).toLocaleString()}
-                                        {doc.size && ` • ${(doc.size / 1024).toFixed(2)} KB`}
+                                        {doc.uploaded_at && new Date(doc.uploaded_at).toLocaleString()}
+                                        {doc.file_size && ` • ${(doc.file_size / 1024).toFixed(2)} KB`}
                                     </>
                                 }
                             />

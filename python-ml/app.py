@@ -18,10 +18,6 @@ import sys
 from dotenv import load_dotenv
 import decimal
 import httpx
-import requests
-import re
-import pandas as pd
-from io import StringIO
 
 # Configure logging first
 logging.basicConfig(
@@ -665,125 +661,46 @@ class Agent:
         return messages
 
     def validate_response_with_llm(self, response: str, end_prompt: str) -> Dict[str, Any]:
-        """Validate a response using LLM with enhanced data retrieval"""
+        """
+        Validate if the response satisfies the end prompt using the foundation model
+        """
+        validation_messages = [
+            {
+                "role": "system",
+                "content": "You are a validation agent. Your task is to verify if the given response satisfies the end prompt requirements. Return a JSON with format: {\"valid\": boolean, \"reason\": string}"
+            },
+            {
+                "role": "user",
+                "content": f"End Prompt Requirements:\n{end_prompt}\n\nResponse to Validate:\n{response}\n\nDoes this response satisfy the end prompt requirements? Provide your assessment in the required JSON format."
+            }
+        ]
+
         try:
-            self.log('info', 'Starting response validation with LLM')
+            validation_response = get_openai_client().chat.completions.create(
+                model="gpt-4",
+                messages=validation_messages,
+                temperature=0.3,  # Lower temperature for more consistent validation
+                max_tokens=500
+            )
             
-            messages = [
-                {
-                    "role": "system",
-                    "content": "You are a validation assistant. Your task is to validate responses and extract URLs if present. Return a JSON response with validation result and URL if found."
-                },
-                {
-                    "role": "user",
-                    "content": f"Validate this response against the requirements:\nResponse: {response}\nRequirements: {end_prompt}\n\nProvide your response in JSON format with 'valid' (boolean), 'reason' (string), and 'url' (string if found, null if not) fields."
-                }
-            ]
-            
-            validation_result = self.process_with_llm(messages)
-            if validation_result["status"] != "success":
-                return validation_result
-            
-            # Parse the LLM response as JSON
+            validation_result = validation_response.choices[0].message.content
+            # Extract the JSON part from the response
             try:
-                validation_json = json.loads(validation_result["response"])
-                
-                # If validation is successful, check for URL and call helper function
-                if validation_json.get("valid", False) and validation_json.get("url"):
-                    data_result = self.helper_tool_function(validation_json["url"])
-                    validation_json["data"] = data_result
-                
+                validation_json = json.loads(validation_result)
                 return {
                     "status": "success",
                     "valid": validation_json.get("valid", False),
-                    "reason": validation_json.get("reason", ""),
-                    "url": validation_json.get("url"),
-                    "data": validation_json.get("data")
+                    "reason": validation_json.get("reason", "No reason provided")
                 }
             except json.JSONDecodeError:
                 return {
                     "status": "error",
-                    "message": "Failed to parse LLM response as JSON"
+                    "message": "Failed to parse validation response",
+                    "raw_response": validation_result
                 }
-            
+                
         except Exception as e:
-            self.log('error', f"Error in validate_response_with_llm: {str(e)}", exc_info=True)
-            return {
-                "status": "error",
-                "message": f"Validation failed: {str(e)}"
-            }
-
-    def helper_tool_function(self, url: str) -> Dict[str, Any]:
-        """Helper function to retrieve and process data from tools"""
-        try:
-            self.log('info', f'Starting helper tool function with URL: {url}')
-            
-            # Get tool description from API
-            tool_response = requests.get(f"{self.base_url}/api/tools/46")
-            if tool_response.status_code != 200:
-                raise Exception(f"Failed to get tool info: {tool_response.text}")
-            
-            tool_data = tool_response.json()
-            description = tool_data.get('description', '')
-            
-            # Parse the description to get dataset information
-            datasets = {}
-            for line in description.split('\n'):
-                if '|' in line:
-                    parts = line.split('|')
-                    if len(parts) >= 3:
-                        name = parts[1].strip()
-                        url_part = parts[2].strip()
-                        if name and 'http' in url_part:
-                            # Extract URL from markdown link if present
-                            url_match = re.search(r'\[(.*?)\]\((.*?)\)', url_part)
-                            if url_match:
-                                datasets[name] = url_match.group(2)
-                            else:
-                                datasets[name] = url_part
-
-            # Find the matching dataset
-            matching_dataset = None
-            for name, dataset_url in datasets.items():
-                if url.lower() in dataset_url.lower():
-                    matching_dataset = {"name": name, "url": dataset_url}
-                    break
-
-            if not matching_dataset:
-                return {
-                    "status": "error",
-                    "message": "URL not found in available datasets"
-                }
-
-            # Fetch data from GitHub
-            data_response = requests.get(matching_dataset["url"])
-            if data_response.status_code != 200:
-                raise Exception(f"Failed to fetch data: {data_response.text}")
-
-            # Parse CSV data
-            csv_data = pd.read_csv(StringIO(data_response.text))
-            
-            # Get basic statistics
-            stats = {
-                "row_count": len(csv_data),
-                "column_count": len(csv_data.columns),
-                "columns": list(csv_data.columns),
-                "sample_data": csv_data.head(5).to_dict('records')
-            }
-
-            return {
-                "status": "success",
-                "dataset_name": matching_dataset["name"],
-                "dataset_url": matching_dataset["url"],
-                "statistics": stats
-            }
-
-        except Exception as e:
-            self.log('error', f"Error in helper_tool_function: {str(e)}", exc_info=True)
-            return {
-                "status": "error",
-                "message": f"Data retrieval failed: {str(e)}"
-            }
+            return {"status": "error", "message": f"Validation failed: {str(e)}"}
 
     def execute_with_tools(self, command: str) -> Dict[str, Any]:
         """Execute command with all configured tools"""

@@ -5471,3 +5471,10 @@ ValueError: Unknown tool type: APIService
 2025-06-04 23:23:56,969 - __main__ - INFO - Updated team task record with results for task 927821cb-c5c6-4366-b162-7c4c659ce623
 2025-06-04 23:23:56,978 - __main__ - INFO - Completed execution of execute_team_task
 2025-06-04 23:23:56,979 - werkzeug - INFO - 127.0.0.1 - - [04/Jun/2025 23:23:56] "POST /api/ml/team/execute HTTP/1.1" 200 -
+2025-06-04 23:33:05,457 - werkzeug - INFO -  * Detected change in 'C:\\multi-agentic-system\\python-ml\\app\\services\\agent_service.py', reloading
+2025-06-04 23:33:08,563 - werkzeug - INFO -  * Restarting with stat
+2025-06-04 23:33:10,508 - __main__ - INFO - OPENAI_API_KEY found in environment
+2025-06-04 23:33:11,098 - __main__ - INFO - Database connection pool initialized successfully with size: 20
+2025-06-04 23:33:11,303 - __main__ - INFO - Database tables initialized successfully
+2025-06-04 23:33:11,351 - werkzeug - WARNING -  * Debugger is active!
+2025-06-04 23:33:11,360 - werkzeug - INFO -  * Debugger PIN: 131-289-223

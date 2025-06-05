@@ -24,7 +24,7 @@ import sql from 'react-syntax-highlighter/dist/esm/languages/hljs/sql';
 import BarChartComponent from './BarChartComponent';
 import LineChartComponent from './LineChartComponent';
 import PieChartComponent from './PieChartComponent';
-import { ConversationStep } from '../App';
+import { ConversationStep } from '../store/types';
 import { Document } from './DocumentList';
 
 // Register languages for syntax highlighting
