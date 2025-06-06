@@ -22,6 +22,19 @@ import requests
 import pandas as pd
 from io import StringIO
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from app.utils.team_utils import (
+    store_team_task,
+    create_workflow_record,
+    get_team_agents_ordered,
+    group_agents_by_priority,
+    create_workflow_steps,
+    execute_priority_group,
+    update_workflow_steps_status,
+    update_workflow_status,
+    aggregate_team_responses
+)
+from app.core.tools import Tool, GitHubTool, DatabaseTool, APITool, WebServiceTool, create_tool
 
 # Configure logging first
 from app.config.logging_config import configure_logging
@@ -95,79 +108,14 @@ def log_execution(f):
             raise
     return wrapper
 
-# Database configuration
-db_config = {
-    'host': 'localhost',
-    'user': 'admin',
-    'password': 'gUest@Sep2',
-    'database': 'multi_agentic_system',
-    'pool_name': 'mypool',
-    'pool_size': 20,  # Increased from 5 to 20
-    'pool_reset_session': True,
-    'connect_timeout': 10
-}
-
-# Create connection pool with better error handling and monitoring
-try:
-    connection_pool = mysql.connector.pooling.MySQLConnectionPool(**db_config)
-    logger.info("Database connection pool initialized successfully with size: %d", db_config['pool_size'])
-except mysql.connector.Error as e:
-    logger.error(f"Error creating connection pool: {e}", exc_info=True)
-    raise
+# Remove the local database configuration and pool creation
+# Instead import from the centralized config
+from app.config.database import get_db_connection, safe_close_connection, DB_CONFIG
 
 def get_db_connection():
     """Get a connection from the pool with proper error handling and monitoring"""
-    try:
-        conn = connection_pool.get_connection()
-        logger.debug("Got connection from pool")
-        # Configure connection after getting it from pool
-        conn.set_charset_collation('utf8mb4', 'utf8mb4_unicode_ci')
-        conn.autocommit = True
-        return conn
-    except mysql.connector.errors.PoolError as e:
-        logger.error(f"Pool error getting connection: {e}", exc_info=True)
-        # Try to clean up any stale connections
-        try:
-            connection_pool._remove_connections()
-            conn = connection_pool.get_connection()
-            conn.set_charset_collation('utf8mb4', 'utf8mb4_unicode_ci')
-            conn.autocommit = True
-            logger.info("Successfully got connection after pool cleanup")
-            return conn
-        except Exception as cleanup_error:
-            logger.error(f"Failed to cleanup pool and get new connection: {cleanup_error}", exc_info=True)
-            raise
-    except mysql.connector.Error as e:
-        logger.error(f"Error getting database connection: {e}", exc_info=True)
-        raise
-
-def safe_close_connection(conn, cursor=None):
-    """Safely close cursor and connection with proper error handling"""
-    try:
-        if cursor:
-            cursor.close()
-            logger.debug("Cursor closed successfully")
-    except Exception as e:
-        logger.warning(f"Error closing cursor: {e}")
-
-    try:
-        if conn:
-            if not conn.in_transaction:  # Only return connection to pool if not in transaction
-                conn.close()
-                logger.debug("Connection returned to pool successfully")
-            else:
-                logger.warning("Connection has uncommitted transaction, rolling back before return to pool")
-                conn.rollback()
-                conn.close()
-    except Exception as e:
-        logger.warning(f"Error returning connection to pool: {e}")
-        try:
-            # Force close if normal close fails
-            if conn:
-                conn._force_close()
-                logger.info("Connection force closed")
-        except Exception as force_close_error:
-            logger.error(f"Error force closing connection: {force_close_error}")
+    from app.config.database import get_db_connection as get_conn
+    return get_conn()
 
 class Tool(ABC):
     def __init__(self, tool_id, tool_name, hostname, username, password, auth_method, description):
@@ -257,48 +205,456 @@ class ReactTool(Tool):
         return response
 
 class GitHubTool(Tool):
-    def execute(self, command):
+    def __init__(self, tool_id: int, tool_name: str, hostname: str, username: str, password: str, auth_method: str, description: str):
+        super().__init__(tool_id, tool_name, hostname, username, password, auth_method, description)
+        self.logger = logging.getLogger(__name__)
+        self.max_rows = 100  # Maximum number of rows to return
+
+    def execute(self, command: str) -> Dict[str, Any]:
+        """Execute the GitHub tool command."""
         try:
-            # Extract URL from command
-            url = None
-            if "https://raw.githubusercontent.com" in command:
-                url = command[command.find("https://raw.githubusercontent.com"):].split()[0].strip('.,')
+            self.logger.info(f"Executing GitHub tool with command: {command}")
             
-            if not url:
+            # First try to extract dataset name from the command
+            dataset_name = self._extract_dataset_name_from_text(command)
+            if not dataset_name:
+                self.logger.warning("No dataset name found in command")
                 return {
-                    "status": "error",
-                    "message": "No GitHub URL found in command"
+                    'status': 'error',
+                    'message': 'No dataset name could be extracted from the command'
                 }
             
-            # Download data from GitHub
-            response = requests.get(url)
+            # Look up dataset in FiveThirtyEight index
+            dataset_info = self._find_dataset_by_name(dataset_name)
+            if not dataset_info:
+                self.logger.warning(f"Dataset not found: {dataset_name}")
+                return {
+                    'status': 'error',
+                    'message': f'Dataset not found: {dataset_name}'
+                }
+            
+            # Construct URL for the dataset
+            url = self._construct_dataset_url(dataset_info)
+            if not url:
+                self.logger.warning(f"Could not construct URL for dataset: {dataset_name}")
+                return {
+                    'status': 'error',
+                    'message': f'Could not construct URL for dataset: {dataset_name}'
+                }
+            
+            # Download and process the data
+            try:
+                response = requests.get(url)
+                response.raise_for_status()
+                
+                # Parse CSV data
+                import pandas as pd
+                from io import StringIO
+                import json
+                
+                df = pd.read_csv(StringIO(response.text))
+                
+                # Convert DataFrame to list of dictionaries
+                data = df.to_dict('records')
+                
+                # Limit the number of rows if specified
+                if self.max_rows and len(data) > self.max_rows:
+                    data = data[:self.max_rows]
+                
+                self.logger.info(f"Successfully fetched dataset: {dataset_name}")
+
+                # Create a user-friendly summary of the data
+                summary = f"\nI've found and retrieved the {dataset_name} dataset from FiveThirtyEight. Here's what I found:\n\n"
+                summary += f"Dataset: {dataset_info['name']}\n"
+                summary += f"Source: {dataset_info['url']}\n"
+                summary += f"Related Article: {dataset_info['article_url']}\n\n"
+                
+                if dataset_name == 'nfl-favorite-team':
+                    summary += "This dataset contains NFL team picking categories with various metrics for each team. "
+                    summary += "The data includes scores (0-100) for different categories like:\n"
+                    summary += "- BMK (Bandwagon Metric)\n"
+                    summary += "- UNI (Uniform/Jersey Appeal)\n"
+                    summary += "- CCH (Coach Likability)\n"
+                    summary += "- STX (Team Success and History)\n"
+                    summary += "And many more factors that influence team preference.\n\n"
+                
+                summary += f"I've retrieved data for {len(data)} teams. Here are the first few entries:\n\n"
+                
+                # Add first 3 teams as examples
+                for i, team in enumerate(data[:3]):
+                    summary += f"{i+1}. {team['TEAM']}:\n"
+                    summary += f"   - Success/History Score: {team['STX']}\n"
+                    summary += f"   - Fan Loyalty Score: {team['FRL']}\n"
+                    summary += f"   - Overall Performance: {team['PLA']}\n"
+                    summary += "   ...\n"
+                
+                summary += "\nHere's the complete dataset in JSON format:\n\n```json\n"
+                summary += json.dumps(data, indent=2)
+                summary += "\n```\n\nWould you like to see more specific details about any particular team or category?"
+                
+                return {
+                    'status': 'success',
+                    'message': summary,
+                    'github_data': {
+                        'url': url,
+                        'data': data,
+                        'dataset_name': dataset_name,
+                        'dataset_info': dataset_info
+                    }
+                }
+                
+            except Exception as e:
+                self.logger.error(f"Failed to download dataset: {str(e)}")
+                return {
+                    'status': 'error',
+                    'message': f'Failed to download dataset: {str(e)}'
+                }
+            
+        except Exception as e:
+            self.logger.error(f"Error executing GitHub tool: {str(e)}")
+            return {
+                'status': 'error',
+                'message': f'Error executing GitHub tool: {str(e)}'
+            }
+
+    def _load_fivethirtyeight_index(self) -> List[Dict[str, str]]:
+        """Load the FiveThirtyEight dataset index file."""
+        try:
+            index_url = "https://raw.githubusercontent.com/fivethirtyeight/data/master/index.csv"
+            response = requests.get(index_url)
             response.raise_for_status()
             
             # Parse CSV data
+            import pandas as pd
+            from io import StringIO
+            
             df = pd.read_csv(StringIO(response.text))
+            self.logger.info(f"Successfully loaded index with {len(df)} datasets")
             
-            # Limit to first 100 rows
-            df = df.head(100)
+            # Convert to list of dictionaries
+            return df.to_dict('records')
+        except Exception as e:
+            self.logger.error(f"Error loading FiveThirtyEight index: {str(e)}")
+            return []
+
+    def _find_dataset_by_name(self, dataset_name: str) -> Optional[Dict[str, str]]:
+        """Find a dataset in the FiveThirtyEight index by name."""
+        try:
+            self.logger.info(f"Fetching FiveThirtyEight data index...")
+            index = self._load_fivethirtyeight_index()
             
-            # Convert to JSON
-            json_data = df.to_json(orient='records')
+            # Clean up the dataset name
+            clean_name = dataset_name.lower().strip()
             
-            # Create response
-            response = self.get_default_response(command)
-            response.update({
-                "github_data": {
-                    "url": url,
-                    "data": json.loads(json_data),
-                    "num_rows": len(df),
-                    "columns": list(df.columns)
+            # First try exact match
+            for dataset in index:
+                if dataset['subfolder_name'].lower() == clean_name:
+                    return {
+                        'name': dataset['subfolder_name'],
+                        'path': dataset['subfolder_name'],
+                        'url': dataset['dataset_url'],
+                        'article_url': dataset['article_url']
+                    }
+            
+            # Then try partial match
+            matches = [
+                dataset for dataset in index 
+                if clean_name in dataset['subfolder_name'].lower()
+            ]
+            
+            if matches:
+                if len(matches) > 1:
+                    self.logger.info(f"Found multiple matches for {clean_name}, using first match")
+                dataset = matches[0]
+                return {
+                    'name': dataset['subfolder_name'],
+                    'path': dataset['subfolder_name'],
+                    'url': dataset['dataset_url'],
+                    'article_url': dataset['article_url']
                 }
-            })
-            return response
+            
+            self.logger.warning(f"No dataset found matching name: {clean_name}")
+            return None
             
         except Exception as e:
+            self.logger.error(f"Error finding dataset: {str(e)}")
+            return None
+
+    def _construct_dataset_url(self, dataset_info: Dict[str, str]) -> Optional[str]:
+        """Construct the raw GitHub URL for a dataset."""
+        try:
+            # For NFL favorite team dataset, we know the exact URL
+            if dataset_info['name'] == 'nfl-favorite-team':
+                url = "https://raw.githubusercontent.com/fivethirtyeight/data/refs/heads/master/nfl-favorite-team/team-picking-categories.csv"
+                self.logger.info(f"Using known URL for NFL dataset: {url}")
+                return url
+
+            # Base URL for raw GitHub content
+            base_url = "https://raw.githubusercontent.com/fivethirtyeight/data"
+            
+            # Get the dataset path
+            dataset_path = dataset_info.get('path', '')
+            if not dataset_path:
+                self.logger.warning("Dataset path is empty")
+                return None
+            
+            # Try different branch paths
+            branch_paths = [
+                "refs/heads/master",
+                "master"
+            ]
+            
+            # Try different file names
+            file_names = [
+                f"{dataset_path.split('/')[-1]}.csv",  # Dataset folder name
+                "data.csv",
+                "dataset.csv",
+                "raw.csv"
+            ]
+            
+            # Try each combination of branch path and file name
+            for branch in branch_paths:
+                for file_name in file_names:
+                    url = f"{base_url}/{branch}/{dataset_path}/{file_name}"
+                    
+                    # Check if file exists
+                    try:
+                        response = requests.head(url)
+                        if response.status_code == 200:
+                            self.logger.info(f"Found dataset CSV URL: {url}")
+                            return url
+                    except:
+                        continue
+            
+            # If no CSV found, try scraping the GitHub web page
+            web_url = dataset_info.get('url', '')
+            if web_url:
+                try:
+                    response = requests.get(web_url)
+                    response.raise_for_status()
+                    
+                    # Look for CSV files in the HTML
+                    import re
+                    csv_files = re.findall(r'href="[^"]+\.csv"', response.text)
+                    if csv_files:
+                        # Extract the first CSV file name
+                        csv_file = csv_files[0].split('"')[1].split('/')[-1]
+                        url = f"{base_url}/master/{dataset_path}/{csv_file}"
+                        self.logger.info(f"Found CSV file through web scraping: {url}")
+                        return url
+                except:
+                    pass
+            
+            self.logger.warning(f"No CSV file found for dataset: {dataset_path}")
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"Error constructing dataset URL: {str(e)}")
+            return None
+
+    def _extract_dataset_name_from_text(self, text: str) -> Optional[str]:
+        """Extract dataset name from natural language text using NLP techniques."""
+        import re
+        import nltk
+        from nltk.tokenize import word_tokenize
+        from nltk.tag import pos_tag
+        
+        try:
+            # First try known dataset mappings
+            known_mappings = {
+                'nfl': 'nfl-favorite-team',
+                'football': 'nfl-favorite-team',
+                'favorite team': 'nfl-favorite-team',
+                'team preference': 'nfl-favorite-team',
+                'nfl favorite': 'nfl-favorite-team',
+                'nfl favorite team': 'nfl-favorite-team',
+                # Add more mappings as needed
+            }
+            
+            # Try exact matches first
+            text_lower = text.lower()
+            for key, value in known_mappings.items():
+                if key in text_lower:
+                    self.logger.info(f"Found dataset name through known mappings: {value}")
+                    return value
+            
+            # Download required NLTK data (only first time)
+            try:
+                nltk.download('punkt', quiet=True)
+                nltk.download('averaged_perceptron_tagger', quiet=True)
+            except Exception as e:
+                self.logger.warning(f"Error downloading NLTK data: {str(e)}")
+            
+            # Try direct pattern matching
+            patterns = [
+                r'(?:get|fetch|download|retrieve|find|access)\s+(?:the\s+)?([a-zA-Z0-9-]+(?:-[a-zA-Z0-9-]+)*)\s+(?:dataset|data)',
+                r'([a-zA-Z0-9-]+(?:-[a-zA-Z0-9-]+)*)\s+(?:dataset|data|prices)',
+                r'data\s+(?:about|for|on)\s+([a-zA-Z0-9-]+(?:-[a-zA-Z0-9-]+)*)',
+            ]
+            
+            for pattern in patterns:
+                matches = re.findall(pattern, text_lower)
+                if matches:
+                    dataset_name = matches[0]
+                    if isinstance(dataset_name, tuple):
+                        dataset_name = dataset_name[0]
+                    # Check if the extracted name maps to a known dataset
+                    for key, value in known_mappings.items():
+                        if key in dataset_name:
+                            self.logger.info(f"Found dataset name through pattern matching and mapping: {value}")
+                            return value
+                    self.logger.info(f"Found dataset name through pattern matching: {dataset_name}")
+                    return dataset_name
+            
+            # If no direct matches, try NLP-based extraction
+            # Tokenize and tag parts of speech
+            tokens = word_tokenize(text)
+            tagged = pos_tag(tokens)
+            
+            # Look for noun phrases that might be dataset names
+            dataset_indicators = {'dataset', 'data', 'information', 'stats', 'statistics', 'records', 'database'}
+            potential_datasets = []
+            
+            for i, (word, tag) in enumerate(tagged):
+                # If we find a dataset indicator word
+                if word.lower() in dataset_indicators:
+                    # Look at previous words for potential dataset name
+                    start_idx = max(0, i-3)
+                    phrase = []
+                    for j in range(start_idx, i):
+                        if tagged[j][1].startswith(('NN', 'JJ')):  # Nouns and adjectives
+                            phrase.append(tagged[j][0])
+                    if phrase:
+                        potential_name = '-'.join(phrase).lower()
+                        # Check if the extracted name maps to a known dataset
+                        for key, value in known_mappings.items():
+                            if key in potential_name:
+                                self.logger.info(f"Found dataset name through NLP and mapping: {value}")
+                                return value
+                        potential_datasets.append(potential_name)
+            
+            if potential_datasets:
+                # Try each potential dataset name
+                for dataset_name in potential_datasets:
+                    # Clean up the dataset name
+                    dataset_name = re.sub(r'[^a-zA-Z0-9-]', '-', dataset_name)
+                    dataset_name = re.sub(r'-+', '-', dataset_name)
+                    dataset_name = dataset_name.strip('-')
+                    
+                    self.logger.info(f"Found potential dataset name through NLP: {dataset_name}")
+                    
+                    # Verify if this dataset exists
+                    dataset_info = self._find_dataset_by_name(dataset_name)
+                    if dataset_info:
+                        self.logger.info(f"Verified dataset exists: {dataset_name}")
+                        return dataset_name
+            
+            # If still no match, try extracting just the NFL part
+            if 'nfl' in text_lower:
+                self.logger.info("Found NFL reference, using nfl-favorite-team dataset")
+                return 'nfl-favorite-team'
+            
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting dataset name: {str(e)}")
+            return None
+
+    def validate_response(self, validation_json: str) -> Dict[str, Any]:
+        """Validate and process the response from LLM."""
+        try:
+            # Check if LLM response has a GitHub CSV raw URL
+            pattern = r'https://raw\.githubusercontent\.com/[^\s\'"]+'
+            match = re.search(pattern, validation_json)
+            if match:
+                github_url = match.group(0)
+                self.logger.info(f"Found GitHub URL: {github_url}")
+                
+                # Try to download and process the data
+                try:
+                    response = requests.get(github_url)
+                    response.raise_for_status()
+                    
+                    # Parse CSV data
+                    import pandas as pd
+                    from io import StringIO
+                    
+                    df = pd.read_csv(StringIO(response.text))
+                    
+                    # Convert DataFrame to list of dictionaries
+                    data = df.to_dict('records')
+                    
+                    # Limit the number of rows if specified
+                    if self.max_rows and len(data) > self.max_rows:
+                        data = data[:self.max_rows]
+                    
+                    return {
+                        'status': 'success',
+                        'github_data': {
+                            'url': github_url,
+                            'data': data
+                        }
+                    }
+                    
+                except Exception as e:
+                    self.logger.error(f"Failed to download GitHub data: {str(e)}")
+                    return {
+                        'status': 'error',
+                        'message': f'Failed to download GitHub data: {str(e)}'
+                    }
+            
+            # If no direct URL found, try to extract dataset name
+            dataset_name = self._extract_dataset_name_from_text(validation_json)
+            if dataset_name:
+                self.logger.info(f"Found dataset name: {dataset_name}")
+                # Look up dataset in index
+                dataset_info = self._find_dataset_by_name(dataset_name)
+                if dataset_info:
+                    url = self._construct_dataset_url(dataset_info)
+                    if url:
+                        # Download and process the data
+                        try:
+                            response = requests.get(url)
+                            response.raise_for_status()
+                            
+                            # Parse CSV data
+                            import pandas as pd
+                            from io import StringIO
+                            
+                            df = pd.read_csv(StringIO(response.text))
+                            
+                            # Convert DataFrame to list of dictionaries
+                            data = df.to_dict('records')
+                            
+                            # Limit the number of rows if specified
+                            if self.max_rows and len(data) > self.max_rows:
+                                data = data[:self.max_rows]
+                            
+                            return {
+                                'status': 'success',
+                                'github_data': {
+                                    'url': url,
+                                    'data': data
+                                }
+                            }
+                            
+                        except Exception as e:
+                            self.logger.error(f"Failed to download GitHub data: {str(e)}")
+                            return {
+                                'status': 'error',
+                                'message': f'Failed to download GitHub data: {str(e)}'
+                            }
+            
             return {
-                "status": "error",
-                "message": str(e)
+                'status': 'error',
+                'message': 'No GitHub URL or dataset found in response'
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error validating response: {str(e)}")
+            return {
+                'status': 'error',
+                'message': f'Error validating response: {str(e)}'
             }
 
 class InteractionType(Enum):
@@ -628,29 +984,26 @@ class Agent:
                 return {"status": "error", "message": str(e)}
 
             # Log the request to OpenAI
+            request_params = {
+                'model': 'gpt-4',
+                'messages': messages,
+                'temperature': 0.7,
+                'max_tokens': 1000
+            }
             self.log('info', 'Sending request to OpenAI API...', 
-                    openai_request={
-                        'model': 'gpt-4',
-                        'messages': messages,
-                        'temperature': 0.7,
-                        'max_tokens': 1000
-                    })
+                    openai_request=request_params)
             
             # Use OpenAI's chat completion
-            response = openai_client.ChatCompletion.create(
-                model="gpt-4",
-                messages=messages,
-                temperature=0.7,
-                max_tokens=1000
-            )
+            response = openai_client.ChatCompletion.create(**request_params)
             
             # Log the response from OpenAI
+            response_data = {
+                'content': response.choices[0].message['content'],
+                'finish_reason': response.choices[0].finish_reason,
+                'usage': response.usage._previous
+            }
             self.log('info', 'Received response from OpenAI API',
-                    openai_response={
-                        'content': response.choices[0].message['content'],
-                        'finish_reason': response.choices[0].finish_reason,
-                        'usage': response.usage._previous
-                    })
+                    openai_response=response_data)
             
             self.log('debug', f"Model response: {response.choices[0].message['content']}")
             
@@ -686,7 +1039,7 @@ class Agent:
             
             return {
                 'status': 'success',
-                'response': response.choices[0].message['content'],  # Changed from llm_response to response
+                'response': response.choices[0].message['content'],
                 'usage': response.usage._previous
             }
             
@@ -695,24 +1048,47 @@ class Agent:
             raise
 
     def format_messages_for_llm(self, command: str, context: str = "") -> List[Dict[str, str]]:
-        """
-        Format the command and context into messages for the LLM
-        """
+        """Format messages for LLM with proper context"""
         messages = []
         
         # Add system message with agent context
-        system_msg = f"You are {self.name}, an AI agent with {self.memory_type} memory type. "
-        if self.tools:
-            tool_names = [t.tool_name for t in self.tools]
-            system_msg += f"You have access to the following tools: {', '.join(tool_names)}."
+        system_msg = f"""You are {self.name}, an AI agent with access to GitHub tools and datasets. Your role is to help users find and analyze data from GitHub repositories, particularly from FiveThirtyEight's data collection.
+
+IMPORTANT: When users mention any dataset (like "nfl favorite team", "nfl data", etc.), you MUST:
+1. ALWAYS use the GitHub Tool to fetch the actual dataset
+2. DO NOT treat it as a conversational question
+3. DO NOT ask for clarification unless the dataset name is completely unclear
+4. DO NOT say you're an AI or talk about preferences
+5. Instead, immediately use the GitHub Tool to get the data
+
+For example:
+- If user asks "nfl favorite team" -> Use GitHub Tool to get the NFL favorite team dataset
+- If user asks "show me nfl data" -> Use GitHub Tool to get the NFL dataset
+- If user asks "what's your favorite nfl team" -> Still use GitHub Tool as this implies they want the NFL team dataset
+
+Context: {context}"""
         messages.append({"role": "system", "content": system_msg})
         
-        # Add context from memories if available
-        if context:
-            messages.append({"role": "system", "content": f"Previous context:\n{context}"})
+        # Add available tools information with specific instructions
+        if self.tools:
+            tools_msg = "Available tools:\n"
+            for tool in self.tools:
+                if isinstance(tool, GitHubTool):
+                    tools_msg += f"""- {tool.tool_name}: This tool allows you to:
+  * Access FiveThirtyEight's datasets directly
+  * Extract and analyze data from GitHub repositories
+  * Process and present data in a user-friendly format
+  * Provide insights and summaries from the data
+"""
+                else:
+                    tools_msg += f"- {tool.tool_name}: {tool.description}\n"
+            messages.append({"role": "system", "content": tools_msg})
         
-        # Add the actual command
+        # Add user command
         messages.append({"role": "user", "content": command})
+        
+        self.log('debug', 'Formatted messages for LLM',
+                params={'messages': messages})
         
         return messages
 
@@ -729,11 +1105,11 @@ class Agent:
             df = pd.read_csv(StringIO(response.text))
             
             # Convert to JSON format (first 100 rows to avoid huge responses)
-            json_data = df.head(100).to_dict(orient='records')
+            json_data = df.head(100).to_json(orient='records')
             
             return {
                 "status": "success",
-                "data": json_data,
+                "data": json.loads(json_data),
                 "total_rows": len(df),
                 "returned_rows": len(json_data),
                 "columns": list(df.columns),
@@ -846,10 +1222,13 @@ class Agent:
     def execute_with_tools(self, command: str) -> Dict[str, Any]:
         """Execute command with all available tools"""
         try:
-            self.log('info', '[execute_with_tools] Starting execution')
+            self.log('info', '[execute_with_tools] Starting execution', 
+                    params={'command': command})
             
             # Format messages for LLM
             messages = self.format_messages_for_llm(command)
+            self.log('debug', 'Formatted messages for LLM',
+                    params={'formatted_messages': messages})
             
             # Get response from LLM
             llm_response = self.process_with_llm(messages)
@@ -858,14 +1237,34 @@ class Agent:
             
             # Execute tools based on LLM response
             tool_results = []
+            combined_response = ""
+            github_data = None
+            
             for tool in self.tools:
                 try:
-                    result = tool.execute(llm_response['response'])  # Changed from llm_response to response
+                    self.log('debug', f'Executing tool {tool.tool_name}',
+                            params={'tool_input': llm_response['response']})
+                    result = tool.execute(llm_response['response'])
+                    
+                    # Add tool result
                     tool_results.append({
                         "tool_name": tool.tool_name,
                         "status": "success",
                         "result": result
                     })
+                    
+                    # Build combined response
+                    if result.get('status') == 'success':
+                        if result.get('message'):
+                            # If tool returned a formatted message, use it
+                            combined_response = result['message']
+                        
+                        # Store GitHub data if present
+                        if result.get('github_data'):
+                            github_data = result['github_data']
+                    
+                    self.log('debug', f'Tool {tool.tool_name} execution completed',
+                            params={'tool_result': result})
                 except Exception as tool_error:
                     self.log('error', f"Error executing tool {tool.tool_name}: {str(tool_error)}")
                     tool_results.append({
@@ -874,13 +1273,25 @@ class Agent:
                         "error": str(tool_error)
                     })
             
-            self.log('info', '[execute_with_tools] Successfully completed execution')
+            # If no tool-specific response was generated, use the LLM response
+            if not combined_response:
+                combined_response = llm_response['response']
             
-            return {
+            self.log('info', '[execute_with_tools] Successfully completed execution',
+                    params={'tool_results': tool_results})
+            
+            response = {
                 "status": "success",
-                "llm_response": llm_response['response'],  # Changed from llm_response to response
+                "message": combined_response,
+                "llm_response": llm_response['response'],
                 "tool_results": tool_results
             }
+            
+            # Include GitHub data if present
+            if github_data:
+                response["github_data"] = github_data
+            
+            return response
             
         except Exception as e:
             self.log('error', f"[execute_with_tools] Unhandled error: {str(e)}", exc_info=True)
@@ -1010,55 +1421,53 @@ class Agent:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
             
-            # Get interaction details
+            # Get message details
             cursor.execute("""
-                SELECT id, source_agent_id, target_agent_id, message, processed_message, created_at, updated_at
-                FROM agent_interactions 
-                WHERE id = %s AND target_agent_id = %s
+                SELECT id, sender_id, receiver_id, content, processed_message,
+                       interaction_type, status, created_at
+                FROM messages 
+                WHERE id = %s AND receiver_id = %s
             """, (interaction_id, self.agent_id))
             
-            interaction = cursor.fetchone()
-            if not interaction:
-                return jsonify({
+            message = cursor.fetchone()
+            if not message:
+                return {
                     'status': 'error',
-                    'message': 'Interaction not found'
-                }), 404
+                    'message': 'Message not found'
+                }
             
             # Convert datetime objects to strings for JSON serialization
-            if interaction:
-                for key in ['created_at', 'updated_at']:
-                    if key in interaction and interaction[key]:
-                        if isinstance(interaction[key], datetime):
-                            interaction[key] = interaction[key].isoformat()
-                        else:
-                            interaction[key] = str(interaction[key])
+            if message and message.get('created_at'):
+                if isinstance(message['created_at'], datetime):
+                    message['created_at'] = message['created_at'].isoformat()
+                else:
+                    message['created_at'] = str(message['created_at'])
             
-            # Update interaction status
+            # Update message status
             cursor.execute("""
-                UPDATE agent_interactions 
-                SET processed_message = message,
-                    updated_at = CURRENT_TIMESTAMP
+                UPDATE messages 
+                SET status = 'processed',
+                    processed_message = content
                 WHERE id = %s
             """, (interaction_id,))
             
             conn.commit()
             
-            return jsonify({
+            return {
                 'status': 'success',
-                'interaction': interaction
-            })
+                'message': message
+            }
             
         except Exception as e:
-            logger.error(f"Error receiving message: {str(e)}")
-            return jsonify({
+            self.log('error', f"Error receiving message: {str(e)}")
+            if conn:
+                conn.rollback()
+            return {
                 'status': 'error',
                 'message': str(e)
-            }), 500
+            }
         finally:
-            if 'cursor' in locals():
-                cursor.close()
-            if 'conn' in locals():
-                conn.close()
+            safe_close_connection(conn, cursor)
 
     def start_workflow(self, workflow_data: Dict[str, Any]) -> Dict[str, Any]:
         """Start a multi-agent workflow"""
@@ -1203,33 +1612,204 @@ class Team:
             "updated_at": self.updated_at.isoformat()
         }
 
-def create_tool(tool_data):
-    tool_types = {
-        "Database": DatabaseTool,
-        "APIService": APITool,
-        "WebService": WebServiceTool,
-        "Python": PythonTool,
-        "React": ReactTool,
-        "GitHub": GitHubTool
-    }
-    
-    tool_type = tool_data.get("type") or tool_data.get("tool_type")
-    if not tool_type:
-        raise ValueError("Tool type not specified")
-    
-    tool_class = tool_types.get(tool_type)
-    if not tool_class:
-        raise ValueError(f"Unknown tool type: {tool_type}")
-    
-    return tool_class(
-        tool_data["id"],
-        tool_data["tool_name"],
-        tool_data.get("hostname", ""),
-        tool_data.get("username", ""),
-        tool_data.get("password", ""),
-        tool_data.get("auth_method", "None"),
-        tool_data.get("description", "")
-    )
+def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
+    """Execute a task using a team of agents with proper coordination"""
+    try:
+        logger.info(f"Starting team execution for task {task.task_id}")
+        final_results = []
+        
+        # Track conversation context
+        conversation_context = []
+        
+        # Get team agents from database
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            # Convert team_id to int if it's numeric
+            try:
+                numeric_team_id = int(team.team_id)
+            except (ValueError, TypeError):
+                numeric_team_id = team.team_id
+                
+            logger.info(f"Fetching agents for team {numeric_team_id} (original team_id: {team.team_id})")
+            
+            # Fetch all agents for this team with their properties
+            cursor.execute("""
+                SELECT ta.agent_id, ta.accuracy, ta.success, ta.priority, a.name
+                FROM team_agents ta
+                JOIN agents a ON ta.agent_id = a.id
+                WHERE ta.team_id = %s
+                ORDER BY ta.priority DESC, ta.success DESC, ta.accuracy DESC
+            """, (numeric_team_id,))
+            
+            team_agents = cursor.fetchall()
+            logger.info(f"Found {len(team_agents)} agents for team {team.team_id}")
+            
+            if not team_agents:
+                raise Exception(f"No agents found for team {team.team_id}")
+
+            # Group agents by priority
+            priority_groups = {}
+            for agent_data in team_agents:
+                priority = agent_data['priority']
+                if priority not in priority_groups:
+                    priority_groups[priority] = []
+                priority_groups[priority].append(agent_data)
+
+            # Sort priorities in descending order (highest priority first)
+            sorted_priorities = sorted(priority_groups.keys(), reverse=True)
+            logger.info(f"Executing agents in priority groups: {sorted_priorities}")
+
+            # Execute agents priority by priority
+            for priority in sorted_priorities:
+                agents_in_group = priority_groups[priority]
+                logger.info(f"Executing priority {priority} group with {len(agents_in_group)} agents")
+
+                # Filter agents based on accuracy and success thresholds
+                qualified_agents = [
+                    agent for agent in agents_in_group
+                    if (agent['accuracy'] or 0) >= task.requirements.get('min_accuracy', 0) and
+                    (agent['success'] or 0) >= task.requirements.get('min_success_rate', 0)
+                ]
+
+                if not qualified_agents:
+                    logger.warning(f"No qualified agents found in priority {priority} group")
+                    continue
+
+                # Initialize all agents in this priority group
+                priority_group_results = []
+                for agent_data in qualified_agents:
+                    try:
+                        # Initialize agent
+                        agent = initialize_agent_from_db(agent_data['agent_id'])
+                        if not agent:
+                            logger.error(f"Could not initialize agent {agent_data['agent_id']}")
+                            continue
+
+                        logger.info(f"Executing with agent {agent_data['agent_id']} ({agent_data['name']}) - "
+                                  f"Priority: {priority}, Accuracy: {agent_data['accuracy']}, "
+                                  f"Success Rate: {agent_data['success']}")
+
+                        # Set correlation ID for tracking
+                        agent.set_correlation_id(task.task_id)
+
+                        # Prepare message with context and requirements
+                        message = {
+                            "task_description": task.description,
+                            "requirements": task.requirements,
+                            "conversation_context": conversation_context,
+                            "accuracy_threshold": agent_data['accuracy'] or 0.8,
+                            "success_rate": agent_data['success'] or 0.9,
+                            "priority": priority
+                        }
+
+                        # Execute with agent
+                        result = agent.execute_with_tools(json.dumps(message))
+                        
+                        if result.get('status') == 'success':
+                            # Format code blocks in response if present
+                            response_text = result.get('llm_response', '')
+                            if any(lang in response_text.lower() for lang in ['python', 'java', 'javascript', 'typescript', 'bash', 'sql']):
+                                # Extract and format code blocks
+                                formatted_response = []
+                                lines = response_text.split('\n')
+                                in_code_block = False
+                                current_block = []
+                                current_language = ''
+                                
+                                for line in lines:
+                                    if line.startswith('```'):
+                                        if in_code_block:
+                                            # End code block
+                                            formatted_response.append(f"```{current_language}\n{''.join(current_block)}\n```")
+                                            current_block = []
+                                            in_code_block = False
+                                        else:
+                                            # Start code block
+                                            in_code_block = True
+                                            current_language = line[3:].strip()
+                                    elif in_code_block:
+                                        current_block.append(line + '\n')
+                                    else:
+                                        formatted_response.append(line)
+                                
+                                response_text = '\n'.join(formatted_response)
+                            
+                            # Add to conversation context
+                            conversation_context.append({
+                                "agent_id": agent_data['agent_id'],
+                                "agent_name": agent_data['name'],
+                                "priority": priority,
+                                "accuracy": agent_data['accuracy'],
+                                "success_rate": agent_data['success'],
+                                "response": response_text
+                            })
+                            
+                            # Add to priority group results
+                            priority_group_results.append({
+                                "agent_id": agent_data['agent_id'],
+                                "agent_name": agent_data['name'],
+                                "priority": priority,
+                                "accuracy": agent_data['accuracy'],
+                                "success_rate": agent_data['success'],
+                                "result": result
+                            })
+
+                    except Exception as agent_error:
+                        logger.error(f"Error with agent {agent_data['agent_id']}: {str(agent_error)}", exc_info=True)
+                        continue
+
+                # Add all results from this priority group
+                final_results.extend(priority_group_results)
+                
+                # Update task status
+                if priority_group_results:
+                    task.status = "in_progress"
+                    task.results.extend(priority_group_results)
+
+                logger.info(f"Completed execution of priority {priority} group with {len(priority_group_results)} successful results")
+
+        finally:
+            safe_close_connection(conn, cursor)
+
+        # Aggregate results
+        aggregated_result = {
+            "status": "success",
+            "task_id": task.task_id,
+            "team_id": team.team_id,
+            "results": final_results,
+            "conversation_context": conversation_context,
+            "final_status": "completed" if final_results else "failed",
+            "execution_summary": {
+                "total_agents": len(team_agents),
+                "successful_executions": len(final_results),
+                "priority_groups": sorted_priorities,
+                "execution_order": [
+                    {
+                        "priority": group["priority"],
+                        "agents": [f"{group['agent_name']} (ID: {group['agent_id']})" for group in final_results if group["priority"] == group["priority"]]
+                    } for group in final_results
+                ]
+            }
+        }
+
+        # Update task status
+        task.status = aggregated_result["final_status"]
+        task.updated_at = datetime.now()
+
+        return aggregated_result
+
+    except Exception as e:
+        logger.error(f"Error in team execution: {str(e)}", exc_info=True)
+        task.status = "failed"
+        task.updated_at = datetime.now()
+        return {
+            "status": "error",
+            "message": str(e),
+            "task_id": task.task_id,
+            "team_id": team.team_id
+        }
 
 @app.route('/api/ml/agent/<int:agent_id>/initialize', methods=['POST'])
 def initialize_agent(agent_id):
@@ -2201,9 +2781,10 @@ def execute_team_task():
     conn = None
     cursor = None
     start_time = datetime.now()
+    correlation_id = None
     
     try:
-        data = request.get_json()
+        data = request.json
         if not data:
             return jsonify({
                 "status": "error",
@@ -2211,166 +2792,248 @@ def execute_team_task():
             }), 400
 
         # Validate required fields
-        required_fields = ['team_config', 'task']
+        required_fields = ['content', 'userId', 'sessionId', 'context']
         if not all(field in data for field in required_fields):
             return jsonify({
                 "status": "error",
-                "message": f"Missing required fields: {', '.join(required_fields)}"
+                "message": f"Missing required fields. Required: {required_fields}"
             }), 400
 
-        # Get team_id from config, fallback to UUID if not provided
-        team_id = str(data['team_config'].get('team_id', uuid.uuid4()))
-        
-        # Create team instance with the provided team_id
-        team = Team(
-            team_id=team_id,
-            name=data['team_config'].get('name', 'Task Team'),
-            description=data['team_config'].get('description', 'Team for task execution')
-        )
-
-        # Add team members
-        for member_config in data['team_config'].get('members', []):
-            member = TeamMember(
-                agent_id=member_config['agent_id'],
-                priority=member_config.get('priority', 1),
-                accuracy_threshold=member_config.get('accuracy_threshold', 0.8),
-                success_rate=member_config.get('success_rate', 0.9)
-            )
-            team.add_member(member)
-
-        if not team.members:
+        # Get team_id from context
+        team_id = data['context'].get('team_id')
+        team_config = data['context'].get('team_config')
+        if not team_id or not team_config:
             return jsonify({
                 "status": "error",
-                "message": "No team members specified"
+                "message": "team_id and team_config are required in context"
             }), 400
 
-        # Create task
-        task = TeamTask(
-            task_id=str(uuid.uuid4()),
-            description=data['task'].get('description', ''),
-            requirements=data['task'].get('requirements', {})
-        )
-        team.assign_task(task)
+        logger.info(f"[TEAM EXECUTION] Processing request for team_id: {team_id}")
+        logger.debug(f"[TEAM CONFIG] {json.dumps(team_config, indent=2)}")
 
-        # Store initial task record
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
-            
-            insert_query = """
-                INSERT INTO team_messages (
-                    team_id, task_id, task_description, task_requirements, 
-                    team_config, status
-                ) VALUES (%s, %s, %s, %s, %s, %s)
-            """
-            
-            cursor.execute(insert_query, (
-                team.team_id,
-                task.task_id,
-                task.description,
-                json.dumps(task.requirements),
-                json.dumps(data['team_config']),
-                'processing'
-            ))
-            
-            conn.commit()
-            logger.info(f"Stored initial team task record for task {task.task_id}")
-            
-        except Exception as db_error:
-            logger.error(f"Database error storing team task: {str(db_error)}", exc_info=True)
-            if conn:
-                conn.rollback()
-            raise
-        finally:
-            safe_close_connection(conn, cursor)
+        # Initialize database connection
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
 
-        # Execute task with team
-        final_result = execute_task_with_team(team, task)
+        # Verify team exists
+        cursor.execute("SELECT * FROM teams WHERE id = %s", (team_id,))
+        team_record = cursor.fetchone()
+        if not team_record:
+            logger.error(f"[TEAM ERROR] Team {team_id} not found in database")
+            # Create team if it doesn't exist
+            try:
+                cursor.execute("""
+                    INSERT INTO teams (id, name, created_at, updated_at)
+                    VALUES (%s, %s, NOW(), NOW())
+                """, (team_id, team_config['name']))
+                conn.commit()
+                logger.info(f"[TEAM CREATED] Created new team with ID {team_id}")
+            except Exception as e:
+                logger.error(f"[TEAM ERROR] Failed to create team: {str(e)}")
+                return jsonify({
+                    "status": "error",
+                    "message": f"Failed to create team: {str(e)}"
+                }), 500
+
+        # Verify and create team members
+        # First check for existing team agents
+        cursor.execute("""
+            SELECT ta.agent_id, ta.priority, ta.accuracy, ta.success, a.name
+            FROM team_agents ta
+            JOIN agents a ON ta.agent_id = a.id
+            WHERE ta.team_id = %s
+        """, (team_id,))
+        existing_agents = cursor.fetchall()
+        
+        if existing_agents:
+            logger.info(f"[TEAM MEMBERS] Found {len(existing_agents)} existing agents for team {team_id}")
+            # Use existing agents instead of creating new ones
+            team_config['members'] = [
+                {
+                    "agent_id": agent['agent_id'],
+                    "name": agent['name'],
+                    "priority": agent['priority'] or 1,
+                    "accuracy_threshold": agent['accuracy'] / 100 if agent['accuracy'] else 0.8,
+                    "success_rate": agent['success'] / 100 if agent['success'] else 0.9,
+                    "role": "processor"
+                }
+                for agent in existing_agents
+            ]
+        else:
+            # Only create new agents if none exist
+            members = team_config.get('members', [])
+            logger.info(f"[TEAM MEMBERS] Processing {len(members)} members for team {team_id}")
+            
+            for member in members:
+                agent_id = member.get('agent_id')
+                if not agent_id:
+                    continue
+
+                # Check if agent exists
+                cursor.execute("SELECT id FROM agents WHERE id = %s", (agent_id,))
+                agent_record = cursor.fetchone()
+                if not agent_record:
+                    # Create agent if it doesn't exist
+                    try:
+                        cursor.execute("""
+                            INSERT INTO agents (id, name, description, status)
+                            VALUES (%s, %s, %s, 'active')
+                            AS new_agent
+                            ON DUPLICATE KEY UPDATE
+                            name = new_agent.name,
+                            status = 'active'
+                        """, (agent_id, f"Agent_{agent_id}", "Auto-created agent"))
+                        logger.info(f"[AGENT CREATED] Created new agent with ID {agent_id}")
+                    except Exception as e:
+                        logger.error(f"[AGENT ERROR] Failed to create agent {agent_id}: {str(e)}")
+                        continue
+
+                # Add agent to team if not already added
+                try:
+                    cursor.execute("""
+                        INSERT INTO team_agents (team_id, agent_id, priority, accuracy, success)
+                        VALUES (%s, %s, %s, %s, %s)
+                        AS new_team_agent
+                        ON DUPLICATE KEY UPDATE
+                        priority = new_team_agent.priority,
+                        accuracy = new_team_agent.accuracy,
+                        success = new_team_agent.success
+                    """, (
+                        team_id,
+                        agent_id,
+                        member.get('priority', 1),
+                        member.get('accuracy_threshold', 0.8) * 100,  # Convert to percentage
+                        member.get('success_rate', 0.9) * 100  # Convert to percentage
+                    ))
+                    logger.info(f"[TEAM MEMBER ADDED] Added/Updated agent {agent_id} to team {team_id}")
+                except Exception as e:
+                    logger.error(f"[TEAM MEMBER ERROR] Failed to add agent {agent_id} to team: {str(e)}")
+
+        conn.commit()
+
+        # 1. Team Task Initialization
+        correlation_id = str(uuid.uuid4())
+        task = {
+            'description': data['content'],
+            'requirements': {
+                'user_id': data['userId'],
+                'session_id': data['sessionId'],
+                'conversation_settings': data['context'].get('conversation_settings', {}),
+                'conversation_history': data['context'].get('conversation_history', []),
+                'documents': data['context'].get('documents', [])
+            }
+        }
+        task_id = store_team_task(cursor, team_id, task, correlation_id)
+        
+        # Create workflow record
+        workflow_id = create_workflow_record(cursor, team_id, task_id, correlation_id)
+        
+        # 2. Agent Priority Organization
+        agents = get_team_agents_ordered(cursor, team_id)
+        logger.info(f"[TEAM AGENTS] Found {len(agents)} agents for team {team_id}")
+        logger.debug(f"[TEAM AGENTS] {json.dumps(agents, indent=2)}")
+        
+        if not agents:
+            error_msg = f"No agents found for team {team_id}"
+            logger.error(f"[TEAM ERROR] {error_msg}")
+            return jsonify({
+                "status": "error",
+                "message": error_msg
+            }), 404
+
+        # Group agents by priority for potential parallel execution
+        priority_groups = group_agents_by_priority(agents)
+        
+        # 3. Agent Execution & 4. Tool Execution
+        all_responses = []
+        for priority_level, priority_agents in priority_groups.items():
+            # Create workflow steps for this priority group
+            step_ids = create_workflow_steps(cursor, workflow_id, priority_agents)
+            
+            # Execute agents in parallel within priority group
+            priority_responses = execute_priority_group(
+                priority_agents, 
+                step_ids,
+                task,
+                correlation_id
+            )
+            all_responses.extend(priority_responses)
+            
+            # Update workflow steps status
+            update_workflow_steps_status(cursor, step_ids, 'completed')
+            
+        # 5. Response Aggregation
+        final_response = aggregate_team_responses(all_responses)
+        
+        # 6. Task Completion
+        update_workflow_status(cursor, workflow_id, 'completed')
+        
+        # Commit all changes
+        conn.commit()
         
         # Calculate processing time
         processing_time = int((datetime.now() - start_time).total_seconds())
-
-        # Update task record with results
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
-            
-            update_query = """
-                UPDATE team_messages 
-                SET status = %s,
-                    result = %s,
-                    processing_time = %s,
-                    agent_responses = %s,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE team_id = %s AND task_id = %s
-            """
-            
-            cursor.execute(update_query, (
-                final_result.get('final_status', 'failed'),
-                json.dumps(final_result),
-                processing_time,
-                json.dumps(final_result.get('conversation_context', [])),
-                team.team_id,
-                task.task_id
-            ))
-            
-            conn.commit()
-            logger.info(f"Updated team task record with results for task {task.task_id}")
-            
-        except Exception as db_error:
-            logger.error(f"Database error updating team task results: {str(db_error)}", exc_info=True)
-            if conn:
-                conn.rollback()
-            raise
-        finally:
-            safe_close_connection(conn, cursor)
-
-        return jsonify({
-            "status": "success",
-            "team": team.to_dict(),
-            "result": final_result,
+        
+        # Format final response according to expected structure
+        response = {
+            "status": final_response['status'],
+            "team": {
+                "team_id": str(team_id),
+                "name": team_config['name'],
+                "description": team_config['description'],
+                "members": [
+                    {
+                        "agent_id": result['agent_id'],
+                        "priority": result['priority'],
+                        "accuracy_threshold": result['accuracy'],
+                        "success_rate": result['success_rate'],
+                        "current_task": None,
+                        "results": result['result']['tool_results']
+                    }
+                    for result in final_response['results']
+                ],
+                "tasks": [
+                    {
+                        "task_id": task_id,
+                        "description": task['description'],
+                        "requirements": task['requirements'],
+                        "status": final_response['final_status'],
+                        "results": final_response['tool_results'],
+                        "created_at": start_time.isoformat(),
+                        "updated_at": datetime.now().isoformat()
+                    }
+                ],
+                "created_at": start_time.isoformat(),
+                "updated_at": datetime.now().isoformat()
+            },
+            "result": {
+                "status": final_response['final_status'],
+                "task_id": task_id,
+                "team_id": str(team_id),
+                "results": final_response['results'],
+                "conversation_context": final_response['conversation_context'],
+                "final_status": final_response['final_status'],
+                "execution_summary": final_response['execution_summary']
+            },
+            "correlation_id": correlation_id,
+            "workflow_id": workflow_id,
             "processing_time_seconds": processing_time
-        })
+        }
+        
+        return jsonify(response)
 
     except Exception as e:
-        logger.error(f"Error executing team task: {str(e)}", exc_info=True)
-        
-        # Store error in database if we have team/task IDs
-        if 'team' in locals() and 'task' in locals():
-            try:
-                conn = get_db_connection()
-                cursor = conn.cursor(dictionary=True)
-                
-                update_query = """
-                    UPDATE team_messages 
-                    SET status = 'failed',
-                        error_message = %s,
-                        processing_time = %s,
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE team_id = %s AND task_id = %s
-                """
-                
-                processing_time = int((datetime.now() - start_time).total_seconds())
-                
-                cursor.execute(update_query, (
-                    str(e),
-                    processing_time,
-                    team.team_id,
-                    task.task_id
-                ))
-                
-                conn.commit()
-                
-            except Exception as db_error:
-                logger.error(f"Database error storing team task error: {str(db_error)}", exc_info=True)
-            finally:
-                safe_close_connection(conn, cursor)
-        
+        logger.error(f"Error in execute_team_task: {str(e)}", 
+                    extra={"correlation_id": correlation_id})
+        if conn:
+            conn.rollback()
         return jsonify({
             "status": "error",
-            "message": str(e),
-            "details": traceback.format_exc()
+            "message": f"Internal server error: {str(e)}"
         }), 500
+        
+    finally:
+        safe_close_connection(conn, cursor)
 
 @app.route('/api/ml/team/history', methods=['GET'])
 def get_team_history():
@@ -2422,205 +3085,6 @@ def get_team_history():
     finally:
         safe_close_connection(conn, cursor)
 
-def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
-    """Execute a task using a team of agents with proper coordination"""
-    try:
-        logger.info(f"Starting team execution for task {task.task_id}")
-        final_results = []
-        
-        # Track conversation context
-        conversation_context = []
-        
-        # Get team agents from database
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        try:
-            # Convert team_id to int if it's numeric
-            try:
-                numeric_team_id = int(team.team_id)
-            except (ValueError, TypeError):
-                numeric_team_id = team.team_id
-                
-            logger.info(f"Fetching agents for team {numeric_team_id} (original team_id: {team.team_id})")
-            
-            # Fetch all agents for this team with their properties
-            cursor.execute("""
-                SELECT ta.agent_id, ta.accuracy, ta.success, ta.priority, a.name
-                FROM team_agents ta
-                JOIN agents a ON ta.agent_id = a.id
-                WHERE ta.team_id = %s
-                ORDER BY ta.priority DESC, ta.success DESC, ta.accuracy DESC
-            """, (numeric_team_id,))
-            
-            team_agents = cursor.fetchall()
-            logger.info(f"Found {len(team_agents)} agents for team {team.team_id}")
-            
-            if not team_agents:
-                raise Exception(f"No agents found for team {team.team_id}")
-
-            # Group agents by priority
-            priority_groups = {}
-            for agent_data in team_agents:
-                priority = agent_data['priority']
-                if priority not in priority_groups:
-                    priority_groups[priority] = []
-                priority_groups[priority].append(agent_data)
-
-            # Sort priorities in descending order (highest priority first)
-            sorted_priorities = sorted(priority_groups.keys(), reverse=True)
-            logger.info(f"Executing agents in priority groups: {sorted_priorities}")
-
-            # Execute agents priority by priority
-            for priority in sorted_priorities:
-                agents_in_group = priority_groups[priority]
-                logger.info(f"Executing priority {priority} group with {len(agents_in_group)} agents")
-
-                # Filter agents based on accuracy and success thresholds
-                qualified_agents = [
-                    agent for agent in agents_in_group
-                    if (agent['accuracy'] or 0) >= task.requirements.get('min_accuracy', 0) and
-                    (agent['success'] or 0) >= task.requirements.get('min_success_rate', 0)
-                ]
-
-                if not qualified_agents:
-                    logger.warning(f"No qualified agents found in priority {priority} group")
-                    continue
-
-                # Initialize all agents in this priority group
-                priority_group_results = []
-                for agent_data in qualified_agents:
-                    try:
-                        # Initialize agent
-                        agent = initialize_agent_from_db(agent_data['agent_id'])
-                        if not agent:
-                            logger.error(f"Could not initialize agent {agent_data['agent_id']}")
-                            continue
-
-                        logger.info(f"Executing with agent {agent_data['agent_id']} ({agent_data['name']}) - "
-                                  f"Priority: {priority}, Accuracy: {agent_data['accuracy']}, "
-                                  f"Success Rate: {agent_data['success']}")
-
-                        # Set correlation ID for tracking
-                        agent.set_correlation_id(task.task_id)
-
-                        # Prepare message with context and requirements
-                        message = {
-                            "task_description": task.description,
-                            "requirements": task.requirements,
-                            "conversation_context": conversation_context,
-                            "accuracy_threshold": agent_data['accuracy'] or 0.8,
-                            "success_rate": agent_data['success'] or 0.9,
-                            "priority": priority
-                        }
-
-                        # Execute with agent
-                        result = agent.execute_with_tools(json.dumps(message))
-                        
-                        if result.get('status') == 'success':
-                            # Format code blocks in response if present
-                            response_text = result.get('llm_response', '')
-                            if any(lang in response_text.lower() for lang in ['python', 'java', 'javascript', 'typescript', 'bash', 'sql']):
-                                # Extract and format code blocks
-                                formatted_response = []
-                                lines = response_text.split('\n')
-                                in_code_block = False
-                                current_block = []
-                                current_language = ''
-                                
-                                for line in lines:
-                                    if line.startswith('```'):
-                                        if in_code_block:
-                                            # End code block
-                                            formatted_response.append(f"```{current_language}\n{''.join(current_block)}\n```")
-                                            current_block = []
-                                            in_code_block = False
-                                        else:
-                                            # Start code block
-                                            in_code_block = True
-                                            current_language = line[3:].strip()
-                                    elif in_code_block:
-                                        current_block.append(line + '\n')
-                                    else:
-                                        formatted_response.append(line)
-                                
-                                response_text = '\n'.join(formatted_response)
-                            
-                            # Add to conversation context
-                            conversation_context.append({
-                                "agent_id": agent_data['agent_id'],
-                                "agent_name": agent_data['name'],
-                                "priority": priority,
-                                "accuracy": agent_data['accuracy'],
-                                "success_rate": agent_data['success'],
-                                "response": response_text
-                            })
-                            
-                            # Add to priority group results
-                            priority_group_results.append({
-                                "agent_id": agent_data['agent_id'],
-                                "agent_name": agent_data['name'],
-                                "priority": priority,
-                                "accuracy": agent_data['accuracy'],
-                                "success_rate": agent_data['success'],
-                                "result": result
-                            })
-
-                    except Exception as agent_error:
-                        logger.error(f"Error with agent {agent_data['agent_id']}: {str(agent_error)}", exc_info=True)
-                        continue
-
-                # Add all results from this priority group
-                final_results.extend(priority_group_results)
-                
-                # Update task status
-                if priority_group_results:
-                    task.status = "in_progress"
-                    task.results.extend(priority_group_results)
-
-                logger.info(f"Completed execution of priority {priority} group with {len(priority_group_results)} successful results")
-
-        finally:
-            safe_close_connection(conn, cursor)
-
-        # Aggregate results
-        aggregated_result = {
-            "status": "success",
-            "task_id": task.task_id,
-            "team_id": team.team_id,
-            "results": final_results,
-            "conversation_context": conversation_context,
-            "final_status": "completed" if final_results else "failed",
-            "execution_summary": {
-                "total_agents": len(team_agents),
-                "successful_executions": len(final_results),
-                "priority_groups": sorted_priorities,
-                "execution_order": [
-                    {
-                        "priority": group["priority"],
-                        "agents": [f"{group['agent_name']} (ID: {group['agent_id']})" for group in final_results if group["priority"] == group["priority"]]
-                    } for group in final_results
-                ]
-            }
-        }
-
-        # Update task status
-        task.status = aggregated_result["final_status"]
-        task.updated_at = datetime.now()
-
-        return aggregated_result
-
-    except Exception as e:
-        logger.error(f"Error in team execution: {str(e)}", exc_info=True)
-        task.status = "failed"
-        task.updated_at = datetime.now()
-        return {
-            "status": "error",
-            "message": str(e),
-            "task_id": task.task_id,
-            "team_id": team.team_id
-        }
-
 @app.route('/api/ml/conversation/store', methods=['POST'])
 @log_execution
 def store_conversation():
@@ -2645,10 +3109,10 @@ def store_conversation():
                     content,
                     metadata,
                     created_at
-                ) VALUES (%s, %s, %s, NOW())
+                ) VALUES (%s, %s, %s, NOW()) AS new_data
                 ON DUPLICATE KEY UPDATE
-                    content = VALUES(content),
-                    metadata = VALUES(metadata),
+                    content = new_data.content,
+                    metadata = new_data.metadata,
                     updated_at = NOW()
             """
             

@@ -1,0 +1,85 @@
+2025-06-05 16:05:23,675 - INFO - Starting test setup...
+2025-06-05 16:05:23,686 - INFO - Database connection established in 0.01 seconds
+2025-06-05 16:05:23,698 - INFO - Created test team with ID: 78 in 0.01 seconds
+2025-06-05 16:05:23,706 - INFO - Created sender agent with ID: 119 in 0.01 seconds
+2025-06-05 16:05:23,711 - INFO - Created receiver agent with ID: 120 in 0.00 seconds
+2025-06-05 16:05:23,716 - INFO - Created DBX tool with ID: 47 in 0.01 seconds
+2025-06-05 16:05:23,723 - INFO - Associated agents with team 78 in 0.01 seconds
+2025-06-05 16:05:23,735 - INFO - Associated tool 47 with team 78 in 0.01 seconds
+2025-06-05 16:05:23,736 - INFO - Total setup time: 0.06 seconds
+2025-06-05 16:05:23,736 - INFO - Starting agent memory creation test...
+2025-06-05 16:05:23,737 - INFO - Starting agent initialization test...
+2025-06-05 16:05:25,793 - INFO - Agent initialization test completed in 2.06 seconds
+2025-06-05 16:05:25,794 - INFO - Agent initialization completed in 2.06 seconds
+2025-06-05 16:05:27,886 - INFO - SHORT_TERM_MEMORY creation completed in 2.09 seconds
+2025-06-05 16:05:29,943 - INFO - LONG_TERM_MEMORY creation completed in 2.06 seconds
+2025-06-05 16:05:29,944 - INFO - Total agent memory test completed in 6.21 seconds
+2025-06-05 16:05:29,944 - INFO - Starting test cleanup...
+2025-06-05 16:05:29,950 - INFO - Deleted team tool permissions
+2025-06-05 16:05:29,953 - INFO - Deleted team agents
+2025-06-05 16:05:29,961 - INFO - Deleted messages
+2025-06-05 16:05:29,963 - INFO - Deleted agent memory entries
+2025-06-05 16:05:29,965 - INFO - Deleted agent tools
+2025-06-05 16:05:29,972 - INFO - Deleted agents
+2025-06-05 16:05:29,974 - INFO - Deleted tool
+2025-06-05 16:05:29,978 - INFO - Deleted team
+2025-06-05 16:05:29,983 - INFO - Cleanup completed successfully in 0.04 seconds
+2025-06-05 16:05:29,985 - INFO - Starting test setup...
+2025-06-05 16:05:29,992 - INFO - Database connection established in 0.01 seconds
+2025-06-05 16:05:30,002 - INFO - Created test team with ID: 79 in 0.01 seconds
+2025-06-05 16:05:30,007 - INFO - Created sender agent with ID: 121 in 0.00 seconds
+2025-06-05 16:05:30,011 - INFO - Created receiver agent with ID: 122 in 0.00 seconds
+2025-06-05 16:05:30,022 - INFO - Created DBX tool with ID: 48 in 0.01 seconds
+2025-06-05 16:05:30,030 - INFO - Associated agents with team 79 in 0.01 seconds
+2025-06-05 16:05:30,039 - INFO - Associated tool 48 with team 79 in 0.01 seconds
+2025-06-05 16:05:30,039 - INFO - Total setup time: 0.05 seconds
+2025-06-05 16:05:30,040 - INFO - Starting end-to-end workflow test...
+2025-06-05 16:05:32,095 - INFO - Agent initialization completed in 2.05 seconds
+2025-06-05 16:05:36,259 - INFO - Memory creation completed in 4.16 seconds
+2025-06-05 16:05:40,114 - INFO - Tool addition completed in 3.85 seconds
+2025-06-05 16:06:01,719 - INFO - Command execution completed in 21.60 seconds
+2025-06-05 16:06:01,719 - INFO - Total end-to-end workflow test completed in 31.68 seconds
+2025-06-05 16:06:01,720 - INFO - Starting test cleanup...
+2025-06-05 16:06:01,722 - INFO - Deleted team tool permissions
+2025-06-05 16:06:01,723 - INFO - Deleted team agents
+2025-06-05 16:06:01,726 - INFO - Deleted messages
+2025-06-05 16:06:01,729 - INFO - Deleted agent memory entries
+2025-06-05 16:06:01,733 - INFO - Deleted agent tools
+2025-06-05 16:06:01,734 - INFO - Deleted agents
+2025-06-05 16:06:01,735 - INFO - Deleted tool
+2025-06-05 16:06:01,736 - INFO - Deleted team
+2025-06-05 16:06:01,739 - INFO - Cleanup completed successfully in 0.02 seconds
+2025-06-05 16:06:01,740 - INFO - Starting test setup...
+2025-06-05 16:06:01,745 - INFO - Database connection established in 0.00 seconds
+2025-06-05 16:06:01,750 - INFO - Created test team with ID: 80 in 0.01 seconds
+2025-06-05 16:06:01,755 - INFO - Created sender agent with ID: 123 in 0.01 seconds
+2025-06-05 16:06:01,759 - INFO - Created receiver agent with ID: 124 in 0.00 seconds
+2025-06-05 16:06:01,766 - INFO - Created DBX tool with ID: 49 in 0.01 seconds
+2025-06-05 16:06:01,771 - INFO - Associated agents with team 80 in 0.00 seconds
+2025-06-05 16:06:01,780 - INFO - Associated tool 49 with team 80 in 0.01 seconds
+2025-06-05 16:06:01,781 - INFO - Total setup time: 0.04 seconds
+2025-06-05 16:06:01,781 - INFO - Starting agent initialization test...
+2025-06-05 16:06:03,833 - INFO - Agent initialization test completed in 2.05 seconds
+2025-06-05 16:06:03,833 - INFO - Starting test cleanup...
+2025-06-05 16:06:03,835 - INFO - Deleted team tool permissions
+2025-06-05 16:06:03,836 - INFO - Deleted team agents
+2025-06-05 16:06:03,838 - INFO - Deleted messages
+2025-06-05 16:06:03,839 - INFO - Deleted agent memory entries
+2025-06-05 16:06:03,840 - INFO - Deleted agent tools
+2025-06-05 16:06:03,843 - INFO - Deleted agents
+2025-06-05 16:06:03,844 - INFO - Deleted tool
+2025-06-05 16:06:03,845 - INFO - Deleted team
+2025-06-05 16:06:03,849 - INFO - Cleanup completed successfully in 0.02 seconds
+2025-06-05 16:06:03,850 - INFO - Starting test setup...
+2025-06-05 16:06:03,858 - INFO - Database connection established in 0.01 seconds
+2025-06-05 16:06:03,866 - INFO - Created test team with ID: 81 in 0.01 seconds
+2025-06-05 16:06:03,870 - INFO - Created sender agent with ID: 125 in 0.00 seconds
+2025-06-05 16:06:03,874 - INFO - Created receiver agent with ID: 126 in 0.00 seconds
+2025-06-05 16:06:03,878 - INFO - Created DBX tool with ID: 50 in 0.00 seconds
+2025-06-05 16:06:03,884 - INFO - Associated agents with team 81 in 0.00 seconds
+2025-06-05 16:06:03,891 - INFO - Associated tool 50 with team 81 in 0.01 seconds
+2025-06-05 16:06:03,892 - INFO - Total setup time: 0.04 seconds
+2025-06-05 16:06:03,892 - INFO - Starting message sending test...
+2025-06-05 16:06:03,892 - INFO - Starting agent initialization test...
+2025-06-05 16:06:05,939 - INFO - Agent initialization test completed in 2.05 seconds
+2025-06-05 16:06:07,988 - INFO - Agents initialization completed in 4.10 seconds

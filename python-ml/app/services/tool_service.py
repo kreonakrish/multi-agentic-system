@@ -1,5 +1,5 @@
 from typing import Dict, Any, List, Type
-from app.core.tools import Tool, DatabaseTool, APITool, WebServiceTool, GitHubTool
+from app.core.tools import Tool, DatabaseTool, APITool, WebServiceTool, GitHubTool, create_tool
 from app.utils.logger import logger
 
 class ToolService:
@@ -17,50 +17,12 @@ class ToolService:
     def create_tool(self, tool_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new tool"""
         try:
-            tool_type = tool_data.get('type', '').lower()
-            if tool_type not in self.tool_types:
-                raise ValueError(f"Invalid tool type: {tool_type}")
-
-            tool_class = self.tool_types[tool_type]
+            # Create tool instance using the factory function
+            tool = create_tool(tool_data)
             
-            # Common parameters for all tools
-            common_params = {
-                'tool_id': tool_data['tool_id'],
-                'tool_name': tool_data['name'],
-                'hostname': tool_data['hostname'],
-                'username': tool_data.get('username', ''),
-                'password': tool_data.get('password', ''),
-                'auth_method': tool_data.get('auth_method', 'none'),
-                'description': tool_data.get('description', '')
-            }
-            
-            # Additional parameters based on tool type
-            if tool_type == 'database':
-                tool = tool_class(
-                    **common_params,
-                    database=tool_data['database'],
-                    port=tool_data.get('port', 3306)
-                )
-            elif tool_type == 'api':
-                tool = tool_class(
-                    **common_params,
-                    api_version=tool_data.get('api_version', 'v1'),
-                    timeout=tool_data.get('timeout', 30)
-                )
-            elif tool_type == 'webservice':
-                tool = tool_class(
-                    **common_params,
-                    service_type=tool_data.get('service_type', 'REST'),
-                    timeout=tool_data.get('timeout', 30)
-                )
-            elif tool_type == 'github':
-                tool = tool_class(
-                    **common_params,
-                    max_rows=tool_data.get('max_rows', 100)
-                )
-            
+            # Store the tool
             self.tools[tool.tool_id] = tool
-            logger.info(f"Tool {tool.tool_id} ({tool_type}) created successfully")
+            logger.info(f"Tool {tool.tool_id} ({tool.__class__.__name__}) created successfully")
             
             return self.get_tool_info(tool)
         except Exception as e:

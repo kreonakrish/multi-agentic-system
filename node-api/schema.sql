@@ -1,4 +1,4 @@
-use multi_agentic_system;
+USE multi_agentic_system;
 
 CREATE TABLE agent_interactions (
   id int NOT NULL AUTO_INCREMENT,
@@ -30,7 +30,7 @@ CREATE TABLE agent_memory (
   PRIMARY KEY (id),
   KEY idx_agent_memory_agent (agent_id),
   CONSTRAINT agent_memory_ibfk_1 FOREIGN KEY (agent_id) REFERENCES agents (id) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE agent_tools (
   id int NOT NULL AUTO_INCREMENT,
@@ -41,18 +41,22 @@ CREATE TABLE agent_tools (
   KEY tool_id (tool_id),
   CONSTRAINT agent_tools_ibfk_1 FOREIGN KEY (agent_id) REFERENCES agents (id) ON DELETE CASCADE,
   CONSTRAINT agent_tools_ibfk_2 FOREIGN KEY (tool_id) REFERENCES tools (id) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE agents (
   id int NOT NULL AUTO_INCREMENT,
   name varchar(255) NOT NULL,
+  description text,
   memory_type varchar(255) DEFAULT NULL,
   foundation_model varchar(255) DEFAULT NULL,
   status enum('active','inactive','busy') DEFAULT 'inactive',
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  accuracy_rate decimal(5,2) DEFAULT '0.00',
+  success_rate decimal(5,2) DEFAULT '0.00',
+  priority int DEFAULT '3',
   PRIMARY KEY (id)
-) ENGINE=InnoDB AUTO_INCREMENT=119 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=156 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE conversation_settings (
   id int NOT NULL AUTO_INCREMENT,
@@ -66,7 +70,7 @@ CREATE TABLE conversation_settings (
   PRIMARY KEY (id),
   KEY idx_team_id (team_id),
   CONSTRAINT conversation_settings_ibfk_1 FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=137 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=167 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE conversation_steps (
   id int NOT NULL AUTO_INCREMENT,
@@ -109,7 +113,7 @@ CREATE TABLE conversations (
   KEY idx_conversations_team_id (team_id),
   CONSTRAINT conversations_ibfk_1 FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE SET NULL,
   CONSTRAINT fk_settings_id FOREIGN KEY (settings_id) REFERENCES conversation_settings (id)
-) ENGINE=InnoDB AUTO_INCREMENT=190 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=296 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE documents (
   id int NOT NULL AUTO_INCREMENT,
@@ -152,7 +156,7 @@ CREATE TABLE messages (
   KEY messages_ibfk_2 (sender_id),
   CONSTRAINT messages_ibfk_1 FOREIGN KEY (receiver_id) REFERENCES agents (id) ON DELETE SET NULL,
   CONSTRAINT messages_ibfk_2 FOREIGN KEY (sender_id) REFERENCES agents (id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE team_agents (
   id int NOT NULL AUTO_INCREMENT,
@@ -166,7 +170,7 @@ CREATE TABLE team_agents (
   KEY agent_id (agent_id),
   CONSTRAINT team_agents_ibfk_1 FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE,
   CONSTRAINT team_agents_ibfk_2 FOREIGN KEY (agent_id) REFERENCES agents (id) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=219 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=251 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE team_configurations (
   id int NOT NULL AUTO_INCREMENT,
@@ -197,7 +201,7 @@ CREATE TABLE team_messages (
   KEY idx_team_id (team_id),
   KEY idx_task_id (task_id),
   KEY idx_status (status)
-) ENGINE=InnoDB AUTO_INCREMENT=134 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=213 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE team_tool_permissions (
   id int NOT NULL AUTO_INCREMENT,
@@ -210,14 +214,14 @@ CREATE TABLE team_tool_permissions (
   KEY tool_id (tool_id),
   CONSTRAINT team_tool_permissions_ibfk_1 FOREIGN KEY (team_id) REFERENCES teams (id),
   CONSTRAINT team_tool_permissions_ibfk_2 FOREIGN KEY (tool_id) REFERENCES tools (id)
-) ENGINE=InnoDB AUTO_INCREMENT=129 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=133 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE teams (
   id int NOT NULL AUTO_INCREMENT,
   name varchar(255) NOT NULL,
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
-) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=96 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE tools (
   id int NOT NULL AUTO_INCREMENT,
@@ -230,7 +234,7 @@ CREATE TABLE tools (
   description text,
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
-) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE workflow_steps (
   id int NOT NULL AUTO_INCREMENT,
@@ -238,6 +242,7 @@ CREATE TABLE workflow_steps (
   agent_id int NOT NULL,
   step_order int NOT NULL,
   status enum('pending','in_progress','completed','failed') DEFAULT 'pending',
+  tool_responses json DEFAULT NULL,
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
@@ -255,7 +260,12 @@ CREATE TABLE workflows (
   message text,
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  team_id int DEFAULT NULL,
+  correlation_id varchar(255) DEFAULT NULL,
+  task_data json DEFAULT NULL,
   PRIMARY KEY (id),
   KEY initiator_id (initiator_id),
-  CONSTRAINT workflows_ibfk_1 FOREIGN KEY (initiator_id) REFERENCES agents (id)
+  KEY team_id (team_id),
+  CONSTRAINT workflows_ibfk_1 FOREIGN KEY (initiator_id) REFERENCES agents (id),
+  CONSTRAINT workflows_ibfk_2 FOREIGN KEY (team_id) REFERENCES teams (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

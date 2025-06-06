@@ -31,10 +31,10 @@ def store_conversation() -> Dict[str, Any]:
                     content,
                     metadata,
                     created_at
-                ) VALUES (%s, %s, %s, NOW())
+                ) VALUES (%s, %s, %s, NOW()) AS new_data
                 ON DUPLICATE KEY UPDATE
-                    content = VALUES(content),
-                    metadata = VALUES(metadata),
+                    content = new_data.content,
+                    metadata = new_data.metadata,
                     updated_at = NOW()
             """
             

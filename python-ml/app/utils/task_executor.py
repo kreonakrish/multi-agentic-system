@@ -16,143 +16,313 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
     """
     start_time = datetime.utcnow()
     conversation_context: List[Dict[str, Any]] = []
+    priority_groups = {}
+    execution_order = []
+    workflow_id = None
+    final_results = []
     
     try:
-        logger.info(f"[execute_task_with_team] Starting task execution")
-        logger.info(f"[execute_task_with_team] Team ID: {team.team_id}")
-        logger.info(f"[execute_task_with_team] Task ID: {task.task_id}")
-        logger.info(f"[execute_task_with_team] Task Description: {task.description}")
-        logger.debug(f"[execute_task_with_team] Task Requirements: {json.dumps(task.requirements, indent=2)}")
+        logger.info("="*80)
+        logger.info(f"[TEAM EXECUTION START] Task ID: {task.task_id} | Team ID: {team.team_id}")
+        logger.info("="*80)
+        logger.info(f"[TASK DETAILS] Description: {task.description}")
+        logger.debug(f"[TASK REQUIREMENTS] {json.dumps(task.requirements, indent=2)}")
         
-        # Initialize all team members and sort them by priority, accuracy, and success rate
-        active_agents = []
-        logger.info("[execute_task_with_team] Initializing team members...")
-        
-        for member in team.members:
-            try:
-                logger.info(f"[execute_task_with_team] Initializing member - Agent ID: {member.agent_id}, "
-                          f"Priority: {member.priority.value}, Accuracy: {member.accuracy_threshold}, "
-                          f"Success Rate: {member.success_rate}")
-                
-                agent = initialize_agent_from_db(member.agent_id)
-                if agent:
-                    # Store member properties with the agent for sorting
-                    agent.priority = member.priority.value
-                    agent.accuracy_threshold = member.accuracy_threshold
-                    agent.success_rate = member.success_rate
-                    active_agents.append(agent)
-                    logger.info(f"[execute_task_with_team] Successfully initialized agent {member.agent_id}")
-                else:
-                    logger.warning(f"[execute_task_with_team] Agent {member.agent_id} initialization returned None")
-            except Exception as e:
-                logger.error(f"[execute_task_with_team] Failed to initialize agent {member.agent_id}: {str(e)}", 
-                           exc_info=True)
-        
-        if not active_agents:
-            logger.error("[execute_task_with_team] No active agents available for task execution")
-            raise ValueError("No active agents available for task execution")
+        # Create workflow record
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
             
-        # Sort agents by priority (highest first), accuracy (highest first), and success rate (highest first)
-        active_agents.sort(key=lambda x: (-x.priority, -x.accuracy_threshold, -x.success_rate))
-        logger.info("[execute_task_with_team] Agents sorted by priority, accuracy, and success rate")
-        logger.info("Execution order:")
-        for idx, agent in enumerate(active_agents, 1):
-            logger.info(f"  {idx}. Agent {agent.agent_id} - Priority: {agent.priority}, "
-                       f"Accuracy: {agent.accuracy_threshold}, Success Rate: {agent.success_rate}")
+            cursor.execute("""
+                INSERT INTO workflows (
+                    correlation_id,
+                    team_id,
+                    status,
+                    task_data,
+                    created_at
+                ) VALUES (%s, %s, %s, %s, NOW())
+            """, (
+                task.task_id,
+                team.team_id,
+                'pending',
+                json.dumps({
+                    'description': task.description,
+                    'requirements': task.requirements
+                })
+            ))
+            
+            workflow_id = cursor.lastrowid
+            logger.info(f"[WORKFLOW] Created workflow record with ID: {workflow_id}")
+            
+            conn.commit()
+        except Exception as e:
+            logger.error(f"[WORKFLOW] Error creating workflow record: {str(e)}", exc_info=True)
+            raise
+        finally:
+            safe_close_connection(conn, cursor)
+        
+        # Get conversation settings
+        logger.info("[FETCHING CONVERSATION SETTINGS]")
+        conversation_settings = task.requirements.get('conversation_settings_id')
+        end_prompt = None
+        if conversation_settings:
+            try:
+                logger.debug(f"[CONVERSATION SETTINGS] Fetching settings for ID: {conversation_settings}")
+                conn = get_db_connection()
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT end_prompt FROM conversation_settings 
+                    WHERE id = %s
+                """, (conversation_settings,))
+                result = cursor.fetchone()
+                if result:
+                    end_prompt = result['end_prompt']
+                    logger.info("[CONVERSATION SETTINGS] Successfully retrieved end_prompt")
+                    logger.debug(f"[CONVERSATION SETTINGS] End Prompt: {end_prompt}")
+                else:
+                    logger.warning(f"[CONVERSATION SETTINGS] No settings found for ID: {conversation_settings}")
+                safe_close_connection(conn, cursor)
+            except Exception as e:
+                logger.error(f"[CONVERSATION SETTINGS] Error fetching settings: {str(e)}", exc_info=True)
+        else:
+            logger.info("[CONVERSATION SETTINGS] No conversation_settings_id provided in requirements")
+        
+        # Initialize team members
+        logger.info("\n[TEAM INITIALIZATION] Starting team member initialization")
+        active_agents = []
+        
+        # Get all agents for the team with their metrics
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT ta.agent_id, ta.accuracy, ta.success, ta.priority,
+                   a.name as agent_name
+            FROM team_agents ta
+            JOIN agents a ON ta.agent_id = a.id
+            WHERE ta.team_id = %s
+            ORDER BY ta.priority DESC, ta.accuracy DESC, ta.success DESC
+        """, (team.team_id,))
+        
+        agents = cursor.fetchall()
+        safe_close_connection(conn, cursor)
+        
+        # Group agents by priority
+        current_priority = None
+        current_group = []
+        
+        for agent in agents:
+            if current_priority is None:
+                current_priority = agent['priority']
+            
+            if agent['priority'] != current_priority:
+                priority_groups[current_priority] = current_group
+                execution_order.append({
+                    "priority": current_priority,
+                    "agents": [f"{a['agent_name']} (ID: {a['agent_id']})" for a in current_group]
+                })
+                current_group = []
+                current_priority = agent['priority']
+            
+            current_group.append(agent)
+            active_agents.append(agent)
+        
+        if current_group:
+            priority_groups[current_priority] = current_group
+            execution_order.append({
+                "priority": current_priority,
+                "agents": [f"{a['agent_name']} (ID: {a['agent_id']})" for a in current_group]
+            })
+        
+        logger.info(f"[TEAM INITIALIZATION] Successfully initialized {len(active_agents)} agents")
         
         # Execute task with sorted agents
         successful_agents = 0
-        final_results = []
         
+        logger.info("\n[AGENT EXECUTION] Starting individual agent executions")
         for idx, agent in enumerate(active_agents, 1):
             try:
-                logger.info(f"\n[execute_task_with_team] Executing agent {idx}/{len(active_agents)}")
-                logger.info(f"[execute_task_with_team] Agent details - ID: {agent.agent_id}, "
-                          f"Priority: {agent.priority}, Accuracy: {agent.accuracy_threshold}, "
-                          f"Success Rate: {agent.success_rate}")
+                logger.info("-"*60)
+                logger.info(f"[AGENT {idx}/{len(active_agents)}] Starting execution for Agent: {agent['agent_id']}")
+                logger.info(f"[AGENT {idx}/{len(active_agents)}] Details:")
+                logger.info(f"  - Name: {agent['agent_name']}")
+                logger.info(f"  - Priority: {agent['priority']}")
+                logger.info(f"  - Accuracy: {agent['accuracy']}")
+                logger.info(f"  - Success Rate: {agent['success']}")
+                
+                # Create workflow step
+                try:
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO workflow_steps (
+                            workflow_id,
+                            agent_id,
+                            status,
+                            created_at
+                        ) VALUES (%s, %s, %s, NOW())
+                    """, (workflow_id, agent['agent_id'], 'in_progress'))
+                    step_id = cursor.lastrowid
+                    conn.commit()
+                    logger.info(f"[WORKFLOW] Created step {step_id} for agent {agent['agent_id']}")
+                except Exception as e:
+                    logger.error(f"[WORKFLOW] Error creating workflow step: {str(e)}", exc_info=True)
+                finally:
+                    safe_close_connection(conn, cursor)
                 
                 # Prepare message with context
                 message = {
                     "task_description": task.description,
                     "requirements": task.requirements,
-                    "conversation_context": conversation_context
+                    "conversation_context": conversation_context,
+                    "agent_config": {
+                        "accuracy_threshold": agent['accuracy'],
+                        "success_rate": agent['success'],
+                        "priority": agent['priority']
+                    }
                 }
-                
-                logger.debug(f"[execute_task_with_team] Sending message to agent: {json.dumps(message, indent=2)}")
+                logger.debug(f"[AGENT {idx}/{len(active_agents)}] Prepared message: {json.dumps(message, indent=2)}")
                 
                 # Execute with agent
-                result = agent.execute_with_tools(json.dumps(message))
-                logger.info(f"[execute_task_with_team] Received result from agent {agent.agent_id}")
-                logger.debug(f"[execute_task_with_team] Agent result: {json.dumps(result, indent=2)}")
+                logger.info(f"[AGENT {idx}/{len(active_agents)}] Executing with tools...")
+                agent_instance = initialize_agent_from_db(agent['agent_id'])
+                if not agent_instance:
+                    raise ValueError(f"Could not initialize agent {agent['agent_id']}")
+                
+                result = agent_instance.execute_with_tools(json.dumps(message))
+                logger.info(f"[AGENT {idx}/{len(active_agents)}] Execution completed")
+                logger.debug(f"[AGENT {idx}/{len(active_agents)}] Raw result: {json.dumps(result, indent=2)}")
+                
+                # Update workflow step
+                try:
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        UPDATE workflow_steps 
+                        SET status = %s,
+                            tool_responses = %s,
+                            updated_at = NOW()
+                        WHERE workflow_id = %s AND agent_id = %s
+                    """, (
+                        'completed' if result.get("status") == "success" else 'failed',
+                        json.dumps(result.get('tool_results', [])),
+                        workflow_id,
+                        agent['agent_id']
+                    ))
+                    conn.commit()
+                except Exception as e:
+                    logger.error(f"[WORKFLOW] Error updating workflow step: {str(e)}", exc_info=True)
+                finally:
+                    safe_close_connection(conn, cursor)
                 
                 if result.get("status") == "success":
                     successful_agents += 1
-                    logger.info(f"[execute_task_with_team] Agent {agent.agent_id} execution successful")
-                    
-                    # Extract response text for context
-                    response_text = result.get("llm_response", "")
-                    if isinstance(response_text, dict):
-                        response_text = json.dumps(response_text)
-                    
-                    # Add to conversation context
-                    context_entry = {
-                        "agent_id": agent.agent_id,
-                        "priority": agent.priority,
-                        "accuracy": agent.accuracy_threshold,
-                        "success_rate": agent.success_rate,
-                        "response": response_text
-                    }
-                    conversation_context.append(context_entry)
-                    logger.debug(f"[execute_task_with_team] Added to conversation context: {json.dumps(context_entry, indent=2)}")
-                    
-                    # Add to final results
-                    result_entry = {
-                        "agent_id": agent.agent_id,
-                        "priority": agent.priority,
-                        "accuracy": agent.accuracy_threshold,
-                        "success_rate": agent.success_rate,
-                        "result": result
-                    }
-                    final_results.append(result_entry)
-                    logger.debug(f"[execute_task_with_team] Added to final results: {json.dumps(result_entry, indent=2)}")
+                    logger.info(f"[AGENT {idx}/{len(active_agents)}] Execution successful")
                 else:
-                    logger.warning(f"[execute_task_with_team] Agent {agent.agent_id} execution failed")
-                    logger.warning(f"[execute_task_with_team] Failure details: {json.dumps(result, indent=2)}")
-                    
+                    logger.warning(f"[AGENT {idx}/{len(active_agents)}] Execution failed")
+                    logger.warning(f"[AGENT {idx}/{len(active_agents)}] Failure reason: {result.get('error', 'Unknown')}")
+                
+                # Add to conversation context
+                context_entry = {
+                    "agent_id": agent['agent_id'],
+                    "agent_name": agent['agent_name'],
+                    "priority": agent['priority'],
+                    "accuracy": agent['accuracy'],
+                    "success_rate": agent['success'],
+                    "response": result.get('llm_response', '')
+                }
+                conversation_context.append(context_entry)
+                logger.debug(f"[AGENT {idx}/{len(active_agents)}] Added to conversation context: {json.dumps(context_entry, indent=2)}")
+                
+                # Add to final results
+                result_entry = {
+                    "agent_id": agent['agent_id'],
+                    "agent_name": agent['agent_name'],
+                    "priority": agent['priority'],
+                    "accuracy": agent['accuracy'],
+                    "success_rate": agent['success'],
+                    "result": {
+                        "status": result.get("status", "failed"),
+                        "llm_response": result.get("llm_response", ""),
+                        "tool_results": result.get("tool_results", [])
+                    }
+                }
+                final_results.append(result_entry)
+                logger.debug(f"[AGENT {idx}/{len(active_agents)}] Added to final results: {json.dumps(result_entry, indent=2)}")
+                
             except Exception as e:
-                logger.error(f"[execute_task_with_team] Error with agent {agent.agent_id}: {str(e)}", exc_info=True)
+                logger.error(f"[AGENT {idx}/{len(active_agents)}] Execution error: {str(e)}", exc_info=True)
                 continue
+        
+        # Determine final status
+        logger.info("[TEAM VALIDATION] Determining final status")
+        final_status = "completed" if successful_agents > 0 else "failed"
+        logger.info(f"[TEAM VALIDATION] Final status determined: {final_status}")
+        
+        # Update workflow status
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE workflows 
+                SET status = %s,
+                    response_data = %s,
+                    updated_at = NOW()
+                WHERE id = %s
+            """, (
+                final_status,
+                json.dumps({
+                    'results': final_results,
+                    'conversation_context': conversation_context
+                }),
+                workflow_id
+            ))
+            conn.commit()
+            logger.info(f"[WORKFLOW] Updated workflow {workflow_id} status to {final_status}")
+        except Exception as e:
+            logger.error(f"[WORKFLOW] Error updating workflow status: {str(e)}", exc_info=True)
+        finally:
+            safe_close_connection(conn, cursor)
         
         # Calculate execution time
         end_time = datetime.utcnow()
         execution_time = (end_time - start_time).total_seconds()
-        
-        # Determine final status
-        final_status = "completed" if successful_agents > 0 else "failed"
-        logger.info(f"[execute_task_with_team] Task execution completed")
-        logger.info(f"[execute_task_with_team] Final status: {final_status}")
-        logger.info(f"[execute_task_with_team] Execution time: {execution_time:.2f} seconds")
-        logger.info(f"[execute_task_with_team] Successful agents: {successful_agents}/{len(active_agents)}")
+        logger.info(f"[EXECUTION TIME] Total execution time: {execution_time:.2f} seconds")
         
         result = {
+            'workflow_id': workflow_id,
             'final_status': final_status,
             'execution_time': execution_time,
             'successful_agents': successful_agents,
             'total_agents': len(active_agents),
             'conversation_context': conversation_context,
             'results': final_results,
-            'completion_time': end_time.isoformat()
+            'priority_groups': sorted(priority_groups.keys(), reverse=True),
+            'execution_order': execution_order
         }
         
-        logger.debug(f"[execute_task_with_team] Final result: {json.dumps(result, indent=2)}")
+        logger.info("\n[EXECUTION COMPLETE] Task execution completed successfully")
+        logger.info(f"[EXECUTION SUMMARY]")
+        logger.info(f"  - Final Status: {final_status}")
+        logger.info(f"  - Execution Time: {execution_time:.2f} seconds")
+        logger.info(f"  - Successful Agents: {successful_agents}/{len(active_agents)}")
+        logger.info("="*80)
+        
+        logger.debug(f"[FINAL RESULT] {json.dumps(result, indent=2)}")
         return result
         
     except Exception as e:
-        logger.error(f"[execute_task_with_team] Task execution failed with error: {str(e)}", exc_info=True)
+        logger.error("[EXECUTION FAILED] Task execution failed with error", exc_info=True)
+        logger.error(f"[ERROR DETAILS] {str(e)}")
         return {
+            'workflow_id': workflow_id,
             'final_status': 'failed',
             'error': str(e),
-            'conversation_context': conversation_context
+            'conversation_context': conversation_context if 'conversation_context' in locals() else [],
+            'results': final_results if 'final_results' in locals() else [],
+            'total_agents': len(active_agents) if 'active_agents' in locals() else 0,
+            'successful_agents': successful_agents if 'successful_agents' in locals() else 0,
+            'priority_groups': sorted(priority_groups.keys(), reverse=True) if priority_groups else [],
+            'execution_order': execution_order if 'execution_order' in locals() else []
         }
 
 def execute_agent_task(agent: Any, task: TeamTask, context: Dict[str, Any]) -> Dict[str, Any]:

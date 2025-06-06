@@ -43,26 +43,32 @@ class OrchestratorService {
         try {
             logger.info('[Orchestrator] Processing chat message:', messageData);
 
-            // Prepare team configuration
-            const teamConfig = messageData.context?.team_config || this.defaultTeamConfig;
-
-            // Send request to ML service with correct payload format
-            const response = await axios.post(`${ML_SERVICE_URL}/team/execute`, {
-                team_config: teamConfig,
-                task: {
-                    description: messageData.content,
-                    requirements: {
-                        min_accuracy: 0.85,
-                        max_time: 300,
-                        output_format: "text",
-                        context: {
-                            user_id: messageData.userId,
-                            session_id: messageData.sessionId,
-                            conversation_history: messageData.context?.conversation_history || []
-                        }
-                    }
+            // Send request to ML service with all required fields
+            const mlRequest = {
+                content: messageData.content,
+                userId: messageData.userId,
+                sessionId: messageData.sessionId,
+                context: {
+                    team_id: messageData.context?.team_config?.team_id,
+                    team_config: {
+                        ...messageData.context?.team_config,
+                        members: messageData.context?.team_config?.members || [{
+                            agent_id: messageData.context?.team_config?.team_id,
+                            priority: 1,
+                            accuracy_threshold: 0.8,
+                            success_rate: 0.9,
+                            role: "processor"
+                        }]
+                    },
+                    conversation_settings: messageData.context?.conversation_settings || {},
+                    conversation_history: messageData.context?.conversation_history || [],
+                    documents: messageData.context?.documents || []
                 }
-            });
+            };
+
+            logger.info('[Orchestrator] Sending request to ML service:', mlRequest);
+
+            const response = await axios.post(`${ML_SERVICE_URL}/team/execute`, mlRequest);
 
             logger.info('[Orchestrator] Received response from ML service:', response.data);
 

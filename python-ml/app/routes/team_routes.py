@@ -45,74 +45,71 @@ def _convert_priority(priority_value: Any) -> TaskPriority:
 @bp.route('/execute', methods=['POST'])
 @log_execution
 def execute_team_task():
-    """Execute a task using a team of agents"""
-    conn = None
-    cursor = None
+    """Execute a task with a team of agents"""
     start_time = datetime.now()
     
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({
-                "status": "error",
-                "message": "Request body is required"
-            }), 400
-
-        # Validate required fields
-        required_fields = ['team_config', 'task']
-        if not all(field in data for field in required_fields):
-            return jsonify({
-                "status": "error",
-                "message": f"Missing required fields: {', '.join(required_fields)}"
-            }), 400
-
-        # Get team_id from config, fallback to UUID if not provided
-        team_id = str(data['team_config'].get('team_id', uuid.uuid4()))
+        logger.info("\n[TEAM TASK EXECUTION] Starting new team task execution")
+        logger.info(f"[REQUEST DATA] {json.dumps(data, indent=2)}")
         
-        # Create team instance with the provided team_id
-        team = Team(
-            team_id=team_id,
-            name=data['team_config'].get('name', 'Task Team'),
-            description=data['team_config'].get('description', 'Team for task execution')
-        )
-
-        # Add team members
-        for member_config in data['team_config'].get('members', []):
-            # Convert priority value to TaskPriority enum
-            priority = _convert_priority(member_config.get('priority'))
-            
-            member = TeamMember(
-                agent_id=member_config['agent_id'],
-                priority=priority,
-                accuracy_threshold=member_config.get('accuracy_threshold', 0.8),
-                success_rate=member_config.get('success_rate', 0.9)
-            )
-            team.add_member(member)
-
-        if not team.members:
+        # Validate request data
+        if not data or 'team_id' not in data or 'task' not in data:
+            error_msg = "Invalid request data: missing required fields (team_id, task)"
+            logger.error(f"[VALIDATION ERROR] {error_msg}")
             return jsonify({
-                "status": "error",
-                "message": "No team members specified"
+                'status': 'error',
+                'message': error_msg
             }), 400
-
-        # Create task
+        
+        # Get team
+        try:
+            team = get_team_by_id(data['team_id'])
+            if not team:
+                error_msg = f"Team not found with ID: {data['team_id']}"
+                logger.error(f"[TEAM ERROR] {error_msg}")
+                return jsonify({
+                    'status': 'error',
+                    'message': error_msg
+                }), 404
+            
+            logger.info(f"[TEAM DETAILS] ID: {team.team_id}, Name: {team.name}")
+            logger.debug(f"[TEAM CONFIG] {json.dumps(data.get('team_config', {}), indent=2)}")
+            
+        except Exception as e:
+            error_msg = f"Error retrieving team: {str(e)}"
+            logger.error(f"[TEAM ERROR] {error_msg}", exc_info=True)
+            return jsonify({
+                'status': 'error',
+                'message': error_msg
+            }), 500
+        
+        # Generate task ID
+        task_id = str(uuid.uuid4())
+        logger.info(f"[TASK DETAILS] Generated Task ID: {task_id}")
+        
+        # Create task object
         task = TeamTask(
-            task_id=str(uuid.uuid4()),
+            task_id=task_id,
             description=data['task'].get('description', ''),
             requirements=data['task'].get('requirements', {})
         )
         team.assign_task(task)
-
+        
+        logger.info(f"[TASK DETAILS] Description: {task.description}")
+        logger.debug(f"[TASK REQUIREMENTS] {json.dumps(task.requirements, indent=2)}")
+        
         # Store initial task record
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
             
+            # Store task record
             insert_query = """
                 INSERT INTO team_messages (
                     team_id, task_id, task_description, task_requirements, 
-                    team_config, status
-                ) VALUES (%s, %s, %s, %s, %s, %s)
+                    team_config, status, created_at, updated_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
             """
             
             cursor.execute(insert_query, (
@@ -125,22 +122,30 @@ def execute_team_task():
             ))
             
             conn.commit()
-            logger.info(f"Stored initial team task record for task {task.task_id}")
+            logger.info(f"[DATABASE] Stored initial team task record for task {task.task_id}")
             
         except Exception as db_error:
-            logger.error(f"Database error storing team task: {str(db_error)}", exc_info=True)
+            error_msg = f"Database error storing team task: {str(db_error)}"
+            logger.error(f"[DATABASE ERROR] {error_msg}", exc_info=True)
             if conn:
                 conn.rollback()
-            raise
+            return jsonify({
+                'status': 'error',
+                'message': error_msg
+            }), 500
         finally:
             safe_close_connection(conn, cursor)
-
+        
         # Execute task with team
+        logger.info("[EXECUTION] Starting task execution with team")
         final_result = execute_task_with_team(team, task)
+        logger.info("[EXECUTION] Task execution completed")
+        logger.debug(f"[EXECUTION RESULT] {json.dumps(final_result, indent=2)}")
         
         # Calculate processing time
         processing_time = int((datetime.now() - start_time).total_seconds())
-
+        logger.info(f"[TIMING] Total processing time: {processing_time} seconds")
+        
         # Update task record with results
         try:
             conn = get_db_connection()
@@ -152,7 +157,7 @@ def execute_team_task():
                     result = %s,
                     processing_time = %s,
                     agent_responses = %s,
-                    updated_at = CURRENT_TIMESTAMP
+                    updated_at = NOW()
                 WHERE team_id = %s AND task_id = %s
             """
             
@@ -166,61 +171,48 @@ def execute_team_task():
             ))
             
             conn.commit()
-            logger.info(f"Updated team task record with results for task {task.task_id}")
+            logger.info(f"[DATABASE] Updated team task record with results for task {task.task_id}")
             
         except Exception as db_error:
-            logger.error(f"Database error updating team task results: {str(db_error)}", exc_info=True)
+            error_msg = f"Database error updating team task results: {str(db_error)}"
+            logger.error(f"[DATABASE ERROR] {error_msg}", exc_info=True)
             if conn:
                 conn.rollback()
-            raise
+            return jsonify({
+                'status': 'error',
+                'message': error_msg
+            }), 500
         finally:
             safe_close_connection(conn, cursor)
-
-        return jsonify({
+        
+        # Prepare response
+        response = {
             "status": "success",
-            "team": team.to_dict(),
-            "result": final_result,
-            "processing_time_seconds": processing_time
-        })
-
+            "task_id": task.task_id,
+            "team_id": str(team.team_id),
+            "workflow_id": final_result.get('workflow_id'),
+            "results": final_result.get('results', []),
+            "conversation_context": final_result.get('conversation_context', []),
+            "final_status": final_result.get('final_status', 'failed'),
+            "execution_summary": {
+                "total_agents": final_result.get('total_agents', 0),
+                "successful_executions": final_result.get('successful_agents', 0),
+                "priority_groups": final_result.get('priority_groups', []),
+                "execution_order": final_result.get('execution_order', [])
+            }
+        }
+        
+        logger.info("[RESPONSE] Preparing final response")
+        logger.debug(f"[RESPONSE BODY] {json.dumps(response, indent=2)}")
+        
+        return jsonify(response)
+        
     except Exception as e:
-        logger.error(f"Error executing team task: {str(e)}", exc_info=True)
-        
-        # Store error in database if we have team/task IDs
-        if 'team' in locals() and 'task' in locals():
-            try:
-                conn = get_db_connection()
-                cursor = conn.cursor(dictionary=True)
-                
-                update_query = """
-                    UPDATE team_messages 
-                    SET status = 'failed',
-                        error_message = %s,
-                        processing_time = %s,
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE team_id = %s AND task_id = %s
-                """
-                
-                processing_time = int((datetime.now() - start_time).total_seconds())
-                
-                cursor.execute(update_query, (
-                    str(e),
-                    processing_time,
-                    team.team_id,
-                    task.task_id
-                ))
-                
-                conn.commit()
-                
-            except Exception as db_error:
-                logger.error(f"Database error storing team task error: {str(db_error)}", exc_info=True)
-            finally:
-                safe_close_connection(conn, cursor)
-        
+        error_msg = f"Error executing team task: {str(e)}"
+        logger.error(f"[ERROR] {error_msg}", exc_info=True)
         return jsonify({
-            "status": "error",
-            "message": str(e),
-            "details": traceback.format_exc()
+            'status': 'error',
+            'message': error_msg
         }), 500
 
 @bp.route('/create', methods=['POST'])
