@@ -1527,3 +1527,2488 @@
   "responseStatus": "completed"
 }
 
+[2025-06-08T19:50:38.171Z] [INFO] POST /api/conversations
+{
+  "body": {
+    "title": "do you have access to nfl favo...",
+    "started_at": "2025-06-08T19:50:38.080Z",
+    "ended_at": "2025-06-08T19:50:38.080Z",
+    "conversation_data": [
+      {
+        "role": "user",
+        "content": "do you have access to nfl favorite team data",
+        "timestamp": "2025-06-08T19:33:16.289Z"
+      },
+      {
+        "role": "agent",
+        "content": "Certainly! The dataset in question, \"nfl-favorite-team,\" can be found at the GitHub repository: https://github.com/fivethirtyeight/data/tree/master/nfl-favorite-team. This dataset likely contains information related to NFL fans' favorite teams.\n\nFrom the vector store search results, it appears that there are multiple entries related to the Indianapolis Colts as a favorite team, with various attributes like \"bmk,\" \"uni,\" \"cch,\" and others listed for each entry. The similarity scores for these entries are consistent at approximately 0.7675.\n\nUnfortunately, the response from the search indicates that there is no specific guidance on how to retrieve NFL favorite team data from the vector database. This limitation may hinder direct access to detailed information about NFL fans' favorite teams beyond the provided sample entries for the Indianapolis Colts.\n\nWhile the search results provide insights into the presence of data related to NFL favorite teams in the dataset, the lack of specific instructions on retrieval may restrict access to a broader range of team preferences and associated metrics. If further details are required, direct exploration of the dataset through the provided GitHub link may be necessary.\n\nNFL Team Statistics\nAverage scores across different metrics for each NFL team\n\n[VISUALIZATION_DATA][{\"name\":\"Green Bay Packers\",\"value\":77.1875},{\"name\":\"Pittsburgh Steelers\",\"value\":69.875},{\"name\":\"Kansas City Chiefs\",\"value\":67.4375},{\"name\":\"New England Patriots\",\"value\":65.8125},{\"name\":\"Indianapolis Colts\",\"value\":64.75},{\"name\":\"Buffalo Bills\",\"value\":63.375},{\"name\":\"Carolina Panthers\",\"value\":59.3125},{\"name\":\"Seattle Seahawks\",\"value\":58.9375},{\"name\":\"Baltimore Ravens\",\"value\":58},{\"name\":\"Arizona Cardinals\",\"value\":57.375},{\"name\":\"Philadelphia Eagles\",\"value\":55},{\"name\":\"New Orleans Saints\",\"value\":54.8125},{\"name\":\"Minnesota Vikings\",\"value\":52.8125},{\"name\":\"Houston Texans\",\"value\":52.125},{\"name\":\"New York Giants\",\"value\":52.0625},{\"name\":\"Dallas Cowboys\",\"value\":51.375},{\"name\":\"Denver Broncos\",\"value\":51.125},{\"name\":\"Detroit Lions\",\"value\":50.125},{\"name\":\"Atlanta Falcons\",\"value\":47.5625},{\"name\":\"Jacksonville Jaguars\",\"value\":46.75},{\"name\":\"Miami Dolphins\",\"value\":41.6875},{\"name\":\"Chicago Bears\",\"value\":41.3125},{\"name\":\"Cincinnati Bengals\",\"value\":40.9375},{\"name\":\"Oakland Raiders\",\"value\":40},{\"name\":\"Cleveland Browns\",\"value\":38.3125},{\"name\":\"Tampa Bay Buccaneers\",\"value\":38.0625},{\"name\":\"Los Angeles Rams\",\"value\":37.75},{\"name\":\"New York Jets\",\"value\":34.5625},{\"name\":\"San Diego Chargers\",\"value\":34.3125},{\"name\":\"Tennessee Titans\",\"value\":33.625},{\"name\":\"Washington Redskins\",\"value\":32},{\"name\":\"San Francisco 49ers\",\"value\":31.75}][/VISUALIZATION_DATA]",
+        "timestamp": "2025-06-08T19:33:46.937Z",
+        "metadata": {
+          "team_id": "77",
+          "processing_time": 0,
+          "confidence_score": 1,
+          "agent_contributions": [
+            {
+              "agent_id": 92,
+              "confidence": 0
+            }
+          ],
+          "has_tool_data": true,
+          "has_visualization": true
+        }
+      },
+      {
+        "role": "user",
+        "content": "hi",
+        "timestamp": "2025-06-08T19:39:58.685Z"
+      },
+      {
+        "role": "agent",
+        "content": "Task executed successfully",
+        "timestamp": "2025-06-08T19:40:09.023Z",
+        "metadata": {
+          "team_id": "77",
+          "processing_time": 0,
+          "confidence_score": 1,
+          "agent_contributions": [
+            {
+              "agent_id": 92,
+              "confidence": 0
+            }
+          ],
+          "has_tool_data": false,
+          "has_visualization": false
+        }
+      },
+      {
+        "role": "user",
+        "content": "hi",
+        "timestamp": "2025-06-08T19:40:54.434Z"
+      },
+      {
+        "role": "agent",
+        "content": "Task executed successfully",
+        "timestamp": "2025-06-08T19:41:02.090Z",
+        "metadata": {
+          "team_id": "77",
+          "processing_time": 0,
+          "confidence_score": 1,
+          "agent_contributions": [
+            {
+              "agent_id": 92,
+              "confidence": 0
+            }
+          ],
+          "has_tool_data": false,
+          "has_visualization": false
+        }
+      }
+    ],
+    "team_id": 77,
+    "temperature": 0.7,
+    "token_limit": 512,
+    "start_prompt": "You have access to github open data, that you can pull from when needed.",
+    "end_prompt": "Please validate if the response contains a valid GitHub dataset URL from our available datasets. The response should include:\n1. A direct URL to one of these datasets:\n   - Avocado Prices\n   - Comic Characters\n   - Air Quality\n   - CO2 Emissions\n   - COVID-19 Data\n   - Country List\n   - Currency Codes\n   - Iris Dataset\n2. The URL should be from raw.githubusercontent.com\n3. The data should be in CSV format\n4. The response should clearly indicate which dataset is being referenced\n\nIf these criteria are met, the response is valid and the data should be retrieved and analyzed.",
+    "style": ""
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:50:38.471Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:50:52.638Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hi",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:50:52.639Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 2,
+  "hasContext": true
+}
+
+[2025-06-08T19:50:52.657Z] [INFO] Using most recent conversation settings:
+{
+  "id": 239,
+  "team_id": 77,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You have access to github open data, that you can pull from when needed.",
+  "end_prompt": "Please validate if the response contains a valid GitHub dataset URL from our available datasets. The response should include:\n1. A direct URL to one of these datasets:\n   - Avocado Prices\n   - Comic Characters\n   - Air Quality\n   - CO2 Emissions\n   - COVID-19 Data\n   - Country List\n   - Currency Codes\n   - Iris Dataset\n2. The URL should be from raw.githubusercontent.com\n3. The data should be in CSV format\n4. The response should clearly indicate which dataset is being referenced\n\nIf these criteria are met, the response is valid and the data should be retrieved and analyzed.",
+  "style": "",
+  "created_at": "2025-06-08T19:50:38.000Z"
+}
+
+[2025-06-08T19:50:52.661Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T19:50:52.661Z] [INFO] Sending request to ML service
+{}
+
+[2025-06-08T19:51:04.964Z] [INFO] Received response from ML service
+{
+  "processingTimeMs": 12301,
+  "responseStatus": 200,
+  "hasData": true
+}
+
+[2025-06-08T19:51:04.965Z] [INFO] [Orchestrator:processTeamResponse] Starting response processing
+{
+  "sessionId": 77,
+  "hasTeamResponse": true
+}
+
+[2025-06-08T19:51:04.968Z] [INFO] [Orchestrator:processTeamResponse] Processing agent results
+{}
+
+[2025-06-08T19:51:04.971Z] [INFO] [Orchestrator:processTeamResponse] Creating response metadata
+{}
+
+[2025-06-08T19:51:04.971Z] [INFO] [Orchestrator:processTeamResponse] Response processing completed
+{
+  "processingTimeMs": 6,
+  "responseLength": 26,
+  "hasToolData": false,
+  "hasVisualization": false
+}
+
+[2025-06-08T19:51:05.021Z] [INFO] Conversation history stored
+{
+  "storageTimeMs": 48
+}
+
+[2025-06-08T19:51:05.022Z] [INFO] Processing completed successfully
+{
+  "totalProcessingTimeMs": 12363
+}
+
+[2025-06-08T19:51:05.023Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T19:54:08.350Z] [INFO] POST /api/conversations
+{
+  "body": {
+    "title": "hi",
+    "started_at": "2025-06-08T19:54:08.347Z",
+    "ended_at": "2025-06-08T19:54:08.347Z",
+    "conversation_data": [
+      {
+        "role": "user",
+        "content": "hi",
+        "timestamp": "2025-06-08T19:50:52.627Z"
+      },
+      {
+        "role": "agent",
+        "content": "Task executed successfully",
+        "timestamp": "2025-06-08T19:51:04.973Z",
+        "metadata": {
+          "team_id": "77",
+          "processing_time": 0,
+          "confidence_score": 1,
+          "agent_contributions": [
+            {
+              "agent_id": 92,
+              "confidence": 0
+            }
+          ],
+          "has_tool_data": false,
+          "has_visualization": false
+        }
+      }
+    ],
+    "team_id": 77,
+    "temperature": 0.7,
+    "token_limit": 512,
+    "start_prompt": "You have access to github open data, that you can pull from when needed.",
+    "end_prompt": "Please validate if the response contains a valid GitHub dataset URL from our available datasets. The response should include:\n1. A direct URL to one of these datasets:\n   - Avocado Prices\n   - Comic Characters\n   - Air Quality\n   - CO2 Emissions\n   - COVID-19 Data\n   - Country List\n   - Currency Codes\n   - Iris Dataset\n2. The URL should be from raw.githubusercontent.com\n3. The data should be in CSV format\n4. The response should clearly indicate which dataset is being referenced\n\nIf these criteria are met, the response is valid and the data should be retrieved and analyzed.",
+    "style": ""
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:54:08.394Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:54:15.994Z] [INFO] GET /api/teams/75
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:54:16.063Z] [INFO] GET /api/teams/75
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:54:16.082Z] [INFO] GET /api/documents?team_id=75
+{
+  "body": {},
+  "query": {
+    "team_id": "75"
+  },
+  "params": {}
+}
+
+[2025-06-08T19:54:16.083Z] [INFO] GET /api/teams/75/conversation-settings
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:54:16.159Z] [INFO] GET /api/documents?team_id=75
+{
+  "body": {},
+  "query": {
+    "team_id": "75"
+  },
+  "params": {}
+}
+
+[2025-06-08T19:54:21.218Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hi",
+    "userId": "user-1",
+    "sessionId": 75,
+    "context": {
+      "team_id": 75,
+      "team_config": {
+        "name": "team_agentic",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 10,
+            "priority": 3,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 11,
+            "priority": 3,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 13,
+            "priority": 3,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 14,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 15,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:54:21.219Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 75,
+  "contentLength": 2,
+  "hasContext": true
+}
+
+[2025-06-08T19:54:21.232Z] [INFO] Using most recent conversation settings:
+{
+  "id": 240,
+  "team_id": 77,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You have access to github open data, that you can pull from when needed.",
+  "end_prompt": "Please validate if the response contains a valid GitHub dataset URL from our available datasets. The response should include:\n1. A direct URL to one of these datasets:\n   - Avocado Prices\n   - Comic Characters\n   - Air Quality\n   - CO2 Emissions\n   - COVID-19 Data\n   - Country List\n   - Currency Codes\n   - Iris Dataset\n2. The URL should be from raw.githubusercontent.com\n3. The data should be in CSV format\n4. The response should clearly indicate which dataset is being referenced\n\nIf these criteria are met, the response is valid and the data should be retrieved and analyzed.",
+  "style": "",
+  "created_at": "2025-06-08T19:54:08.000Z"
+}
+
+[2025-06-08T19:54:21.235Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T19:54:21.235Z] [INFO] Sending request to ML service
+{}
+
+[2025-06-08T19:54:31.831Z] [INFO] Received response from ML service
+{
+  "processingTimeMs": 10595,
+  "responseStatus": 200,
+  "hasData": true
+}
+
+[2025-06-08T19:54:31.832Z] [INFO] [Orchestrator:processTeamResponse] Starting response processing
+{
+  "sessionId": 75,
+  "hasTeamResponse": true
+}
+
+[2025-06-08T19:54:31.834Z] [INFO] [Orchestrator:processTeamResponse] Processing agent results
+{}
+
+[2025-06-08T19:54:31.836Z] [INFO] [Orchestrator:processTeamResponse] Processing tool results
+{}
+
+[2025-06-08T19:54:31.838Z] [INFO] [Orchestrator:processTeamResponse] Processing tool results
+{}
+
+[2025-06-08T19:54:31.840Z] [INFO] [Orchestrator:processTeamResponse] Creating response metadata
+{}
+
+[2025-06-08T19:54:31.841Z] [INFO] [Orchestrator:processTeamResponse] Response processing completed
+{
+  "processingTimeMs": 9,
+  "responseLength": 26,
+  "hasToolData": false,
+  "hasVisualization": false
+}
+
+[2025-06-08T19:54:31.870Z] [INFO] Conversation history stored
+{
+  "storageTimeMs": 28
+}
+
+[2025-06-08T19:54:31.871Z] [INFO] Processing completed successfully
+{
+  "totalProcessingTimeMs": 10638
+}
+
+[2025-06-08T19:54:31.872Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 75,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T19:54:35.993Z] [INFO] POST /api/conversations
+{
+  "body": {
+    "title": "hi",
+    "started_at": "2025-06-08T19:54:35.996Z",
+    "ended_at": "2025-06-08T19:54:35.996Z",
+    "conversation_data": [
+      {
+        "role": "user",
+        "content": "hi",
+        "timestamp": "2025-06-08T19:54:21.223Z"
+      },
+      {
+        "role": "agent",
+        "content": "Task executed successfully",
+        "timestamp": "2025-06-08T19:54:31.842Z",
+        "metadata": {
+          "team_id": "75",
+          "processing_time": 0,
+          "confidence_score": 1,
+          "agent_contributions": [
+            {
+              "agent_id": 10,
+              "confidence": 0
+            },
+            {
+              "agent_id": 13,
+              "confidence": 0
+            },
+            {
+              "agent_id": 11,
+              "confidence": 0
+            },
+            {
+              "agent_id": 14,
+              "confidence": 0
+            },
+            {
+              "agent_id": 15,
+              "confidence": 0
+            }
+          ],
+          "has_tool_data": false,
+          "has_visualization": false
+        }
+      }
+    ],
+    "team_id": 75,
+    "temperature": 0.7,
+    "token_limit": 512,
+    "start_prompt": "You are Banking Analyst in Credit department.",
+    "end_prompt": "",
+    "style": ""
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:54:36.024Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:54:40.104Z] [INFO] GET /api/teams/27
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:54:40.171Z] [INFO] GET /api/teams/27
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:54:40.173Z] [INFO] GET /api/documents?team_id=27
+{
+  "body": {},
+  "query": {
+    "team_id": "27"
+  },
+  "params": {}
+}
+
+[2025-06-08T19:54:40.184Z] [INFO] GET /api/teams/27/conversation-settings
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:54:40.262Z] [INFO] GET /api/documents?team_id=27
+{
+  "body": {},
+  "query": {
+    "team_id": "27"
+  },
+  "params": {}
+}
+
+[2025-06-08T19:54:43.704Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hi",
+    "userId": "user-1",
+    "sessionId": 27,
+    "context": {
+      "team_id": 27,
+      "team_config": {
+        "name": "team_dev",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 10,
+            "priority": 3,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 11,
+            "priority": 3,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:54:43.705Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 27,
+  "contentLength": 2,
+  "hasContext": true
+}
+
+[2025-06-08T19:54:43.745Z] [INFO] Using most recent conversation settings:
+{
+  "id": 241,
+  "team_id": 75,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You are Banking Analyst in Credit department.",
+  "end_prompt": "",
+  "style": "",
+  "created_at": "2025-06-08T19:54:36.000Z"
+}
+
+[2025-06-08T19:54:43.746Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T19:54:43.747Z] [INFO] Sending request to ML service
+{}
+
+[2025-06-08T19:54:51.244Z] [INFO] Received response from ML service
+{
+  "processingTimeMs": 7496,
+  "responseStatus": 200,
+  "hasData": true
+}
+
+[2025-06-08T19:54:51.246Z] [INFO] [Orchestrator:processTeamResponse] Starting response processing
+{
+  "sessionId": 27,
+  "hasTeamResponse": true
+}
+
+[2025-06-08T19:54:51.250Z] [INFO] [Orchestrator:processTeamResponse] Processing agent results
+{}
+
+[2025-06-08T19:54:51.253Z] [INFO] [Orchestrator:processTeamResponse] Processing tool results
+{}
+
+[2025-06-08T19:54:51.255Z] [INFO] [Orchestrator:processTeamResponse] Creating response metadata
+{}
+
+[2025-06-08T19:54:51.256Z] [INFO] [Orchestrator:processTeamResponse] Response processing completed
+{
+  "processingTimeMs": 11,
+  "responseLength": 26,
+  "hasToolData": false,
+  "hasVisualization": false
+}
+
+[2025-06-08T19:54:51.282Z] [INFO] Conversation history stored
+{
+  "storageTimeMs": 24
+}
+
+[2025-06-08T19:54:51.283Z] [INFO] Processing completed successfully
+{
+  "totalProcessingTimeMs": 7537
+}
+
+[2025-06-08T19:54:51.284Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 27,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T20:03:36.802Z] [INFO] GET /api/agent-interactions?team_id=76
+{
+  "body": {},
+  "query": {
+    "team_id": "76"
+  },
+  "params": {}
+}
+
+[2025-06-08T20:03:36.805Z] [INFO] Executing query:
+{
+  "query": "\n                SELECT \n                    m.id,\n                    m.conversation_id,\n                    COALESCE(sa.name, 'OpenAI') as source_agent,\n                    COALESCE(ta.name, 'OpenAI') as target_agent,\n                    m.interaction_type,\n                    m.status,\n                    m.created_at as timestamp,\n                    m.content,\n                    m.processed_message,\n                    m.model_response\n                FROM messages m\n                LEFT JOIN agents sa ON m.sender_id = sa.id\n                LEFT JOIN agents ta ON m.receiver_id = ta.id\n                WHERE 1=1\n             AND m.team_id = ? ORDER BY m.created_at DESC",
+  "params": [
+    "76"
+  ]
+}
+
+[2025-06-08T20:03:36.807Z] [INFO] GET /api/teams/76
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:03:36.818Z] [INFO] Found 0 interactions
+{}
+
+[2025-06-08T20:03:36.829Z] [INFO] GET /api/agent-interactions?team_id=76
+{
+  "body": {},
+  "query": {
+    "team_id": "76"
+  },
+  "params": {}
+}
+
+[2025-06-08T20:03:36.831Z] [INFO] Executing query:
+{
+  "query": "\n                SELECT \n                    m.id,\n                    m.conversation_id,\n                    COALESCE(sa.name, 'OpenAI') as source_agent,\n                    COALESCE(ta.name, 'OpenAI') as target_agent,\n                    m.interaction_type,\n                    m.status,\n                    m.created_at as timestamp,\n                    m.content,\n                    m.processed_message,\n                    m.model_response\n                FROM messages m\n                LEFT JOIN agents sa ON m.sender_id = sa.id\n                LEFT JOIN agents ta ON m.receiver_id = ta.id\n                WHERE 1=1\n             AND m.team_id = ? ORDER BY m.created_at DESC",
+  "params": [
+    "76"
+  ]
+}
+
+[2025-06-08T20:03:36.833Z] [INFO] Found 0 interactions
+{}
+
+[2025-06-08T20:03:38.916Z] [INFO] GET /api/teams/75
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:03:38.928Z] [INFO] GET /api/agent-interactions?team_id=75
+{
+  "body": {},
+  "query": {
+    "team_id": "75"
+  },
+  "params": {}
+}
+
+[2025-06-08T20:03:38.929Z] [INFO] Executing query:
+{
+  "query": "\n                SELECT \n                    m.id,\n                    m.conversation_id,\n                    COALESCE(sa.name, 'OpenAI') as source_agent,\n                    COALESCE(ta.name, 'OpenAI') as target_agent,\n                    m.interaction_type,\n                    m.status,\n                    m.created_at as timestamp,\n                    m.content,\n                    m.processed_message,\n                    m.model_response\n                FROM messages m\n                LEFT JOIN agents sa ON m.sender_id = sa.id\n                LEFT JOIN agents ta ON m.receiver_id = ta.id\n                WHERE 1=1\n             AND m.team_id = ? ORDER BY m.created_at DESC",
+  "params": [
+    "75"
+  ]
+}
+
+[2025-06-08T20:03:38.933Z] [INFO] Found 0 interactions
+{}
+
+[2025-06-08T20:03:44.695Z] [INFO] GET /api/teams/75
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:03:44.775Z] [INFO] GET /api/teams/75
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:03:44.777Z] [INFO] GET /api/documents?team_id=75
+{
+  "body": {},
+  "query": {
+    "team_id": "75"
+  },
+  "params": {}
+}
+
+[2025-06-08T20:03:44.786Z] [INFO] GET /api/teams/75/conversation-settings
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:03:44.876Z] [INFO] GET /api/documents?team_id=75
+{
+  "body": {},
+  "query": {
+    "team_id": "75"
+  },
+  "params": {}
+}
+
+[2025-06-08T20:03:47.979Z] [INFO] POST /api/conversations
+{
+  "body": {
+    "title": "hi",
+    "started_at": "2025-06-08T20:03:47.983Z",
+    "ended_at": "2025-06-08T20:03:47.983Z",
+    "conversation_data": [
+      {
+        "role": "user",
+        "content": "hi",
+        "timestamp": "2025-06-08T19:54:43.707Z"
+      },
+      {
+        "role": "agent",
+        "content": "Task executed successfully",
+        "timestamp": "2025-06-08T19:54:51.257Z",
+        "metadata": {
+          "team_id": "27",
+          "processing_time": 0,
+          "confidence_score": 1,
+          "agent_contributions": [
+            {
+              "agent_id": 11,
+              "confidence": 0
+            },
+            {
+              "agent_id": 10,
+              "confidence": 0
+            }
+          ],
+          "has_tool_data": false,
+          "has_visualization": false
+        }
+      }
+    ],
+    "team_id": 75,
+    "temperature": 0.7,
+    "token_limit": 512,
+    "start_prompt": "You are Banking Analyst in Credit department.",
+    "end_prompt": "",
+    "style": ""
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:03:48.005Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:03:53.141Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hi",
+    "userId": "user-1",
+    "sessionId": 75,
+    "context": {
+      "team_id": 75,
+      "team_config": {
+        "name": "team_agentic",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 10,
+            "priority": 3,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 11,
+            "priority": 3,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 13,
+            "priority": 3,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 14,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 15,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:03:53.142Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 75,
+  "contentLength": 2,
+  "hasContext": true
+}
+
+[2025-06-08T20:03:53.149Z] [INFO] Using most recent conversation settings:
+{
+  "id": 242,
+  "team_id": 75,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You are Banking Analyst in Credit department.",
+  "end_prompt": "",
+  "style": "",
+  "created_at": "2025-06-08T20:03:47.000Z"
+}
+
+[2025-06-08T20:03:53.152Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T20:03:53.152Z] [INFO] Sending request to ML service
+{}
+
+[2025-06-08T20:04:03.600Z] [INFO] Received response from ML service
+{
+  "processingTimeMs": 10447,
+  "responseStatus": 200,
+  "hasData": true
+}
+
+[2025-06-08T20:04:03.602Z] [INFO] [Orchestrator:processTeamResponse] Starting response processing
+{
+  "sessionId": 75,
+  "hasTeamResponse": true
+}
+
+[2025-06-08T20:04:03.606Z] [INFO] [Orchestrator:processTeamResponse] Processing agent results
+{}
+
+[2025-06-08T20:04:03.609Z] [INFO] [Orchestrator:processTeamResponse] Processing tool results
+{}
+
+[2025-06-08T20:04:03.614Z] [INFO] [Orchestrator:processTeamResponse] Processing tool results
+{}
+
+[2025-06-08T20:04:03.616Z] [INFO] [Orchestrator:processTeamResponse] Creating response metadata
+{}
+
+[2025-06-08T20:04:03.616Z] [INFO] [Orchestrator:processTeamResponse] Response processing completed
+{
+  "processingTimeMs": 14,
+  "responseLength": 26,
+  "hasToolData": false,
+  "hasVisualization": false
+}
+
+[2025-06-08T20:04:03.640Z] [INFO] Conversation history stored
+{
+  "storageTimeMs": 23
+}
+
+[2025-06-08T20:04:03.642Z] [INFO] Processing completed successfully
+{
+  "totalProcessingTimeMs": 10492
+}
+
+[2025-06-08T20:04:03.643Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 75,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T20:16:57.063Z] [INFO] Database connection established successfully
+{}
+
+[2025-06-08T20:17:07.872Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hi",
+    "userId": "user-1",
+    "sessionId": 75,
+    "context": {
+      "team_id": 75,
+      "team_config": {
+        "name": "team_agentic",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 10,
+            "priority": 3,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 11,
+            "priority": 3,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 13,
+            "priority": 3,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 14,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 15,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:03:53.145Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "75",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 10,
+                "confidence": 0
+              },
+              {
+                "agent_id": 13,
+                "confidence": 0
+              },
+              {
+                "agent_id": 11,
+                "confidence": 0
+              },
+              {
+                "agent_id": 14,
+                "confidence": 0
+              },
+              {
+                "agent_id": 15,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:04:03.617Z"
+        }
+      ],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:17:07.874Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 75,
+  "contentLength": 2,
+  "hasContext": true
+}
+
+[2025-06-08T20:17:07.891Z] [INFO] Using most recent conversation settings:
+{
+  "id": 242,
+  "team_id": 75,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You are Banking Analyst in Credit department.",
+  "end_prompt": "",
+  "style": "",
+  "created_at": "2025-06-08T20:03:47.000Z"
+}
+
+[2025-06-08T20:17:07.893Z] [INFO] Detected simple greeting, handling directly with OpenAI
+{}
+
+[2025-06-08T20:17:09.046Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 75,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T20:17:18.898Z] [INFO] GET /api/teams/76
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:17:18.993Z] [INFO] GET /api/teams/76
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:17:19.000Z] [INFO] GET /api/documents?team_id=76
+{
+  "body": {},
+  "query": {
+    "team_id": "76"
+  },
+  "params": {}
+}
+
+[2025-06-08T20:17:19.003Z] [INFO] GET /api/teams/76/conversation-settings
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:17:19.105Z] [INFO] GET /api/documents?team_id=76
+{
+  "body": {},
+  "query": {
+    "team_id": "76"
+  },
+  "params": {}
+}
+
+[2025-06-08T20:17:25.089Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hello, ",
+    "userId": "user-1",
+    "sessionId": 76,
+    "context": {
+      "team_id": 76,
+      "team_config": {
+        "name": "team_agentic_caspian",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 13,
+            "priority": 3,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          },
+          {
+            "agent_id": 16,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:03:53.145Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "75",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 10,
+                "confidence": 0
+              },
+              {
+                "agent_id": 13,
+                "confidence": 0
+              },
+              {
+                "agent_id": 11,
+                "confidence": 0
+              },
+              {
+                "agent_id": 14,
+                "confidence": 0
+              },
+              {
+                "agent_id": 15,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:04:03.617Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:17:07.763Z"
+        },
+        {
+          "role": "agent",
+          "content": "Hello! How can I assist you with your banking needs today?",
+          "metadata": {
+            "team_id": 75,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:08.998Z"
+        }
+      ],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:17:25.092Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 76,
+  "contentLength": 7,
+  "hasContext": true
+}
+
+[2025-06-08T20:17:25.104Z] [INFO] Using most recent conversation settings:
+{
+  "id": 242,
+  "team_id": 75,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You are Banking Analyst in Credit department.",
+  "end_prompt": "",
+  "style": "",
+  "created_at": "2025-06-08T20:03:47.000Z"
+}
+
+[2025-06-08T20:17:25.106Z] [INFO] Detected simple greeting, handling directly with OpenAI
+{}
+
+[2025-06-08T20:17:26.696Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 76,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T20:17:54.718Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:17:54.847Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:17:54.850Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T20:17:54.863Z] [INFO] GET /api/teams/77/conversation-settings
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:17:54.972Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T20:17:59.747Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hi",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:03:53.145Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "75",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 10,
+                "confidence": 0
+              },
+              {
+                "agent_id": 13,
+                "confidence": 0
+              },
+              {
+                "agent_id": 11,
+                "confidence": 0
+              },
+              {
+                "agent_id": 14,
+                "confidence": 0
+              },
+              {
+                "agent_id": 15,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:04:03.617Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:17:07.763Z"
+        },
+        {
+          "role": "agent",
+          "content": "Hello! How can I assist you with your banking needs today?",
+          "metadata": {
+            "team_id": 75,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:08.998Z"
+        },
+        {
+          "role": "user",
+          "content": "hello, ",
+          "timestamp": "2025-06-08T20:17:25.090Z"
+        },
+        {
+          "role": "agent",
+          "content": "Good day! I'm a Banking Analyst in the Credit Department. How may I assist you with your credit needs today?",
+          "metadata": {
+            "team_id": 76,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:26.649Z"
+        }
+      ],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:17:59.750Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 2,
+  "hasContext": true
+}
+
+[2025-06-08T20:17:59.754Z] [INFO] Using most recent conversation settings:
+{
+  "id": 242,
+  "team_id": 75,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You are Banking Analyst in Credit department.",
+  "end_prompt": "",
+  "style": "",
+  "created_at": "2025-06-08T20:03:47.000Z"
+}
+
+[2025-06-08T20:17:59.755Z] [INFO] Detected simple greeting, handling directly with OpenAI
+{}
+
+[2025-06-08T20:18:00.601Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T20:18:09.113Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "what tools you have access to?",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:03:53.145Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "75",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 10,
+                "confidence": 0
+              },
+              {
+                "agent_id": 13,
+                "confidence": 0
+              },
+              {
+                "agent_id": 11,
+                "confidence": 0
+              },
+              {
+                "agent_id": 14,
+                "confidence": 0
+              },
+              {
+                "agent_id": 15,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:04:03.617Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:17:07.763Z"
+        },
+        {
+          "role": "agent",
+          "content": "Hello! How can I assist you with your banking needs today?",
+          "metadata": {
+            "team_id": 75,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:08.998Z"
+        },
+        {
+          "role": "user",
+          "content": "hello, ",
+          "timestamp": "2025-06-08T20:17:25.090Z"
+        },
+        {
+          "role": "agent",
+          "content": "Good day! I'm a Banking Analyst in the Credit Department. How may I assist you with your credit needs today?",
+          "metadata": {
+            "team_id": 76,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:26.649Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:17:59.753Z"
+        },
+        {
+          "role": "agent",
+          "content": "Hello! How can I assist you with your banking needs today?",
+          "metadata": {
+            "team_id": 77,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:18:00.569Z"
+        }
+      ],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:18:09.116Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 30,
+  "hasContext": true
+}
+
+[2025-06-08T20:18:09.121Z] [INFO] Using most recent conversation settings:
+{
+  "id": 242,
+  "team_id": 75,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You are Banking Analyst in Credit department.",
+  "end_prompt": "",
+  "style": "",
+  "created_at": "2025-06-08T20:03:47.000Z"
+}
+
+[2025-06-08T20:18:09.123Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T20:18:09.124Z] [INFO] Sending request to ML service
+{}
+
+[2025-06-08T20:19:22.386Z] [INFO] Received response from ML service
+{
+  "processingTimeMs": 73261,
+  "responseStatus": 200,
+  "hasData": true
+}
+
+[2025-06-08T20:19:22.389Z] [INFO] [Orchestrator:processTeamResponse] Starting response processing
+{
+  "sessionId": 77,
+  "hasTeamResponse": true
+}
+
+[2025-06-08T20:19:22.393Z] [INFO] [Orchestrator:processTeamResponse] Processing agent results
+{}
+
+[2025-06-08T20:19:22.396Z] [INFO] [Orchestrator:processTeamResponse] Creating response metadata
+{}
+
+[2025-06-08T20:19:22.398Z] [INFO] [Orchestrator:processTeamResponse] Response processing completed
+{
+  "processingTimeMs": 9,
+  "responseLength": 26,
+  "hasToolData": false,
+  "hasVisualization": false
+}
+
+[2025-06-08T20:19:22.430Z] [INFO] Conversation history stored
+{
+  "storageTimeMs": 30
+}
+
+[2025-06-08T20:19:22.432Z] [INFO] Processing completed successfully
+{
+  "totalProcessingTimeMs": 73310
+}
+
+[2025-06-08T20:19:22.433Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T20:34:15.290Z] [INFO] Database connection established successfully
+{}
+
+[2025-06-08T20:34:48.301Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "what tools you have access to?",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:03:53.145Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "75",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 10,
+                "confidence": 0
+              },
+              {
+                "agent_id": 13,
+                "confidence": 0
+              },
+              {
+                "agent_id": 11,
+                "confidence": 0
+              },
+              {
+                "agent_id": 14,
+                "confidence": 0
+              },
+              {
+                "agent_id": 15,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:04:03.617Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:17:07.763Z"
+        },
+        {
+          "role": "agent",
+          "content": "Hello! How can I assist you with your banking needs today?",
+          "metadata": {
+            "team_id": 75,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:08.998Z"
+        },
+        {
+          "role": "user",
+          "content": "hello, ",
+          "timestamp": "2025-06-08T20:17:25.090Z"
+        },
+        {
+          "role": "agent",
+          "content": "Good day! I'm a Banking Analyst in the Credit Department. How may I assist you with your credit needs today?",
+          "metadata": {
+            "team_id": 76,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:26.649Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:17:59.753Z"
+        },
+        {
+          "role": "agent",
+          "content": "Hello! How can I assist you with your banking needs today?",
+          "metadata": {
+            "team_id": 77,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:18:00.569Z"
+        },
+        {
+          "role": "user",
+          "content": "what tools you have access to?",
+          "timestamp": "2025-06-08T20:18:09.122Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "77",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 92,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:19:22.399Z"
+        }
+      ],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:34:48.306Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 30,
+  "hasContext": true
+}
+
+[2025-06-08T20:34:48.326Z] [INFO] Using most recent conversation settings:
+{
+  "id": 242,
+  "team_id": 75,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You are Banking Analyst in Credit department.",
+  "end_prompt": "",
+  "style": "",
+  "created_at": "2025-06-08T20:03:47.000Z"
+}
+
+[2025-06-08T20:34:48.330Z] [INFO] Detected system question of type: tools
+{}
+
+[2025-06-08T20:38:20.507Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "who are your members",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:03:53.145Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "75",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 10,
+                "confidence": 0
+              },
+              {
+                "agent_id": 13,
+                "confidence": 0
+              },
+              {
+                "agent_id": 11,
+                "confidence": 0
+              },
+              {
+                "agent_id": 14,
+                "confidence": 0
+              },
+              {
+                "agent_id": 15,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:04:03.617Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:17:07.763Z"
+        },
+        {
+          "role": "agent",
+          "content": "Hello! How can I assist you with your banking needs today?",
+          "metadata": {
+            "team_id": 75,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:08.998Z"
+        },
+        {
+          "role": "user",
+          "content": "hello, ",
+          "timestamp": "2025-06-08T20:17:25.090Z"
+        },
+        {
+          "role": "agent",
+          "content": "Good day! I'm a Banking Analyst in the Credit Department. How may I assist you with your credit needs today?",
+          "metadata": {
+            "team_id": 76,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:26.649Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:17:59.753Z"
+        },
+        {
+          "role": "agent",
+          "content": "Hello! How can I assist you with your banking needs today?",
+          "metadata": {
+            "team_id": 77,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:18:00.569Z"
+        },
+        {
+          "role": "user",
+          "content": "what tools you have access to?",
+          "timestamp": "2025-06-08T20:18:09.122Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "77",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 92,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:19:22.399Z"
+        },
+        {
+          "role": "user",
+          "content": "what tools you have access to?",
+          "timestamp": "2025-06-08T20:34:48.252Z"
+        }
+      ],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:38:20.510Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 20,
+  "hasContext": true
+}
+
+[2025-06-08T20:38:20.516Z] [INFO] Using most recent conversation settings:
+{
+  "id": 242,
+  "team_id": 75,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You are Banking Analyst in Credit department.",
+  "end_prompt": "",
+  "style": "",
+  "created_at": "2025-06-08T20:03:47.000Z"
+}
+
+[2025-06-08T20:38:20.519Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T20:38:20.520Z] [INFO] Sending request to ML service
+{}
+
+[2025-06-08T20:38:28.230Z] [INFO] Received response from ML service
+{
+  "processingTimeMs": 7709,
+  "responseStatus": 200,
+  "hasData": true
+}
+
+[2025-06-08T20:38:28.232Z] [INFO] [Orchestrator:processTeamResponse] Starting response processing
+{
+  "sessionId": 77,
+  "hasTeamResponse": true
+}
+
+[2025-06-08T20:38:28.236Z] [INFO] [Orchestrator:processTeamResponse] Processing agent results
+{}
+
+[2025-06-08T20:38:28.239Z] [INFO] [Orchestrator:processTeamResponse] Creating response metadata
+{}
+
+[2025-06-08T20:38:28.241Z] [INFO] [Orchestrator:processTeamResponse] Response processing completed
+{
+  "processingTimeMs": 9,
+  "responseLength": 26,
+  "hasToolData": false,
+  "hasVisualization": false
+}
+
+[2025-06-08T20:38:28.275Z] [INFO] Conversation history stored
+{
+  "storageTimeMs": 32
+}
+
+[2025-06-08T20:38:28.276Z] [INFO] Processing completed successfully
+{
+  "totalProcessingTimeMs": 7759
+}
+
+[2025-06-08T20:38:28.277Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T20:40:45.241Z] [INFO] Database connection established successfully
+{}
+
+[2025-06-08T20:40:56.099Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "What tools do you have?",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:03:53.145Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "75",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 10,
+                "confidence": 0
+              },
+              {
+                "agent_id": 13,
+                "confidence": 0
+              },
+              {
+                "agent_id": 11,
+                "confidence": 0
+              },
+              {
+                "agent_id": 14,
+                "confidence": 0
+              },
+              {
+                "agent_id": 15,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:04:03.617Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:17:07.763Z"
+        },
+        {
+          "role": "agent",
+          "content": "Hello! How can I assist you with your banking needs today?",
+          "metadata": {
+            "team_id": 75,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:08.998Z"
+        },
+        {
+          "role": "user",
+          "content": "hello, ",
+          "timestamp": "2025-06-08T20:17:25.090Z"
+        },
+        {
+          "role": "agent",
+          "content": "Good day! I'm a Banking Analyst in the Credit Department. How may I assist you with your credit needs today?",
+          "metadata": {
+            "team_id": 76,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:26.649Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:17:59.753Z"
+        },
+        {
+          "role": "agent",
+          "content": "Hello! How can I assist you with your banking needs today?",
+          "metadata": {
+            "team_id": 77,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:18:00.569Z"
+        },
+        {
+          "role": "user",
+          "content": "what tools you have access to?",
+          "timestamp": "2025-06-08T20:18:09.122Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "77",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 92,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:19:22.399Z"
+        },
+        {
+          "role": "user",
+          "content": "what tools you have access to?",
+          "timestamp": "2025-06-08T20:34:48.252Z"
+        },
+        {
+          "role": "user",
+          "content": "who are your members",
+          "timestamp": "2025-06-08T20:38:20.492Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "77",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 92,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:38:28.242Z"
+        }
+      ],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:40:56.102Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 23,
+  "hasContext": true
+}
+
+[2025-06-08T20:40:56.115Z] [INFO] Using most recent conversation settings:
+{
+  "id": 242,
+  "team_id": 75,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You are Banking Analyst in Credit department.",
+  "end_prompt": "",
+  "style": "",
+  "created_at": "2025-06-08T20:03:47.000Z"
+}
+
+[2025-06-08T20:40:56.117Z] [INFO] Detected system question of type: tools
+{}
+
+[2025-06-08T20:42:57.785Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hi",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:03:53.145Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "75",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 10,
+                "confidence": 0
+              },
+              {
+                "agent_id": 13,
+                "confidence": 0
+              },
+              {
+                "agent_id": 11,
+                "confidence": 0
+              },
+              {
+                "agent_id": 14,
+                "confidence": 0
+              },
+              {
+                "agent_id": 15,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:04:03.617Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:17:07.763Z"
+        },
+        {
+          "role": "agent",
+          "content": "Hello! How can I assist you with your banking needs today?",
+          "metadata": {
+            "team_id": 75,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:08.998Z"
+        },
+        {
+          "role": "user",
+          "content": "hello, ",
+          "timestamp": "2025-06-08T20:17:25.090Z"
+        },
+        {
+          "role": "agent",
+          "content": "Good day! I'm a Banking Analyst in the Credit Department. How may I assist you with your credit needs today?",
+          "metadata": {
+            "team_id": 76,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:17:26.649Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T20:17:59.753Z"
+        },
+        {
+          "role": "agent",
+          "content": "Hello! How can I assist you with your banking needs today?",
+          "metadata": {
+            "team_id": 77,
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:18:00.569Z"
+        },
+        {
+          "role": "user",
+          "content": "what tools you have access to?",
+          "timestamp": "2025-06-08T20:18:09.122Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "77",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 92,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:19:22.399Z"
+        },
+        {
+          "role": "user",
+          "content": "what tools you have access to?",
+          "timestamp": "2025-06-08T20:34:48.252Z"
+        },
+        {
+          "role": "user",
+          "content": "who are your members",
+          "timestamp": "2025-06-08T20:38:20.492Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "77",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 92,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T20:38:28.242Z"
+        },
+        {
+          "role": "user",
+          "content": "What tools do you have?",
+          "timestamp": "2025-06-08T20:40:56.081Z"
+        }
+      ],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T20:42:57.790Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 2,
+  "hasContext": true
+}
+
+[2025-06-08T20:42:57.821Z] [INFO] Using most recent conversation settings:
+{
+  "id": 242,
+  "team_id": 75,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You are Banking Analyst in Credit department.",
+  "end_prompt": "",
+  "style": "",
+  "created_at": "2025-06-08T20:03:47.000Z"
+}
+
+[2025-06-08T20:42:57.822Z] [INFO] Detected simple greeting, handling directly with OpenAI
+{}
+
+[2025-06-08T20:42:59.220Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "responseStatus": "completed"
+}
+

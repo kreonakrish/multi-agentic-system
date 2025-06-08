@@ -61,9 +61,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   onFileUpload
 }) => {
   const [message, setMessage] = useState('');
+  const [messageHistory, setMessageHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = useTheme();
+
+  // Update message history when a message is sent
+  useEffect(() => {
+    // Extract only user messages from conversation history
+    const userMessages = conversationHistory
+      .filter(step => step.role === 'user')
+      .map(step => step.content);
+    setMessageHistory(userMessages);
+  }, [conversationHistory]);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -77,6 +88,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     if (message.trim() && canChat) {
       const currentMessage = message;
       setMessage('');
+      setHistoryIndex(-1); // Reset history index after sending
       
       const userStep: ConversationStep = { 
         role: 'user', 
@@ -169,6 +181,38 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       await handleSend();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Only handle arrow keys if there's message history
+    if (messageHistory.length === 0) return;
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      // If we're not in history yet, save current input
+      if (historyIndex === -1 && message) {
+        setMessageHistory(prev => [...prev, message]);
+      }
+      
+      // Move up in history if not at the start
+      if (historyIndex < messageHistory.length - 1) {
+        const newIndex = historyIndex + 1;
+        setHistoryIndex(newIndex);
+        setMessage(messageHistory[messageHistory.length - 1 - newIndex]);
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex > 0) {
+        // Move down in history
+        const newIndex = historyIndex - 1;
+        setHistoryIndex(newIndex);
+        setMessage(messageHistory[messageHistory.length - 1 - newIndex]);
+      } else if (historyIndex === 0) {
+        // Clear message when going past the most recent history
+        setHistoryIndex(-1);
+        setMessage('');
+      }
     }
   };
 
@@ -287,6 +331,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyDown}
           disabled={!canChat}
           variant="outlined"
           size="small"
