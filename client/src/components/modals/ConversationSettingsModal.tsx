@@ -122,7 +122,7 @@ const ConversationSettingsModal: React.FC<ConversationSettingsModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="inherit">
-          Cancel
+          Close
         </Button>
         <Button onClick={handleSave} variant="contained" color="primary">
           Save Changes

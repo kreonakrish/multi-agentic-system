@@ -1,328 +1,221 @@
 from typing import Dict, Any, List
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from app.models.team import Team, TeamTask
 from app.services.agent_service import initialize_agent_from_db
+from app.utils.db import get_db_connection, safe_close_connection
 from app.utils.logger import logger
+from app.utils.team_utils import (
+    store_team_task,
+    create_workflow_record,
+    get_team_agents_ordered,
+    group_agents_by_priority,
+    create_workflow_steps,
+    execute_priority_group,
+    update_workflow_steps_status,
+    update_workflow_status,
+    aggregate_team_responses
+)
 from datetime import datetime
 import json
+import uuid
+import logging
+
+# Get workflow-specific loggers
+workflow_logger = logging.getLogger('multi_agent_system.workflow')
+workflow_steps_logger = logging.getLogger('multi_agent_system.workflow.steps')
+workflow_execution_logger = logging.getLogger('multi_agent_system.workflow.execution')
 
 def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
-    """
-    Execute a task using a team of agents.
-    Args:
-        team: The team to execute the task
-        task: The task to execute
-    Returns:
-        Dictionary containing execution results
-    """
-    start_time = datetime.utcnow()
-    conversation_context: List[Dict[str, Any]] = []
-    priority_groups = {}
-    execution_order = []
-    workflow_id = None
-    final_results = []
-    
+    """Execute a task using a team of agents with proper coordination"""
     try:
-        logger.info("="*80)
-        logger.info(f"[TEAM EXECUTION START] Task ID: {task.task_id} | Team ID: {team.team_id}")
-        logger.info("="*80)
-        logger.info(f"[TASK DETAILS] Description: {task.description}")
-        logger.debug(f"[TASK REQUIREMENTS] {json.dumps(task.requirements, indent=2)}")
+        # Initialize workflow tracking
+        workflow_id = None
+        workflow_start_time = datetime.now()
+        correlation_id = str(uuid.uuid4())
         
-        # Create workflow record
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
-            
-            cursor.execute("""
-                INSERT INTO workflows (
-                    correlation_id,
-                    team_id,
-                    status,
-                    task_data,
-                    created_at
-                ) VALUES (%s, %s, %s, %s, NOW())
-            """, (
-                task.task_id,
-                team.team_id,
-                'pending',
-                json.dumps({
-                    'description': task.description,
-                    'requirements': task.requirements
-                })
-            ))
-            
-            workflow_id = cursor.lastrowid
-            logger.info(f"[WORKFLOW] Created workflow record with ID: {workflow_id}")
-            
-            conn.commit()
-        except Exception as e:
-            logger.error(f"[WORKFLOW] Error creating workflow record: {str(e)}", exc_info=True)
-            raise
-        finally:
-            safe_close_connection(conn, cursor)
+        workflow_logger.info("\n" + "="*80)
+        workflow_logger.info("[WORKFLOW] Starting new workflow execution")
+        workflow_logger.info(f"[WORKFLOW] Task ID: {task.task_id}")
+        workflow_logger.info(f"[WORKFLOW] Team ID: {team.team_id}")
+        workflow_logger.info(f"[WORKFLOW] Description: {task.description}")
+        workflow_logger.info("="*80 + "\n")
         
-        # Get conversation settings
-        logger.info("[FETCHING CONVERSATION SETTINGS]")
-        conversation_settings = task.requirements.get('conversation_settings_id')
-        end_prompt = None
-        if conversation_settings:
-            try:
-                logger.debug(f"[CONVERSATION SETTINGS] Fetching settings for ID: {conversation_settings}")
-                conn = get_db_connection()
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("""
-                    SELECT end_prompt FROM conversation_settings 
-                    WHERE id = %s
-                """, (conversation_settings,))
-                result = cursor.fetchone()
-                if result:
-                    end_prompt = result['end_prompt']
-                    logger.info("[CONVERSATION SETTINGS] Successfully retrieved end_prompt")
-                    logger.debug(f"[CONVERSATION SETTINGS] End Prompt: {end_prompt}")
-                else:
-                    logger.warning(f"[CONVERSATION SETTINGS] No settings found for ID: {conversation_settings}")
-                safe_close_connection(conn, cursor)
-            except Exception as e:
-                logger.error(f"[CONVERSATION SETTINGS] Error fetching settings: {str(e)}", exc_info=True)
-        else:
-            logger.info("[CONVERSATION SETTINGS] No conversation_settings_id provided in requirements")
-        
-        # Initialize team members
-        logger.info("\n[TEAM INITIALIZATION] Starting team member initialization")
-        active_agents = []
-        
-        # Get all agents for the team with their metrics
+        # Get database connection
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT ta.agent_id, ta.accuracy, ta.success, ta.priority,
-                   a.name as agent_name
-            FROM team_agents ta
-            JOIN agents a ON ta.agent_id = a.id
-            WHERE ta.team_id = %s
-            ORDER BY ta.priority DESC, ta.accuracy DESC, ta.success DESC
-        """, (team.team_id,))
+        cursor = conn.cursor()
         
-        agents = cursor.fetchall()
-        safe_close_connection(conn, cursor)
-        
-        # Group agents by priority
-        current_priority = None
-        current_group = []
-        
-        for agent in agents:
-            if current_priority is None:
-                current_priority = agent['priority']
-            
-            if agent['priority'] != current_priority:
-                priority_groups[current_priority] = current_group
-                execution_order.append({
-                    "priority": current_priority,
-                    "agents": [f"{a['agent_name']} (ID: {a['agent_id']})" for a in current_group]
-                })
-                current_group = []
-                current_priority = agent['priority']
-            
-            current_group.append(agent)
-            active_agents.append(agent)
-        
-        if current_group:
-            priority_groups[current_priority] = current_group
-            execution_order.append({
-                "priority": current_priority,
-                "agents": [f"{a['agent_name']} (ID: {a['agent_id']})" for a in current_group]
-            })
-        
-        logger.info(f"[TEAM INITIALIZATION] Successfully initialized {len(active_agents)} agents")
-        
-        # Execute task with sorted agents
-        successful_agents = 0
-        
-        logger.info("\n[AGENT EXECUTION] Starting individual agent executions")
-        for idx, agent in enumerate(active_agents, 1):
-            try:
-                logger.info("-"*60)
-                logger.info(f"[AGENT {idx}/{len(active_agents)}] Starting execution for Agent: {agent['agent_id']}")
-                logger.info(f"[AGENT {idx}/{len(active_agents)}] Details:")
-                logger.info(f"  - Name: {agent['agent_name']}")
-                logger.info(f"  - Priority: {agent['priority']}")
-                logger.info(f"  - Accuracy: {agent['accuracy']}")
-                logger.info(f"  - Success Rate: {agent['success']}")
-                
-                # Create workflow step
-                try:
-                    conn = get_db_connection()
-                    cursor = conn.cursor()
-                    cursor.execute("""
-                        INSERT INTO workflow_steps (
-                            workflow_id,
-                            agent_id,
-                            status,
-                            created_at
-                        ) VALUES (%s, %s, %s, NOW())
-                    """, (workflow_id, agent['agent_id'], 'in_progress'))
-                    step_id = cursor.lastrowid
-                    conn.commit()
-                    logger.info(f"[WORKFLOW] Created step {step_id} for agent {agent['agent_id']}")
-                except Exception as e:
-                    logger.error(f"[WORKFLOW] Error creating workflow step: {str(e)}", exc_info=True)
-                finally:
-                    safe_close_connection(conn, cursor)
-                
-                # Prepare message with context
-                message = {
-                    "task_description": task.description,
-                    "requirements": task.requirements,
-                    "conversation_context": conversation_context,
-                    "agent_config": {
-                        "accuracy_threshold": agent['accuracy'],
-                        "success_rate": agent['success'],
-                        "priority": agent['priority']
-                    }
-                }
-                logger.debug(f"[AGENT {idx}/{len(active_agents)}] Prepared message: {json.dumps(message, indent=2)}")
-                
-                # Execute with agent
-                logger.info(f"[AGENT {idx}/{len(active_agents)}] Executing with tools...")
-                agent_instance = initialize_agent_from_db(agent['agent_id'])
-                if not agent_instance:
-                    raise ValueError(f"Could not initialize agent {agent['agent_id']}")
-                
-                result = agent_instance.execute_with_tools(json.dumps(message))
-                logger.info(f"[AGENT {idx}/{len(active_agents)}] Execution completed")
-                logger.debug(f"[AGENT {idx}/{len(active_agents)}] Raw result: {json.dumps(result, indent=2)}")
-                
-                # Update workflow step
-                try:
-                    conn = get_db_connection()
-                    cursor = conn.cursor()
-                    cursor.execute("""
-                        UPDATE workflow_steps 
-                        SET status = %s,
-                            tool_responses = %s,
-                            updated_at = NOW()
-                        WHERE workflow_id = %s AND agent_id = %s
-                    """, (
-                        'completed' if result.get("status") == "success" else 'failed',
-                        json.dumps(result.get('tool_results', [])),
-                        workflow_id,
-                        agent['agent_id']
-                    ))
-                    conn.commit()
-                except Exception as e:
-                    logger.error(f"[WORKFLOW] Error updating workflow step: {str(e)}", exc_info=True)
-                finally:
-                    safe_close_connection(conn, cursor)
-                
-                if result.get("status") == "success":
-                    successful_agents += 1
-                    logger.info(f"[AGENT {idx}/{len(active_agents)}] Execution successful")
-                else:
-                    logger.warning(f"[AGENT {idx}/{len(active_agents)}] Execution failed")
-                    logger.warning(f"[AGENT {idx}/{len(active_agents)}] Failure reason: {result.get('error', 'Unknown')}")
-                
-                # Add to conversation context
-                context_entry = {
-                    "agent_id": agent['agent_id'],
-                    "agent_name": agent['agent_name'],
-                    "priority": agent['priority'],
-                    "accuracy": agent['accuracy'],
-                    "success_rate": agent['success'],
-                    "response": result.get('llm_response', '')
-                }
-                conversation_context.append(context_entry)
-                logger.debug(f"[AGENT {idx}/{len(active_agents)}] Added to conversation context: {json.dumps(context_entry, indent=2)}")
-                
-                # Add to final results
-                result_entry = {
-                    "agent_id": agent['agent_id'],
-                    "agent_name": agent['agent_name'],
-                    "priority": agent['priority'],
-                    "accuracy": agent['accuracy'],
-                    "success_rate": agent['success'],
-                    "result": {
-                        "status": result.get("status", "failed"),
-                        "llm_response": result.get("llm_response", ""),
-                        "tool_results": result.get("tool_results", [])
-                    }
-                }
-                final_results.append(result_entry)
-                logger.debug(f"[AGENT {idx}/{len(active_agents)}] Added to final results: {json.dumps(result_entry, indent=2)}")
-                
-            except Exception as e:
-                logger.error(f"[AGENT {idx}/{len(active_agents)}] Execution error: {str(e)}", exc_info=True)
-                continue
-        
-        # Determine final status
-        logger.info("[TEAM VALIDATION] Determining final status")
-        final_status = "completed" if successful_agents > 0 else "failed"
-        logger.info(f"[TEAM VALIDATION] Final status determined: {final_status}")
-        
-        # Update workflow status
         try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
+            # Store team task
+            task_data = {
+                'description': task.description,
+                'requirements': task.requirements
+            }
+            task_id = store_team_task(cursor, team.team_id, task_data, correlation_id)
+            
+            # Create workflow record
+            workflow_id = create_workflow_record(cursor, team.team_id, task_id, correlation_id)
+            
+            # Get ordered list of team agents
+            team_agents = get_team_agents_ordered(cursor, team.team_id)
+            
+            # Create workflow steps for agents
+            step_ids = create_workflow_steps(cursor, workflow_id, team_agents)
+            
+            # Group agents by priority
+            priority_groups = group_agents_by_priority(team_agents)
+            sorted_priorities = sorted(priority_groups.keys(), reverse=True)
+            
+            # Initialize results tracking
+            final_results = []
+            successful_agents = 0
+            
+            # Execute agents in priority order
+            for priority in sorted_priorities:
+                qualified_agents = priority_groups[priority]
+                workflow_logger.info(f"[WORKFLOW] Executing priority {priority} group with {len(qualified_agents)} agents")
+                
+                # Execute each agent in the current priority group
+                for agent_data in qualified_agents:
+                    try:
+                        # Initialize agent
+                        agent = initialize_agent_from_db(agent_data['agent_id'])
+                        if not agent:
+                            workflow_logger.error(f"Could not initialize agent {agent_data['agent_id']}")
+                            continue
+                        
+                        # Set correlation ID for tracking
+                        agent.set_correlation_id(correlation_id)
+                        
+                        # Prepare message with context and requirements
+                        message = {
+                            "task_description": task.description,
+                            "requirements": task.requirements,
+                            "conversation_context": final_results,
+                            "accuracy_threshold": agent_data['accuracy'] or 0.8,
+                            "success_rate": agent_data['success'] or 0.9,
+                            "priority": priority
+                        }
+                        
+                        # Execute with agent
+                        result = agent.execute_with_tools(json.dumps(message))
+                        
+                        if result['status'] == 'success':
+                            successful_agents += 1
+                            
+                        # Add agent info to result
+                        result.update({
+                            'agent_id': agent_data['agent_id'],
+                            'agent_name': agent_data['name'],
+                            'priority': priority,
+                            'step_order': len(final_results) + 1,
+                            'accuracy': agent_data['accuracy'],
+                            'success_rate': agent_data['success']
+                        })
+                        
+                        final_results.append(result)
+                        
+                    except Exception as e:
+                        workflow_logger.error(f"Error executing agent {agent_data['agent_id']}: {str(e)}")
+                        final_results.append({
+                            'agent_id': agent_data['agent_id'],
+                            'agent_name': agent_data['name'],
+                            'status': 'error',
+                            'message': str(e)
+                        })
+            
+            # Aggregate results
+            aggregated = aggregate_team_responses(final_results, task.description)
+            
+            # Update workflow record with completion
             cursor.execute("""
                 UPDATE workflows 
-                SET status = %s,
-                    response_data = %s,
-                    updated_at = NOW()
+                SET status = %s, end_time = %s, execution_time = %s, 
+                    successful_agents = %s, total_agents = %s
                 WHERE id = %s
             """, (
-                final_status,
-                json.dumps({
-                    'results': final_results,
-                    'conversation_context': conversation_context
-                }),
+                'completed',
+                datetime.now(),
+                (datetime.now() - workflow_start_time).total_seconds(),
+                successful_agents,
+                len(team_agents),
                 workflow_id
             ))
             conn.commit()
-            logger.info(f"[WORKFLOW] Updated workflow {workflow_id} status to {final_status}")
+            
+            workflow_logger.info("\n" + "="*80)
+            workflow_logger.info("[WORKFLOW] Task execution completed")
+            workflow_logger.info(f"[WORKFLOW] Final Status: COMPLETED")
+            workflow_logger.info(f"[WORKFLOW] Execution Time: {(datetime.now() - workflow_start_time).total_seconds():.2f} seconds")
+            workflow_logger.info(f"[WORKFLOW] Successful Agents: {successful_agents}/{len(team_agents)}")
+            workflow_logger.info(f"[WORKFLOW] End Time: {datetime.now().isoformat()}")
+            workflow_logger.info("="*80 + "\n")
+            
+            return {
+                'workflow_id': workflow_id,
+                'final_status': 'completed',
+                'results': final_results,
+                'aggregated_data': aggregated['aggregated_data'],
+                'validation_result': aggregated['validation_result'],
+                'validation_passed': aggregated['validation_passed'],
+                'execution_summary': {
+                    'total_agents': len(team_agents),
+                    'successful_agents': successful_agents,
+                    'priority_groups': sorted_priorities,
+                    'execution_time': (datetime.now() - workflow_start_time).total_seconds()
+                }
+            }
+            
         except Exception as e:
-            logger.error(f"[WORKFLOW] Error updating workflow status: {str(e)}", exc_info=True)
+            workflow_logger.error(f"[WORKFLOW] Error in team execution: {str(e)}", exc_info=True)
+            return {
+                'workflow_id': workflow_id,
+                'final_status': 'failed',
+                'error': str(e),
+                'results': final_results if 'final_results' in locals() else [],
+                'aggregated_data': {
+                    'vector_store': {
+                        'results': [],
+                        'queries': [],
+                        'datasets': []
+                    },
+                    'raw_data': {
+                        'samples': [],
+                        'total_records': 0,
+                        'schemas': []
+                    },
+                    'tool_results': [],
+                    'llm_responses': []
+                },
+                'execution_summary': {
+                    'total_agents': len(team_agents) if 'team_agents' in locals() else 0,
+                    'successful_agents': successful_agents if 'successful_agents' in locals() else 0,
+                    'priority_groups': sorted(priority_groups.keys(), reverse=True) if 'priority_groups' in locals() else [],
+                    'execution_time': (datetime.now() - workflow_start_time).total_seconds()
+                }
+            }
+            
         finally:
             safe_close_connection(conn, cursor)
-        
-        # Calculate execution time
-        end_time = datetime.utcnow()
-        execution_time = (end_time - start_time).total_seconds()
-        logger.info(f"[EXECUTION TIME] Total execution time: {execution_time:.2f} seconds")
-        
-        result = {
-            'workflow_id': workflow_id,
-            'final_status': final_status,
-            'execution_time': execution_time,
-            'successful_agents': successful_agents,
-            'total_agents': len(active_agents),
-            'conversation_context': conversation_context,
-            'results': final_results,
-            'priority_groups': sorted(priority_groups.keys(), reverse=True),
-            'execution_order': execution_order
-        }
-        
-        logger.info("\n[EXECUTION COMPLETE] Task execution completed successfully")
-        logger.info(f"[EXECUTION SUMMARY]")
-        logger.info(f"  - Final Status: {final_status}")
-        logger.info(f"  - Execution Time: {execution_time:.2f} seconds")
-        logger.info(f"  - Successful Agents: {successful_agents}/{len(active_agents)}")
-        logger.info("="*80)
-        
-        logger.debug(f"[FINAL RESULT] {json.dumps(result, indent=2)}")
-        return result
-        
+            
     except Exception as e:
-        logger.error("[EXECUTION FAILED] Task execution failed with error", exc_info=True)
-        logger.error(f"[ERROR DETAILS] {str(e)}")
+        workflow_logger.error(f"[WORKFLOW] Critical error in team execution: {str(e)}", exc_info=True)
         return {
-            'workflow_id': workflow_id,
+            'workflow_id': workflow_id if 'workflow_id' in locals() else None,
             'final_status': 'failed',
             'error': str(e),
-            'conversation_context': conversation_context if 'conversation_context' in locals() else [],
-            'results': final_results if 'final_results' in locals() else [],
-            'total_agents': len(active_agents) if 'active_agents' in locals() else 0,
-            'successful_agents': successful_agents if 'successful_agents' in locals() else 0,
-            'priority_groups': sorted(priority_groups.keys(), reverse=True) if priority_groups else [],
-            'execution_order': execution_order if 'execution_order' in locals() else []
+            'results': [],
+            'aggregated_data': {
+                'vector_store': {'results': [], 'queries': [], 'datasets': []},
+                'raw_data': {'samples': [], 'total_records': 0, 'schemas': []},
+                'tool_results': [],
+                'llm_responses': []
+            },
+            'execution_summary': {
+                'total_agents': 0,
+                'successful_agents': 0,
+                'priority_groups': [],
+                'execution_time': (datetime.now() - workflow_start_time).total_seconds()
+            }
         }
 
 def execute_agent_task(agent: Any, task: TeamTask, context: Dict[str, Any]) -> Dict[str, Any]:
@@ -376,7 +269,7 @@ Use your tools when appropriate to enhance your responses.
         })
         
         # Call OpenAI API
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model=agent.foundation_model,
             messages=messages,
             temperature=0.7,

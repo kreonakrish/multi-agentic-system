@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Tab, Tabs } from '@mui/material';
+import { Box, Button, Tab, Tabs, useTheme } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import StorageIcon from '@mui/icons-material/Storage';
@@ -8,6 +8,7 @@ import CloudIcon from '@mui/icons-material/Cloud';
 import CodeIcon from '@mui/icons-material/Code';
 import HttpIcon from '@mui/icons-material/Http';
 import JavascriptIcon from '@mui/icons-material/Javascript';
+import BuildIcon from '@mui/icons-material/Build';
 
 // Use appropriate Material-UI icons as substitutes
 const RestIcon = HttpIcon;
@@ -37,14 +38,11 @@ const agentTypes = [
 ];
 
 const toolTypes = [
-  { name: 'Database', color: '#4caf50', icon: <StorageIcon /> },
-  { name: 'APIService', color: '#2196f3', icon: <ApiIcon /> },
-  { name: 'WebService', color: '#ff9800', icon: <CloudIcon /> },
-  { name: 'DB', color: '#4caf50', icon: <StorageIcon /> },
-  { name: 'REST', color: '#e91e63', icon: <RestIcon /> },
-  { name: 'Python', color: '#ffd600', icon: <PythonIcon /> },
-  { name: 'React', color: '#00bcd4', icon: <ReactIcon /> },
-  { name: 'Cloud', color: '#ff9800', icon: <CloudIcon /> }
+  { name: 'Database', displayName: 'Database', color: '#4caf50', icon: <StorageIcon /> },
+  { name: 'APIService', displayName: 'API Service', color: '#2196f3', icon: <ApiIcon /> },
+  { name: 'WebService', displayName: 'Web Service', color: '#ff9800', icon: <CloudIcon /> },
+  { name: 'Python', displayName: 'Python', color: '#9c27b0', icon: <PythonIcon /> },
+  { name: 'React', displayName: 'React', color: '#00bcd4', icon: <ReactIcon /> }
 ];
 
 const getAgentColor = (agentName: string): string => {
@@ -64,17 +62,24 @@ const getAgentIcon = (agentName: string) => {
 };
 
 const getToolColor = (toolName: string, toolType: string): string => {
-  // First try to match by tool type
+  // First try to match by exact tool type
   const toolTypeMatch = toolTypes.find(type => 
-    toolType?.toLowerCase().includes(type.name.toLowerCase())
+    type.name.toLowerCase() === toolType?.toLowerCase()
   );
   if (toolTypeMatch) return toolTypeMatch.color;
 
-  // If no match by type, try to match by name
+  // If no match by exact type, try to match by name
   const toolNameMatch = toolTypes.find(type => 
     toolName.toLowerCase().includes(type.name.toLowerCase())
   );
-  return toolNameMatch?.color || '#f0f2f5'; // Default color if no match
+  return toolNameMatch?.color || '#757575'; // Default to a nice gray if no match
+};
+
+const getToolDisplayType = (toolType: string): string => {
+  const match = toolTypes.find(type => 
+    type.name.toLowerCase() === toolType?.toLowerCase()
+  );
+  return match?.displayName || toolType;
 };
 
 const getToolIcon = (toolName: string, toolType: string) => {
@@ -102,6 +107,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   tools = []
 }) => {
   const [selectedTab, setSelectedTab] = useState(0);
+  const theme = useTheme();
 
   return (
     <Box
@@ -110,7 +116,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
         minWidth: 300,
         maxWidth: 400,
         height: '100%',
-        bgcolor: '#fff',
+        bgcolor: 'background.paper',
         borderRight: '1px solid',
         borderColor: 'divider',
         display: 'flex',
@@ -127,16 +133,16 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
           borderColor: 'divider',
           '& .MuiTab-root': {
             minHeight: 48,
-            color: '#65676b',
+            color: 'text.secondary',
             fontWeight: 600,
             '&.Mui-selected': {
-              color: '#1877f2'
+              color: 'primary.main'
             }
           }
         }}
       >
-        <Tab label="Agents" sx={{ flex: 1 }} />
-        <Tab label="Tools" sx={{ flex: 1 }} />
+        <Tab icon={<SmartToyIcon />} label="Agents" sx={{ flex: 1 }} />
+        <Tab icon={<BuildIcon />} label="Tools" sx={{ flex: 1 }} />
       </Tabs>
 
       <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
@@ -149,11 +155,11 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
               onClick={onAddAgentClick}
               sx={{
                 mb: 2,
-                bgcolor: '#1877f2',
+                bgcolor: 'primary.main',
                 color: '#fff',
                 fontWeight: 600,
                 '&:hover': {
-                  bgcolor: '#166fe5'
+                  bgcolor: 'primary.dark'
                 }
               }}
             >
@@ -182,7 +188,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
                   <div>{agent.name}</div>
                   {agent.tools && agent.tools.length > 0 && (
-                    <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.8)' }}>
+                    <div style={{ fontSize: '12px', opacity: 0.8 }}>
                       Tools: {agent.tools.map((tool: any) => 
                         typeof tool === 'object' && tool !== null
                           ? tool.toolName || tool.tool_name
@@ -205,61 +211,66 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
               onClick={onAddToolClick}
               sx={{
                 mb: 2,
-                bgcolor: '#1877f2',
+                bgcolor: 'primary.main',
                 color: '#fff',
                 fontWeight: 600,
                 '&:hover': {
-                  bgcolor: '#166fe5'
+                  bgcolor: 'primary.dark'
                 }
               }}
             >
               Add Tool
             </Button>
 
-            {tools.map((tool) => {
-              const toolName = tool.tool_name;
-              const toolType = tool.tool_type;
-              return (
-                <Button
-                  key={tool.id}
-                  variant="contained"
-                  fullWidth
-                  startIcon={getToolIcon(toolName, toolType)}
-                  onClick={() => onToolClick(tool)}
-                  sx={{
-                    mb: 1,
-                    bgcolor: getToolColor(toolName, toolType),
-                    color: '#fff',
-                    justifyContent: 'flex-start',
-                    textAlign: 'left',
-                    fontWeight: 600,
-                    '&:hover': {
-                      filter: 'brightness(0.9)'
-                    }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
-                    <div>{toolName}</div>
-                    <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.8)' }}>
-                      Type: {toolType}
+            {tools.map((tool) => (
+              <Button
+                key={tool.id}
+                variant="contained"
+                fullWidth
+                startIcon={getToolIcon(tool.tool_name || tool.toolName, tool.type)}
+                onClick={() => onToolClick(tool)}
+                sx={{
+                  mb: 1.5,
+                  bgcolor: getToolColor(tool.tool_name || tool.toolName, tool.tool_type),
+                  color: '#fff',
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  fontWeight: 600,
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                  '&:hover': {
+                    filter: 'brightness(0.9)',
+                    bgcolor: getToolColor(tool.tool_name || tool.toolName, tool.tool_type)
+                  }
+                }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600 }}>{tool.tool_name || tool.toolName}</div>
+                  {tool.tool_type && (
+                    <div style={{ fontSize: '12px', opacity: 0.85, marginTop: '4px' }}>
+                      Type: {getToolDisplayType(tool.tool_type)}
                     </div>
-                  </Box>
-                </Button>
-              );
-            })}
+                  )}
+                </Box>
+              </Button>
+            ))}
           </>
         )}
       </Box>
 
-      <div
-        style={{
+      <Box
+        sx={{
           position: 'absolute',
           top: 0,
           right: 0,
           bottom: 0,
           width: '4px',
+          bgcolor: 'transparent',
           cursor: 'col-resize',
-          background: 'transparent'
+          '&:hover': {
+            bgcolor: 'primary.main',
+            opacity: 0.2
+          }
         }}
         onMouseDown={onResize}
       />

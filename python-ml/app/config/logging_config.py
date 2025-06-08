@@ -96,7 +96,10 @@ def configure_logging():
         'multi_agent_system.team',
         'multi_agent_system.task',
         'multi_agent_system.validation',
-        'multi_agent_system.openai'
+        'multi_agent_system.openai',
+        'multi_agent_system.workflow',
+        'multi_agent_system.workflow.steps',
+        'multi_agent_system.workflow.execution'
     ]
     
     for logger_name in loggers_to_configure:

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pie } from 'react-chartjs-2';
-import { chartOptions } from '../../config/chartConfig';
+import { pieChartOptions } from '../../config/chartConfig';
 
 interface PieChartProps {
   data: {
@@ -8,8 +8,8 @@ interface PieChartProps {
     datasets: {
       label: string;
       data: number[];
-      backgroundColor: string[];
-      borderColor: string[];
+      backgroundColor: string | string[];
+      borderColor: string | string[];
       borderWidth: number;
     }[];
   };
@@ -18,7 +18,7 @@ interface PieChartProps {
 const PieChartComponent: React.FC<PieChartProps> = ({ data }) => {
   return (
     <div style={{ height: '300px', width: '100%' }}>
-      <Pie data={data} options={chartOptions} />
+      <Pie data={data} options={pieChartOptions} />
     </div>
   );
 };

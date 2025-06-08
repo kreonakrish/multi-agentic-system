@@ -1,21 +1,22 @@
 import { createTheme } from '@mui/material/styles';
 
-const theme = createTheme({
+// Common theme settings
+const getTheme = (mode) => createTheme({
     palette: {
-        mode: 'light',
+        mode,
         primary: {
-            main: '#1877f2', // Facebook blue
+            main: mode === 'light' ? '#1877f2' : '#90caf9',
         },
         secondary: {
-            main: '#42b72a', // Facebook green
+            main: mode === 'light' ? '#42b72a' : '#66bb6a',
         },
         background: {
-            default: '#f0f2f5', // Facebook background
-            paper: '#fff',
+            default: mode === 'light' ? '#f0f2f5' : '#121212',
+            paper: mode === 'light' ? '#fff' : '#1e1e1e',
         },
         text: {
-            primary: '#050505',
-            secondary: '#65676b',
+            primary: mode === 'light' ? '#050505' : '#fff',
+            secondary: mode === 'light' ? '#65676b' : '#b0b3b8',
         },
     },
     typography: {
@@ -24,22 +25,52 @@ const theme = createTheme({
         fontWeightMedium: 500,
     },
     shape: {
-        borderRadius: 10, // Facebook-like rounded corners
+        borderRadius: 10,
     },
     components: {
+        MuiCssBaseline: {
+            styleOverrides: {
+                body: {
+                    backgroundColor: mode === 'light' ? '#f0f2f5' : '#121212',
+                    color: mode === 'light' ? '#050505' : '#fff',
+                },
+            },
+        },
+        MuiAppBar: {
+            styleOverrides: {
+                root: {
+                    backgroundColor: mode === 'light' ? '#8C7B53' : '#1e1e1e',
+                    color: mode === 'light' ? '#fff' : '#fff',
+                },
+            },
+        },
+        MuiDrawer: {
+            styleOverrides: {
+                paper: {
+                    backgroundColor: mode === 'light' ? '#fff' : '#1e1e1e',
+                    color: mode === 'light' ? '#050505' : '#fff',
+                },
+            },
+        },
         MuiButton: {
             styleOverrides: {
                 root: {
-                    textTransform: 'none', // Facebook buttons use normal case
+                    textTransform: 'none',
                     fontWeight: 600,
                     boxShadow: 'none',
                     borderRadius: 8,
+                    '&.Mui-disabled': {
+                        backgroundColor: mode === 'light' ? '#e4e6eb' : '#2d2d2d',
+                        color: mode === 'light' ? '#bcc0c4' : '#666',
+                    },
                 },
             },
         },
         MuiPaper: {
             styleOverrides: {
                 root: {
+                    backgroundColor: mode === 'light' ? '#fff' : '#1e1e1e',
+                    color: mode === 'light' ? '#050505' : '#fff',
                     borderRadius: 10,
                 },
             },
@@ -47,12 +78,45 @@ const theme = createTheme({
         MuiCard: {
             styleOverrides: {
                 root: {
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.07), 0 0.5px 1.5px rgba(0,0,0,0.13)',
+                    backgroundColor: mode === 'light' ? '#fff' : '#1e1e1e',
+                    boxShadow: mode === 'light' 
+                        ? '0 1px 2px rgba(0,0,0,0.07), 0 0.5px 1.5px rgba(0,0,0,0.13)'
+                        : '0 1px 2px rgba(255,255,255,0.07), 0 0.5px 1.5px rgba(255,255,255,0.13)',
                     borderRadius: 10,
+                },
+            },
+        },
+        MuiList: {
+            styleOverrides: {
+                root: {
+                    backgroundColor: 'transparent',
+                },
+            },
+        },
+        MuiListItem: {
+            styleOverrides: {
+                root: {
+                    '&:hover': {
+                        backgroundColor: mode === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.08)',
+                    },
+                },
+            },
+        },
+        MuiIconButton: {
+            styleOverrides: {
+                root: {
+                    color: mode === 'light' ? '#050505' : '#fff',
+                },
+            },
+        },
+        MuiDivider: {
+            styleOverrides: {
+                root: {
+                    borderColor: mode === 'light' ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
                 },
             },
         },
     },
 });
 
-export default theme;
+export { getTheme };

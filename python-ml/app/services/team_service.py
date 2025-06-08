@@ -1,7 +1,12 @@
 from typing import Dict, Any, List
 from app.models.team import Team, TeamMember
-from app.utils.logger import logger
 from app.utils.enums import TaskPriority
+import logging
+
+# Get workflow-specific loggers
+workflow_logger = logging.getLogger('multi_agent_system.workflow')
+workflow_steps_logger = logging.getLogger('multi_agent_system.workflow.steps')
+workflow_execution_logger = logging.getLogger('multi_agent_system.workflow.execution')
 
 class TeamService:
     """Service for managing team operations"""
@@ -14,10 +19,10 @@ class TeamService:
         try:
             team = Team(team_id=team_id, name=name, description=description)
             self.teams[team_id] = team
-            logger.info(f"Team {team_id} created successfully")
+            workflow_logger.info(f"[WORKFLOW] Team {team_id} created successfully")
             return team.to_dict()
         except Exception as e:
-            logger.error(f"Failed to create team {team_id}: {str(e)}")
+            workflow_logger.error(f"[WORKFLOW] Failed to create team {team_id}: {str(e)}")
             raise
 
     def add_member(self, team_id: str, agent_id: int, 
@@ -26,13 +31,15 @@ class TeamService:
         try:
             team = self.teams.get(team_id)
             if not team:
+                workflow_logger.error(f"[WORKFLOW] Team {team_id} not found")
                 raise ValueError(f"Team {team_id} not found")
             
             member = TeamMember(agent_id=agent_id, priority=priority)
             team.add_member(member)
+            workflow_steps_logger.info(f"[WORKFLOW_STEPS] Added member {agent_id} to team {team_id}")
             return team.to_dict()
         except Exception as e:
-            logger.error(f"Failed to add member {agent_id} to team {team_id}: {str(e)}")
+            workflow_logger.error(f"[WORKFLOW] Failed to add member {agent_id} to team {team_id}: {str(e)}")
             raise
 
     def get_team(self, team_id: str) -> Dict[str, Any]:
@@ -40,10 +47,12 @@ class TeamService:
         try:
             team = self.teams.get(team_id)
             if not team:
+                workflow_logger.error(f"[WORKFLOW] Team {team_id} not found")
                 raise ValueError(f"Team {team_id} not found")
+            workflow_logger.info(f"[WORKFLOW] Retrieved team {team_id}")
             return team.to_dict()
         except Exception as e:
-            logger.error(f"Failed to get team {team_id}: {str(e)}")
+            workflow_logger.error(f"[WORKFLOW] Failed to get team {team_id}: {str(e)}")
             raise
 
     def get_active_teams(self) -> List[Dict[str, Any]]:
@@ -54,5 +63,5 @@ class TeamService:
                 if team.get_active_members()
             ]
         except Exception as e:
-            logger.error(f"Failed to get active teams: {str(e)}")
+            workflow_logger.error(f"[WORKFLOW] Failed to get active teams: {str(e)}")
             raise 

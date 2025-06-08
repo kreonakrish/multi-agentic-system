@@ -1,0 +1,1529 @@
+[2025-06-08T18:10:40.871Z] [INFO] Database connection established successfully
+{}
+
+[2025-06-08T18:19:15.756Z] [INFO] Database connection established successfully
+{}
+
+[2025-06-08T18:19:53.496Z] [INFO] GET /api/tools
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:19:53.510Z] [INFO] GET /api/agents
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:19:53.516Z] [INFO] GET /api/agents
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:19:53.523Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:19:53.534Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:19:53.541Z] [INFO] GET /api/tools
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:19:53.688Z] [INFO] GET /api/teams
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:19:53.786Z] [INFO] GET /api/teams
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:28:04.399Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:28:04.434Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:28:04.492Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:28:04.523Z] [INFO] GET /api/teams/77/conversation-settings
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:28:04.631Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:38:01.305Z] [INFO] GET /api/agents
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:01.341Z] [INFO] GET /api/tools
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:01.349Z] [INFO] GET /api/agents
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:01.354Z] [INFO] GET /api/tools
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:01.360Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:01.365Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:01.561Z] [INFO] GET /api/teams
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:01.581Z] [INFO] GET /api/teams
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:11.376Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:11.480Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:11.494Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:38:11.516Z] [INFO] GET /api/teams/77/conversation-settings
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:11.567Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:38:22.342Z] [INFO] GET /api/teams/81
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:22.422Z] [INFO] GET /api/teams/81
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:22.425Z] [INFO] GET /api/documents?team_id=81
+{
+  "body": {},
+  "query": {
+    "team_id": "81"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:38:22.429Z] [INFO] GET /api/teams/81/conversation-settings
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:22.514Z] [INFO] GET /api/documents?team_id=81
+{
+  "body": {},
+  "query": {
+    "team_id": "81"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:38:31.796Z] [INFO] GET /api/teams/81
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:42.625Z] [INFO] GET /api/agent-interactions?team_id=76
+{
+  "body": {},
+  "query": {
+    "team_id": "76"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:38:42.633Z] [INFO] Executing query:
+{
+  "query": "\n                SELECT \n                    m.id,\n                    m.conversation_id,\n                    COALESCE(sa.name, 'OpenAI') as source_agent,\n                    COALESCE(ta.name, 'OpenAI') as target_agent,\n                    m.interaction_type,\n                    m.status,\n                    m.created_at as timestamp,\n                    m.content,\n                    m.processed_message,\n                    m.model_response\n                FROM messages m\n                LEFT JOIN agents sa ON m.sender_id = sa.id\n                LEFT JOIN agents ta ON m.receiver_id = ta.id\n                WHERE 1=1\n             AND m.team_id = ? ORDER BY m.created_at DESC",
+  "params": [
+    "76"
+  ]
+}
+
+[2025-06-08T18:38:42.638Z] [INFO] GET /api/teams/76
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:42.685Z] [INFO] Found 0 interactions
+{}
+
+[2025-06-08T18:38:42.701Z] [INFO] GET /api/agent-interactions?team_id=76
+{
+  "body": {},
+  "query": {
+    "team_id": "76"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:38:42.703Z] [INFO] Executing query:
+{
+  "query": "\n                SELECT \n                    m.id,\n                    m.conversation_id,\n                    COALESCE(sa.name, 'OpenAI') as source_agent,\n                    COALESCE(ta.name, 'OpenAI') as target_agent,\n                    m.interaction_type,\n                    m.status,\n                    m.created_at as timestamp,\n                    m.content,\n                    m.processed_message,\n                    m.model_response\n                FROM messages m\n                LEFT JOIN agents sa ON m.sender_id = sa.id\n                LEFT JOIN agents ta ON m.receiver_id = ta.id\n                WHERE 1=1\n             AND m.team_id = ? ORDER BY m.created_at DESC",
+  "params": [
+    "76"
+  ]
+}
+
+[2025-06-08T18:38:42.708Z] [INFO] Found 0 interactions
+{}
+
+[2025-06-08T18:38:44.989Z] [INFO] GET /api/agent-interactions?team_id=76&source=16&target=13
+{
+  "body": {},
+  "query": {
+    "team_id": "76",
+    "source": "16",
+    "target": "13"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:38:44.991Z] [INFO] Executing query:
+{
+  "query": "\n                SELECT \n                    m.id,\n                    m.conversation_id,\n                    COALESCE(sa.name, 'OpenAI') as source_agent,\n                    COALESCE(ta.name, 'OpenAI') as target_agent,\n                    m.interaction_type,\n                    m.status,\n                    m.created_at as timestamp,\n                    m.content,\n                    m.processed_message,\n                    m.model_response\n                FROM messages m\n                LEFT JOIN agents sa ON m.sender_id = sa.id\n                LEFT JOIN agents ta ON m.receiver_id = ta.id\n                WHERE 1=1\n             AND m.team_id = ? AND m.sender_id = ? AND m.receiver_id = ? ORDER BY m.created_at DESC",
+  "params": [
+    "76",
+    "16",
+    "13"
+  ]
+}
+
+[2025-06-08T18:38:44.997Z] [INFO] Found 0 interactions
+{}
+
+[2025-06-08T18:38:46.202Z] [INFO] GET /api/agent-interactions?team_id=75&source=16&target=13
+{
+  "body": {},
+  "query": {
+    "team_id": "75",
+    "source": "16",
+    "target": "13"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:38:46.203Z] [INFO] Executing query:
+{
+  "query": "\n                SELECT \n                    m.id,\n                    m.conversation_id,\n                    COALESCE(sa.name, 'OpenAI') as source_agent,\n                    COALESCE(ta.name, 'OpenAI') as target_agent,\n                    m.interaction_type,\n                    m.status,\n                    m.created_at as timestamp,\n                    m.content,\n                    m.processed_message,\n                    m.model_response\n                FROM messages m\n                LEFT JOIN agents sa ON m.sender_id = sa.id\n                LEFT JOIN agents ta ON m.receiver_id = ta.id\n                WHERE 1=1\n             AND m.team_id = ? AND m.sender_id = ? AND m.receiver_id = ? ORDER BY m.created_at DESC",
+  "params": [
+    "75",
+    "16",
+    "13"
+  ]
+}
+
+[2025-06-08T18:38:46.206Z] [INFO] GET /api/teams/75
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:46.209Z] [INFO] Found 0 interactions
+{}
+
+[2025-06-08T18:38:47.607Z] [INFO] GET /api/agent-interactions?team_id=75
+{
+  "body": {},
+  "query": {
+    "team_id": "75"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:38:47.609Z] [INFO] Executing query:
+{
+  "query": "\n                SELECT \n                    m.id,\n                    m.conversation_id,\n                    COALESCE(sa.name, 'OpenAI') as source_agent,\n                    COALESCE(ta.name, 'OpenAI') as target_agent,\n                    m.interaction_type,\n                    m.status,\n                    m.created_at as timestamp,\n                    m.content,\n                    m.processed_message,\n                    m.model_response\n                FROM messages m\n                LEFT JOIN agents sa ON m.sender_id = sa.id\n                LEFT JOIN agents ta ON m.receiver_id = ta.id\n                WHERE 1=1\n             AND m.team_id = ? ORDER BY m.created_at DESC",
+  "params": [
+    "75"
+  ]
+}
+
+[2025-06-08T18:38:47.630Z] [INFO] Found 0 interactions
+{}
+
+[2025-06-08T18:38:50.492Z] [INFO] GET /api/agent-interactions?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:38:50.494Z] [INFO] Executing query:
+{
+  "query": "\n                SELECT \n                    m.id,\n                    m.conversation_id,\n                    COALESCE(sa.name, 'OpenAI') as source_agent,\n                    COALESCE(ta.name, 'OpenAI') as target_agent,\n                    m.interaction_type,\n                    m.status,\n                    m.created_at as timestamp,\n                    m.content,\n                    m.processed_message,\n                    m.model_response\n                FROM messages m\n                LEFT JOIN agents sa ON m.sender_id = sa.id\n                LEFT JOIN agents ta ON m.receiver_id = ta.id\n                WHERE 1=1\n             AND m.team_id = ? ORDER BY m.created_at DESC",
+  "params": [
+    "77"
+  ]
+}
+
+[2025-06-08T18:38:50.496Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:38:50.510Z] [INFO] Found 85 interactions
+{}
+
+[2025-06-08T18:39:07.116Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:39:07.200Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:39:07.204Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:39:07.229Z] [INFO] GET /api/teams/77/conversation-settings
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:39:07.317Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T18:39:09.372Z] [INFO] GET /api/tools/connected-sources/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:39:15.924Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hi",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:39:15.929Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 2,
+  "hasContext": true
+}
+
+[2025-06-08T18:39:15.947Z] [INFO] Using most recent conversation settings:
+{
+  "id": 238,
+  "team_id": 77,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You have access to github open data, that you can pull from when needed.",
+  "end_prompt": "Please validate if the response contains a valid GitHub dataset URL from our available datasets. The response should include:\n1. A direct URL to one of these datasets:\n   - Avocado Prices\n   - Comic Characters\n   - Air Quality\n   - CO2 Emissions\n   - COVID-19 Data\n   - Country List\n   - Currency Codes\n   - Iris Dataset\n2. The URL should be from raw.githubusercontent.com\n3. The data should be in CSV format\n4. The response should clearly indicate which dataset is being referenced\n\nIf these criteria are met, the response is valid and the data should be retrieved and analyzed.",
+  "style": "",
+  "created_at": "2025-06-08T08:16:17.000Z"
+}
+
+[2025-06-08T18:39:15.954Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T18:48:15.213Z] [INFO] Database connection established successfully
+{}
+
+[2025-06-08T18:48:56.563Z] [INFO] GET /api/agents
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:48:56.576Z] [INFO] GET /api/tools
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:48:56.582Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:48:56.590Z] [INFO] GET /api/agents
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:48:56.599Z] [INFO] GET /api/tools
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:48:56.603Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:48:56.867Z] [INFO] GET /api/teams
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T18:48:56.910Z] [INFO] GET /api/teams
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:01:05.380Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:01:05.466Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:01:05.470Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T19:01:05.495Z] [INFO] GET /api/teams/77/conversation-settings
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:01:05.592Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T19:01:10.827Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hi",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:01:10.832Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 2,
+  "hasContext": true
+}
+
+[2025-06-08T19:01:10.848Z] [INFO] Using most recent conversation settings:
+{
+  "id": 238,
+  "team_id": 77,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You have access to github open data, that you can pull from when needed.",
+  "end_prompt": "Please validate if the response contains a valid GitHub dataset URL from our available datasets. The response should include:\n1. A direct URL to one of these datasets:\n   - Avocado Prices\n   - Comic Characters\n   - Air Quality\n   - CO2 Emissions\n   - COVID-19 Data\n   - Country List\n   - Currency Codes\n   - Iris Dataset\n2. The URL should be from raw.githubusercontent.com\n3. The data should be in CSV format\n4. The response should clearly indicate which dataset is being referenced\n\nIf these criteria are met, the response is valid and the data should be retrieved and analyzed.",
+  "style": "",
+  "created_at": "2025-06-08T08:16:17.000Z"
+}
+
+[2025-06-08T19:01:10.855Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T19:01:10.857Z] [INFO] Sending request to ML service
+{}
+
+[2025-06-08T19:16:17.619Z] [INFO] Database connection established successfully
+{}
+
+[2025-06-08T19:16:49.542Z] [INFO] GET /api/tools
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:16:49.550Z] [INFO] GET /api/agents
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:16:49.553Z] [INFO] GET /api/tools
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:16:49.556Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:16:49.564Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:16:49.567Z] [INFO] GET /api/agents
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:16:49.669Z] [INFO] GET /api/teams
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:16:49.684Z] [INFO] GET /api/teams
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:18:24.373Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:18:24.480Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:18:24.489Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T19:18:24.528Z] [INFO] GET /api/teams/77/conversation-settings
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:18:24.650Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T19:18:27.866Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hi",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:18:27.868Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 2,
+  "hasContext": true
+}
+
+[2025-06-08T19:18:27.915Z] [INFO] Using most recent conversation settings:
+{
+  "id": 238,
+  "team_id": 77,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You have access to github open data, that you can pull from when needed.",
+  "end_prompt": "Please validate if the response contains a valid GitHub dataset URL from our available datasets. The response should include:\n1. A direct URL to one of these datasets:\n   - Avocado Prices\n   - Comic Characters\n   - Air Quality\n   - CO2 Emissions\n   - COVID-19 Data\n   - Country List\n   - Currency Codes\n   - Iris Dataset\n2. The URL should be from raw.githubusercontent.com\n3. The data should be in CSV format\n4. The response should clearly indicate which dataset is being referenced\n\nIf these criteria are met, the response is valid and the data should be retrieved and analyzed.",
+  "style": "",
+  "created_at": "2025-06-08T08:16:17.000Z"
+}
+
+[2025-06-08T19:18:27.923Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T19:18:27.924Z] [INFO] Sending request to ML service
+{}
+
+[2025-06-08T19:18:47.315Z] [INFO] Received response from ML service
+{
+  "processingTimeMs": 19391,
+  "responseStatus": 200,
+  "hasData": true
+}
+
+[2025-06-08T19:18:47.317Z] [INFO] [Orchestrator:processTeamResponse] Starting response processing
+{
+  "sessionId": 77,
+  "hasTeamResponse": true
+}
+
+[2025-06-08T19:18:47.321Z] [INFO] [Orchestrator:processTeamResponse] Processing agent results
+{}
+
+[2025-06-08T19:18:47.325Z] [INFO] [Orchestrator:processTeamResponse] Creating response metadata
+{}
+
+[2025-06-08T19:18:47.326Z] [INFO] [Orchestrator:processTeamResponse] Response processing completed
+{
+  "processingTimeMs": 9,
+  "responseLength": 26,
+  "hasToolData": false,
+  "hasVisualization": false
+}
+
+[2025-06-08T19:18:47.395Z] [INFO] Conversation history stored
+{
+  "storageTimeMs": 67
+}
+
+[2025-06-08T19:18:47.396Z] [INFO] Processing completed successfully
+{
+  "totalProcessingTimeMs": 19476
+}
+
+[2025-06-08T19:18:47.398Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T19:21:04.312Z] [INFO] DELETE /api/conversations/428
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:21:04.314Z] [INFO] GET /api/conversations/428
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:21:05.021Z] [INFO] DELETE /api/conversations/429
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:21:05.023Z] [INFO] GET /api/conversations/429
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:21:05.677Z] [INFO] DELETE /api/conversations/430
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:21:05.679Z] [INFO] GET /api/conversations/430
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:21:06.328Z] [INFO] DELETE /api/conversations/431
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:21:06.330Z] [INFO] GET /api/conversations/431
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:21:25.265Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "do you have access to nfl favorite team data",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:21:25.268Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 44,
+  "hasContext": true
+}
+
+[2025-06-08T19:21:25.273Z] [INFO] Using most recent conversation settings:
+{
+  "id": 238,
+  "team_id": 77,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You have access to github open data, that you can pull from when needed.",
+  "end_prompt": "Please validate if the response contains a valid GitHub dataset URL from our available datasets. The response should include:\n1. A direct URL to one of these datasets:\n   - Avocado Prices\n   - Comic Characters\n   - Air Quality\n   - CO2 Emissions\n   - COVID-19 Data\n   - Country List\n   - Currency Codes\n   - Iris Dataset\n2. The URL should be from raw.githubusercontent.com\n3. The data should be in CSV format\n4. The response should clearly indicate which dataset is being referenced\n\nIf these criteria are met, the response is valid and the data should be retrieved and analyzed.",
+  "style": "",
+  "created_at": "2025-06-08T08:16:17.000Z"
+}
+
+[2025-06-08T19:21:25.276Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T19:21:25.276Z] [INFO] Sending request to ML service
+{}
+
+[2025-06-08T19:21:45.278Z] [INFO] Received response from ML service
+{
+  "processingTimeMs": 20001,
+  "responseStatus": 200,
+  "hasData": true
+}
+
+[2025-06-08T19:21:45.281Z] [INFO] [Orchestrator:processTeamResponse] Starting response processing
+{
+  "sessionId": 77,
+  "hasTeamResponse": true
+}
+
+[2025-06-08T19:21:45.284Z] [INFO] [Orchestrator:processTeamResponse] Processing agent results
+{}
+
+[2025-06-08T19:21:45.288Z] [INFO] [Orchestrator:processTeamResponse] Processing tool results
+{}
+
+[2025-06-08T19:21:45.295Z] [INFO] [Orchestrator:processTeamResponse] Creating response metadata
+{}
+
+[2025-06-08T19:21:45.296Z] [INFO] [Orchestrator:processTeamResponse] Response processing completed
+{
+  "processingTimeMs": 15,
+  "responseLength": 3203,
+  "hasToolData": true,
+  "hasVisualization": true
+}
+
+[2025-06-08T19:21:45.348Z] [INFO] Conversation history stored
+{
+  "storageTimeMs": 51
+}
+
+[2025-06-08T19:21:45.349Z] [INFO] Processing completed successfully
+{
+  "totalProcessingTimeMs": 20074
+}
+
+[2025-06-08T19:21:45.351Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T19:31:39.260Z] [INFO] Database connection established successfully
+{}
+
+[2025-06-08T19:32:25.208Z] [INFO] GET /favicon.ico
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:32:28.273Z] [INFO] GET /api/agents
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:32:28.322Z] [INFO] GET /api/tools
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:32:28.358Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:32:28.364Z] [INFO] GET /api/agents
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:32:28.400Z] [INFO] GET /api/conversations
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:32:28.435Z] [INFO] GET /api/tools
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:32:29.156Z] [INFO] GET /api/teams
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:32:29.160Z] [INFO] GET /api/teams
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:33:00.043Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:33:00.130Z] [INFO] GET /api/teams/77
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:33:00.134Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T19:33:00.148Z] [INFO] GET /api/teams/77/conversation-settings
+{
+  "body": {},
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:33:00.235Z] [INFO] GET /api/documents?team_id=77
+{
+  "body": {},
+  "query": {
+    "team_id": "77"
+  },
+  "params": {}
+}
+
+[2025-06-08T19:33:16.339Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "do you have access to nfl favorite team data",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:33:16.343Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 44,
+  "hasContext": true
+}
+
+[2025-06-08T19:33:16.352Z] [INFO] Using most recent conversation settings:
+{
+  "id": 238,
+  "team_id": 77,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You have access to github open data, that you can pull from when needed.",
+  "end_prompt": "Please validate if the response contains a valid GitHub dataset URL from our available datasets. The response should include:\n1. A direct URL to one of these datasets:\n   - Avocado Prices\n   - Comic Characters\n   - Air Quality\n   - CO2 Emissions\n   - COVID-19 Data\n   - Country List\n   - Currency Codes\n   - Iris Dataset\n2. The URL should be from raw.githubusercontent.com\n3. The data should be in CSV format\n4. The response should clearly indicate which dataset is being referenced\n\nIf these criteria are met, the response is valid and the data should be retrieved and analyzed.",
+  "style": "",
+  "created_at": "2025-06-08T08:16:17.000Z"
+}
+
+[2025-06-08T19:33:16.356Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T19:33:16.357Z] [INFO] Sending request to ML service
+{}
+
+[2025-06-08T19:33:46.921Z] [INFO] Received response from ML service
+{
+  "processingTimeMs": 30563,
+  "responseStatus": 200,
+  "hasData": true
+}
+
+[2025-06-08T19:33:46.923Z] [INFO] [Orchestrator:processTeamResponse] Starting response processing
+{
+  "sessionId": 77,
+  "hasTeamResponse": true
+}
+
+[2025-06-08T19:33:46.927Z] [INFO] [Orchestrator:processTeamResponse] Processing agent results
+{}
+
+[2025-06-08T19:33:46.930Z] [INFO] [Orchestrator:processTeamResponse] Processing tool results
+{}
+
+[2025-06-08T19:33:46.934Z] [INFO] [Orchestrator:processTeamResponse] Creating response metadata
+{}
+
+[2025-06-08T19:33:46.935Z] [INFO] [Orchestrator:processTeamResponse] Response processing completed
+{
+  "processingTimeMs": 12,
+  "responseLength": 2734,
+  "hasToolData": true,
+  "hasVisualization": true
+}
+
+[2025-06-08T19:33:46.983Z] [INFO] Conversation history stored
+{
+  "storageTimeMs": 45
+}
+
+[2025-06-08T19:33:46.984Z] [INFO] Processing completed successfully
+{
+  "totalProcessingTimeMs": 30631
+}
+
+[2025-06-08T19:33:46.984Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T19:39:58.739Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hi",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "do you have access to nfl favorite team data",
+          "timestamp": "2025-06-08T19:33:16.289Z"
+        },
+        {
+          "role": "agent",
+          "content": "Certainly! The dataset in question, \"nfl-favorite-team,\" can be found at the GitHub repository: https://github.com/fivethirtyeight/data/tree/master/nfl-favorite-team. This dataset likely contains information related to NFL fans' favorite teams.\n\nFrom the vector store search results, it appears that there are multiple entries related to the Indianapolis Colts as a favorite team, with various attributes like \"bmk,\" \"uni,\" \"cch,\" and others listed for each entry. The similarity scores for these entries are consistent at approximately 0.7675.\n\nUnfortunately, the response from the search indicates that there is no specific guidance on how to retrieve NFL favorite team data from the vector database. This limitation may hinder direct access to detailed information about NFL fans' favorite teams beyond the provided sample entries for the Indianapolis Colts.\n\nWhile the search results provide insights into the presence of data related to NFL favorite teams in the dataset, the lack of specific instructions on retrieval may restrict access to a broader range of team preferences and associated metrics. If further details are required, direct exploration of the dataset through the provided GitHub link may be necessary.\n\nNFL Team Statistics\nAverage scores across different metrics for each NFL team\n\n[VISUALIZATION_DATA][{\"name\":\"Green Bay Packers\",\"value\":77.1875},{\"name\":\"Pittsburgh Steelers\",\"value\":69.875},{\"name\":\"Kansas City Chiefs\",\"value\":67.4375},{\"name\":\"New England Patriots\",\"value\":65.8125},{\"name\":\"Indianapolis Colts\",\"value\":64.75},{\"name\":\"Buffalo Bills\",\"value\":63.375},{\"name\":\"Carolina Panthers\",\"value\":59.3125},{\"name\":\"Seattle Seahawks\",\"value\":58.9375},{\"name\":\"Baltimore Ravens\",\"value\":58},{\"name\":\"Arizona Cardinals\",\"value\":57.375},{\"name\":\"Philadelphia Eagles\",\"value\":55},{\"name\":\"New Orleans Saints\",\"value\":54.8125},{\"name\":\"Minnesota Vikings\",\"value\":52.8125},{\"name\":\"Houston Texans\",\"value\":52.125},{\"name\":\"New York Giants\",\"value\":52.0625},{\"name\":\"Dallas Cowboys\",\"value\":51.375},{\"name\":\"Denver Broncos\",\"value\":51.125},{\"name\":\"Detroit Lions\",\"value\":50.125},{\"name\":\"Atlanta Falcons\",\"value\":47.5625},{\"name\":\"Jacksonville Jaguars\",\"value\":46.75},{\"name\":\"Miami Dolphins\",\"value\":41.6875},{\"name\":\"Chicago Bears\",\"value\":41.3125},{\"name\":\"Cincinnati Bengals\",\"value\":40.9375},{\"name\":\"Oakland Raiders\",\"value\":40},{\"name\":\"Cleveland Browns\",\"value\":38.3125},{\"name\":\"Tampa Bay Buccaneers\",\"value\":38.0625},{\"name\":\"Los Angeles Rams\",\"value\":37.75},{\"name\":\"New York Jets\",\"value\":34.5625},{\"name\":\"San Diego Chargers\",\"value\":34.3125},{\"name\":\"Tennessee Titans\",\"value\":33.625},{\"name\":\"Washington Redskins\",\"value\":32},{\"name\":\"San Francisco 49ers\",\"value\":31.75}][/VISUALIZATION_DATA]",
+          "metadata": {
+            "team_id": "77",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 92,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": true,
+            "has_visualization": true
+          },
+          "timestamp": "2025-06-08T19:33:46.937Z"
+        }
+      ],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:39:58.749Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 2,
+  "hasContext": true
+}
+
+[2025-06-08T19:39:58.854Z] [INFO] Using most recent conversation settings:
+{
+  "id": 238,
+  "team_id": 77,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You have access to github open data, that you can pull from when needed.",
+  "end_prompt": "Please validate if the response contains a valid GitHub dataset URL from our available datasets. The response should include:\n1. A direct URL to one of these datasets:\n   - Avocado Prices\n   - Comic Characters\n   - Air Quality\n   - CO2 Emissions\n   - COVID-19 Data\n   - Country List\n   - Currency Codes\n   - Iris Dataset\n2. The URL should be from raw.githubusercontent.com\n3. The data should be in CSV format\n4. The response should clearly indicate which dataset is being referenced\n\nIf these criteria are met, the response is valid and the data should be retrieved and analyzed.",
+  "style": "",
+  "created_at": "2025-06-08T08:16:17.000Z"
+}
+
+[2025-06-08T19:39:58.857Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T19:39:58.858Z] [INFO] Sending request to ML service
+{}
+
+[2025-06-08T19:40:09.008Z] [INFO] Received response from ML service
+{
+  "processingTimeMs": 10150,
+  "responseStatus": 200,
+  "hasData": true
+}
+
+[2025-06-08T19:40:09.010Z] [INFO] [Orchestrator:processTeamResponse] Starting response processing
+{
+  "sessionId": 77,
+  "hasTeamResponse": true
+}
+
+[2025-06-08T19:40:09.014Z] [INFO] [Orchestrator:processTeamResponse] Processing agent results
+{}
+
+[2025-06-08T19:40:09.019Z] [INFO] [Orchestrator:processTeamResponse] Creating response metadata
+{}
+
+[2025-06-08T19:40:09.021Z] [INFO] [Orchestrator:processTeamResponse] Response processing completed
+{
+  "processingTimeMs": 11,
+  "responseLength": 26,
+  "hasToolData": false,
+  "hasVisualization": false
+}
+
+[2025-06-08T19:40:09.079Z] [INFO] Conversation history stored
+{
+  "storageTimeMs": 54
+}
+
+[2025-06-08T19:40:09.080Z] [INFO] Processing completed successfully
+{
+  "totalProcessingTimeMs": 10224
+}
+
+[2025-06-08T19:40:09.081Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "responseStatus": "completed"
+}
+
+[2025-06-08T19:40:54.443Z] [INFO] POST /api/chat/message
+{
+  "body": {
+    "content": "hi",
+    "userId": "user-1",
+    "sessionId": 77,
+    "context": {
+      "team_id": 77,
+      "team_config": {
+        "name": "test_team_github",
+        "description": "Team for processing chat messages and generating responses",
+        "agents": [
+          {
+            "agent_id": 92,
+            "priority": 1,
+            "accuracy_threshold": 0.8,
+            "success_rate": "0.00",
+            "role": "assistant"
+          }
+        ]
+      },
+      "conversation_settings": {
+        "temperature": 0.7,
+        "tokenLimit": 2000,
+        "startPrompt": "",
+        "endPrompt": "",
+        "style": "default",
+        "model": "gpt-4"
+      },
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "do you have access to nfl favorite team data",
+          "timestamp": "2025-06-08T19:33:16.289Z"
+        },
+        {
+          "role": "agent",
+          "content": "Certainly! The dataset in question, \"nfl-favorite-team,\" can be found at the GitHub repository: https://github.com/fivethirtyeight/data/tree/master/nfl-favorite-team. This dataset likely contains information related to NFL fans' favorite teams.\n\nFrom the vector store search results, it appears that there are multiple entries related to the Indianapolis Colts as a favorite team, with various attributes like \"bmk,\" \"uni,\" \"cch,\" and others listed for each entry. The similarity scores for these entries are consistent at approximately 0.7675.\n\nUnfortunately, the response from the search indicates that there is no specific guidance on how to retrieve NFL favorite team data from the vector database. This limitation may hinder direct access to detailed information about NFL fans' favorite teams beyond the provided sample entries for the Indianapolis Colts.\n\nWhile the search results provide insights into the presence of data related to NFL favorite teams in the dataset, the lack of specific instructions on retrieval may restrict access to a broader range of team preferences and associated metrics. If further details are required, direct exploration of the dataset through the provided GitHub link may be necessary.\n\nNFL Team Statistics\nAverage scores across different metrics for each NFL team\n\n[VISUALIZATION_DATA][{\"name\":\"Green Bay Packers\",\"value\":77.1875},{\"name\":\"Pittsburgh Steelers\",\"value\":69.875},{\"name\":\"Kansas City Chiefs\",\"value\":67.4375},{\"name\":\"New England Patriots\",\"value\":65.8125},{\"name\":\"Indianapolis Colts\",\"value\":64.75},{\"name\":\"Buffalo Bills\",\"value\":63.375},{\"name\":\"Carolina Panthers\",\"value\":59.3125},{\"name\":\"Seattle Seahawks\",\"value\":58.9375},{\"name\":\"Baltimore Ravens\",\"value\":58},{\"name\":\"Arizona Cardinals\",\"value\":57.375},{\"name\":\"Philadelphia Eagles\",\"value\":55},{\"name\":\"New Orleans Saints\",\"value\":54.8125},{\"name\":\"Minnesota Vikings\",\"value\":52.8125},{\"name\":\"Houston Texans\",\"value\":52.125},{\"name\":\"New York Giants\",\"value\":52.0625},{\"name\":\"Dallas Cowboys\",\"value\":51.375},{\"name\":\"Denver Broncos\",\"value\":51.125},{\"name\":\"Detroit Lions\",\"value\":50.125},{\"name\":\"Atlanta Falcons\",\"value\":47.5625},{\"name\":\"Jacksonville Jaguars\",\"value\":46.75},{\"name\":\"Miami Dolphins\",\"value\":41.6875},{\"name\":\"Chicago Bears\",\"value\":41.3125},{\"name\":\"Cincinnati Bengals\",\"value\":40.9375},{\"name\":\"Oakland Raiders\",\"value\":40},{\"name\":\"Cleveland Browns\",\"value\":38.3125},{\"name\":\"Tampa Bay Buccaneers\",\"value\":38.0625},{\"name\":\"Los Angeles Rams\",\"value\":37.75},{\"name\":\"New York Jets\",\"value\":34.5625},{\"name\":\"San Diego Chargers\",\"value\":34.3125},{\"name\":\"Tennessee Titans\",\"value\":33.625},{\"name\":\"Washington Redskins\",\"value\":32},{\"name\":\"San Francisco 49ers\",\"value\":31.75}][/VISUALIZATION_DATA]",
+          "metadata": {
+            "team_id": "77",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 92,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": true,
+            "has_visualization": true
+          },
+          "timestamp": "2025-06-08T19:33:46.937Z"
+        },
+        {
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2025-06-08T19:39:58.685Z"
+        },
+        {
+          "role": "agent",
+          "content": "Task executed successfully",
+          "metadata": {
+            "team_id": "77",
+            "processing_time": 0,
+            "confidence_score": 1,
+            "agent_contributions": [
+              {
+                "agent_id": 92,
+                "confidence": 0
+              }
+            ],
+            "has_tool_data": false,
+            "has_visualization": false
+          },
+          "timestamp": "2025-06-08T19:40:09.023Z"
+        }
+      ],
+      "documents": []
+    }
+  },
+  "query": {},
+  "params": {}
+}
+
+[2025-06-08T19:40:54.446Z] [INFO] Processing chat message
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "contentLength": 2,
+  "hasContext": true
+}
+
+[2025-06-08T19:40:54.462Z] [INFO] Using most recent conversation settings:
+{
+  "id": 238,
+  "team_id": 77,
+  "temperature": 0.7,
+  "token_limit": 512,
+  "start_prompt": "You have access to github open data, that you can pull from when needed.",
+  "end_prompt": "Please validate if the response contains a valid GitHub dataset URL from our available datasets. The response should include:\n1. A direct URL to one of these datasets:\n   - Avocado Prices\n   - Comic Characters\n   - Air Quality\n   - CO2 Emissions\n   - COVID-19 Data\n   - Country List\n   - Currency Codes\n   - Iris Dataset\n2. The URL should be from raw.githubusercontent.com\n3. The data should be in CSV format\n4. The response should clearly indicate which dataset is being referenced\n\nIf these criteria are met, the response is valid and the data should be retrieved and analyzed.",
+  "style": "",
+  "created_at": "2025-06-08T08:16:17.000Z"
+}
+
+[2025-06-08T19:40:54.467Z] [INFO] Preparing ML service request
+{}
+
+[2025-06-08T19:40:54.468Z] [INFO] Sending request to ML service
+{}
+
+[2025-06-08T19:41:02.078Z] [INFO] Received response from ML service
+{
+  "processingTimeMs": 7610,
+  "responseStatus": 200,
+  "hasData": true
+}
+
+[2025-06-08T19:41:02.080Z] [INFO] [Orchestrator:processTeamResponse] Starting response processing
+{
+  "sessionId": 77,
+  "hasTeamResponse": true
+}
+
+[2025-06-08T19:41:02.084Z] [INFO] [Orchestrator:processTeamResponse] Processing agent results
+{}
+
+[2025-06-08T19:41:02.087Z] [INFO] [Orchestrator:processTeamResponse] Creating response metadata
+{}
+
+[2025-06-08T19:41:02.089Z] [INFO] [Orchestrator:processTeamResponse] Response processing completed
+{
+  "processingTimeMs": 9,
+  "responseLength": 26,
+  "hasToolData": false,
+  "hasVisualization": false
+}
+
+[2025-06-08T19:41:02.137Z] [INFO] Conversation history stored
+{
+  "storageTimeMs": 47
+}
+
+[2025-06-08T19:41:02.138Z] [INFO] Processing completed successfully
+{
+  "totalProcessingTimeMs": 7674
+}
+
+[2025-06-08T19:41:02.139Z] [INFO] Chat message processed successfully
+{
+  "userId": "user-1",
+  "sessionId": 77,
+  "responseStatus": "completed"
+}
+

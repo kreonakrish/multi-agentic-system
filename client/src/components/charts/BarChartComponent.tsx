@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bar } from 'react-chartjs-2';
-import { chartOptions } from '../../config/chartConfig';
+import { barChartOptions } from '../../config/chartConfig';
 
 interface BarChartProps {
   data: {
@@ -8,8 +8,8 @@ interface BarChartProps {
     datasets: {
       label: string;
       data: number[];
-      backgroundColor: string[];
-      borderColor: string[];
+      backgroundColor: string | string[];
+      borderColor: string | string[];
       borderWidth: number;
     }[];
   };
@@ -18,7 +18,7 @@ interface BarChartProps {
 const BarChartComponent: React.FC<BarChartProps> = ({ data }) => {
   return (
     <div style={{ height: '300px', width: '100%' }}>
-      <Bar data={data} options={chartOptions} />
+      <Bar data={data} options={barChartOptions} />
     </div>
   );
 };

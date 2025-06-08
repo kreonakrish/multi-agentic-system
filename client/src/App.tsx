@@ -7,8 +7,6 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
-  Tabs,
-  Tab,
   Typography,
   Paper,
   Stack,
@@ -21,40 +19,58 @@ import {
   ListItemIcon,
   TextField,
   Divider,
-  EditIcon,
-  DeleteIcon,
-  DownloadIcon,
-  GroupIcon,
-  SettingsIcon,
-  SmartToyIcon,
-  BuildIcon,
-  AddIcon,
-  StorageIcon,
-  ApiIcon,
-  CloudIcon,
-  ChatIcon,
-  GroupsIcon,
-  AccountTreeIcon,
-  LinkIcon,
-  HubIcon,
-  Panel,
-  PanelGroup,
-  PanelResizeHandle,
-  TopBar,
-  LeftSidebar,
-  MainContent,
-  RightSidebar,
-  ChatWindow,
-  ToolConfigModal,
-  AgentConfigModal,
-  ConversationSettingsModal,
-  TeamSettingsModal,
-  ExecutionPlanModal,
-  ConnectedSourcesModal,
-  AgentSettingsModal,
-  DocumentList,
-  ChatControls
-} from './imports';
+} from '@mui/material';
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Download as DownloadIcon,
+  Group as GroupIcon,
+  Settings as SettingsIcon,
+  SmartToy as SmartToyIcon,
+  Build as BuildIcon,
+  Add as AddIcon,
+  Storage as StorageIcon,
+  Api as ApiIcon,
+  Cloud as CloudIcon,
+  Chat as ChatIcon,
+  Groups as GroupsIcon,
+  AccountTree as AccountTreeIcon,
+  Link as LinkIcon,
+  Hub as HubIcon,
+} from '@mui/icons-material';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { getTheme } from './theme';
+
+// Import our components
+import TopBar from './components/layout/TopBar';
+import LeftSidebar from './components/layout/LeftSidebar';
+import MainContent from './components/layout/MainContent';
+import RightSidebar from './components/layout/RightSidebar';
+import ChatControls from './components/layout/ChatControls';
+import ChatWindow from './components/chat/ChatWindow';
+import ToolConfigModal from './components/modals/ToolConfigModal';
+import AgentConfigModal from './components/modals/AgentConfigModal';
+import ConversationSettingsModal from './components/modals/ConversationSettingsModal';
+import TeamSettingsModal from './components/modals/TeamSettingsModal';
+import ExecutionPlanModal from './components/modals/ExecutionPlanModal';
+import ConnectedSourcesModal from './components/modals/ConnectedSourcesModal';
+import AgentSettingsModal from './components/modals/AgentSettingsModal';
+import DocumentList from './components/documents/DocumentList';
+
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 
 import type {
   Document,
@@ -63,8 +79,22 @@ import type {
   Conversation,
   ConversationSettings,
   Tool,
-  Agent
+  Agent,
+  ToolType
 } from './store/types';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const agentColors = [
   '#1877f2', // Nifi Agents - Facebook blue
@@ -161,22 +191,20 @@ const toolColors = {
   'default': '#e0e0e0'    // Default gray
 };
 
-// Helper function to display tool names robustly
-function getToolDisplayNames(agentTools: any[], allTools: any[]): string {
-  if (!agentTools || !agentTools.length) return '';
+interface AppProps {
+  // Empty for now as we don't have any props
+}
 
-  return agentTools.map(tool => {
-    if (typeof tool === 'string') {
-      const t = allTools.find((tt: any) => tt.tool_name === tool);
-      return t ? t.tool_name : tool;
-    }
-    return tool.tool_name ||
-      (tool.id ? (allTools.find((t: any) => t.id === tool.id)?.tool_name || tool.id) : JSON.stringify(tool));
-  }).join(', ');
+interface AgentFormData {
+  id?: string;
+  name: string;
+  memoryType: string;
+  foundationModel: string;
+  tools: Tool[];
 }
 
 // Save the current conversation to the backend
-type ConversationRecord = {
+interface ConversationRecord {
   id?: number;
   team_id?: number;
   started_at?: string;
@@ -187,19 +215,8 @@ type ConversationRecord = {
   start_prompt?: string;
   end_prompt?: string;
   style?: string;
-  conversation_data: any;
-};
-
-async function saveConversationToBackend(conv: any) {
-  const res = await fetch('/api/conversations', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(conv)
-  });
-  return res.json();
+  conversation_data: ConversationStep[];
 }
-
-const drawerWidth = 240;
 
 interface ConnectedSourcesResponse {
   [type: string]: Array<{
@@ -211,19 +228,8 @@ interface ConnectedSourcesResponse {
   }>;
 }
 
-interface AppProps {
-    // ... existing props ...
-}
-
-interface AgentFormData {
-    id?: string;
-    name: string;
-    memoryType: string;
-    foundationModel: string;
-    tools: Tool[];
-}
-
 const App: React.FC<AppProps> = () => {
+  const [mode, setMode] = useState<'light' | 'dark'>('light');
   const [tabIndex, setTabIndex] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(220);
   const [isResizing, setIsResizing] = useState(false);
@@ -286,6 +292,34 @@ const App: React.FC<AppProps> = () => {
 
     const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [rightSidebarTabIndex, setRightSidebarTabIndex] = useState(0);
+
+  const toolTypes = [
+    { name: 'Database', displayName: 'Database' },
+    { name: 'APIService', displayName: 'API Service' },
+    { name: 'WebService', displayName: 'Web Service' },
+    { name: 'Python', displayName: 'Python' },
+    { name: 'React', displayName: 'React' }
+  ];
+
+  const getToolDisplayType = (toolType: string): string => {
+    const match = toolTypes.find(type => 
+      type.name.toLowerCase() === toolType?.toLowerCase()
+    );
+    return match?.displayName || toolType;
+  };
+
+  const getToolDisplayNames = (agentTools: Tool[], allTools: Tool[]): string => {
+    if (!agentTools || !agentTools.length) return '';
+
+    return agentTools.map(tool => {
+      if (typeof tool === 'string') {
+        const t = allTools.find((tt: Tool) => tt.tool_name === tool);
+        return t ? t.tool_name : tool;
+      }
+      return tool.tool_name ||
+        (tool.id ? (allTools.find((t: Tool) => t.id === tool.id)?.tool_name || tool.id) : JSON.stringify(tool));
+    }).join(', ');
+  };
 
   function generateMermaidFromConversation(history: ConversationStep[]) {
     if (!history.length) {
@@ -1188,187 +1222,194 @@ const App: React.FC<AppProps> = () => {
     }
   };
 
+  const toggleTheme = () => {
+    setMode(prevMode => prevMode === 'light' ? 'dark' : 'light');
+  };
+
   return (
-    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#f5f5f5' }}>
-      {/* Header */}
-      <TopBar />
+    <ThemeProvider theme={getTheme(mode)}>
+      <CssBaseline />
+      <Router>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+          <TopBar onThemeToggle={toggleTheme} mode={mode} />
+          {/* Main Content */}
+          <Box sx={{ flex: 1, display: 'flex', minHeight: 0 }}>
+            {/* Left Sidebar */}
+            <LeftSidebar
+              width={sidebarWidth}
+              onResize={(e) => {
+                if (e.buttons === 1) {
+                  setIsResizing(true);
+                }
+              }}
+              onAddAgentClick={handleAddAgentClick}
+              onAddToolClick={handleAddToolClick}
+              onAgentClick={handleAgentClick}
+              onToolClick={handleToolClick}
+              agents={agents}
+              tools={tools}
+            />
 
-      {/* Main Content */}
-      <Box sx={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        {/* Left Sidebar */}
-        <LeftSidebar
-          width={sidebarWidth}
-          onResize={(e) => {
-            if (e.buttons === 1) {
-              setIsResizing(true);
-            }
-          }}
-          onAddAgentClick={handleAddAgentClick}
-          onAddToolClick={handleAddToolClick}
-          onAgentClick={handleAgentClick}
-          onToolClick={handleToolClick}
-          agents={agents}
-          tools={tools}
-        />
+            {/* Main Content Area with Chat Controls */}
+            <Box sx={{ 
+              flex: 1, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              minWidth: 0,
+              maxWidth: `calc(100% - ${sidebarWidth}px - ${rightSidebarWidth}px)` 
+            }}>
+              <ChatControls
+                onNewChat={handleNewChat}
+              />
+              <MainContent
+                conversationHistory={conversationHistory}
+                setConversationHistory={setConversationHistory}
+                selectedTeam={selectedTeam}
+                onFileUpload={handleFileUpload}
+              />
+            </Box>
 
-        {/* Main Content Area with Chat Controls */}
-        <Box sx={{ 
-          flex: 1, 
-          display: 'flex', 
-          flexDirection: 'column', 
-          minWidth: 0,
-          maxWidth: `calc(100% - ${sidebarWidth}px - ${rightSidebarWidth}px)` 
-        }}>
-          <ChatControls
-            onNewChat={handleNewChat}
+            {/* Right Sidebar */}
+            <RightSidebar
+              width={rightSidebarWidth}
+              onResize={handleRightMouseDown}
+              showConversationHistory={showConversationHistory}
+              tabIndex={rightSidebarTabIndex}
+              setTabIndex={setRightSidebarTabIndex}
+              documents={documents}
+              conversationHistoryList={conversationHistoryList}
+              onLoadConversation={handleLoadConversation}
+              onDeleteConversation={handleDeleteConversation}
+              onDeleteDocument={handleDeleteDocument}
+              onDownloadDocument={handleDownloadDocument}
+              onTeamSettings={() => setTeamSettingsOpen(true)}
+              onAgentSettings={() => setAgentSettingsOpen(true)}
+              onExecutionPlan={() => setExecutionPlanOpen(true)}
+              onConnectedSources={() => setConnectedSourcesOpen(true)}
+              onConversationSettings={() => setConversationSettingsOpen(true)}
+              renamingIdx={renamingIdx}
+              renameValue={renameValue}
+              onStartRename={handleStartRename}
+              onSaveRename={handleSaveRename}
+              setRenameValue={setRenameValue}
+              team={selectedTeam}
+              onDisconnect={handleDisconnectSource}
+            />
+          </Box>
+
+          {/* Modals */}
+          <ConversationSettingsModal
+            open={conversationSettingsOpen}
+            onClose={() => setConversationSettingsOpen(false)}
+            onSave={handleConversationSettingsSave}
+            initialValues={conversationSettings}
+            teams={teams}
+            selectedTeamId={selectedTeam?.id?.toString() || ''}
+            onTeamChange={handleTeamChange}
           />
-          <MainContent
-            conversationHistory={conversationHistory}
-            setConversationHistory={setConversationHistory}
+          <TeamSettingsModal
+            open={teamSettingsOpen}
+            onClose={() => setTeamSettingsOpen(false)}
+            agents={agents}
+            teams={teams}
+            setTeams={setTeams}
             selectedTeam={selectedTeam}
-            onFileUpload={handleFileUpload}
+            setSelectedTeam={setSelectedTeam}
+          />
+          <ExecutionPlanModal
+            open={executionPlanOpen}
+            onClose={() => setExecutionPlanOpen(false)}
+            mermaidDefinition={generateMermaidFromConversation(conversationHistory)}
+          />
+          <ConnectedSourcesModal
+            open={connectedSourcesOpen}
+            onClose={() => setConnectedSourcesOpen(false)}
+            team={selectedTeam}
+            onDisconnect={handleDisconnectSource}
+          />
+          <AgentSettingsModal
+            open={agentSettingsOpen}
+            onClose={() => {
+              setAgentSettingsOpen(false);
+              setSelectedEdge({ sourceId: null, targetId: null });
+            }}
+            teams={teams}
+            selectedEdge={selectedEdge}
+            onEdgeClick={handleEdgeClick}
+          />
+
+          {/* Agent Details Dialog */}
+          {selectedAgent && (
+            <Dialog open={!!selectedAgent} onClose={() => setSelectedAgent(null)} maxWidth="xs" fullWidth>
+              <DialogTitle>Agent Details</DialogTitle>
+              <DialogContent>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                  <Box><b>Name:</b> {selectedAgent.name}</Box>
+                  <Box><b>Type of Memory:</b> {selectedAgent.memory_type}</Box>
+                  <Box><b>Foundation Model:</b> {selectedAgent.foundation_model}</Box>
+                  <Box>
+                    <b>Tools:</b> {getToolDisplayNames(selectedAgent.tools || [], tools)}
+                  </Box>
+                </Box>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setSelectedAgent(null)}>Close</Button>
+                <Button onClick={() => handleEditAgent(selectedAgent)} color="primary" variant="contained">Edit</Button>
+              </DialogActions>
+            </Dialog>
+          )}
+
+          {/* Tool Details Dialog */}
+          {selectedTool && (
+            <Dialog open={!!selectedTool} onClose={() => setSelectedTool(null)} maxWidth="xs" fullWidth>
+              <DialogTitle>Tool Details</DialogTitle>
+              <DialogContent>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                  <Box><b>Name:</b> {selectedTool.tool_name}</Box>
+                  <Box><b>Type:</b> {getToolDisplayType(selectedTool.tool_type)}</Box>
+                  <Box><b>Host:</b> {selectedTool.hostname}</Box>
+                  <Box><b>Auth Method:</b> {selectedTool.auth_method}</Box>
+                </Box>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setSelectedTool(null)}>Close</Button>
+                <Button onClick={() => handleEditTool(selectedTool)} color="primary" variant="contained">Edit</Button>
+              </DialogActions>
+            </Dialog>
+          )}
+
+          {/* Add/Edit Agent Modal */}
+          <AgentConfigModal 
+            open={agentModalOpen} 
+            onClose={() => setAgentModalOpen(false)} 
+            onSave={handleCreateAgent} 
+            tools={tools} 
+          />
+          <AgentConfigModal 
+            open={editAgentModalOpen} 
+            onClose={() => setEditAgentModalOpen(false)} 
+            onSave={handleUpdateAgent} 
+            tools={tools} 
+            initialValues={agentToEdit} 
+            mode="edit" 
+          />
+
+          {/* Add/Edit Tool Modal */}
+          <ToolConfigModal 
+            open={toolModalOpen} 
+            onClose={() => setToolModalOpen(false)} 
+            onSave={handleAddTool} 
+          />
+          <ToolConfigModal 
+            open={editToolModalOpen} 
+            onClose={() => setEditToolModalOpen(false)} 
+            onSave={handleUpdateTool} 
+            initialValues={toolToEdit || undefined} 
+            mode="edit" 
           />
         </Box>
-
-        {/* Right Sidebar */}
-        <RightSidebar
-          width={rightSidebarWidth}
-          onResize={handleRightMouseDown}
-          showConversationHistory={showConversationHistory}
-          tabIndex={rightSidebarTabIndex}
-          setTabIndex={setRightSidebarTabIndex}
-          documents={documents}
-          conversationHistoryList={conversationHistoryList}
-          onLoadConversation={handleLoadConversation}
-          onDeleteConversation={handleDeleteConversation}
-          onDeleteDocument={handleDeleteDocument}
-          onDownloadDocument={handleDownloadDocument}
-          onTeamSettings={() => setTeamSettingsOpen(true)}
-          onAgentSettings={() => setAgentSettingsOpen(true)}
-          onExecutionPlan={() => setExecutionPlanOpen(true)}
-          onConnectedSources={() => setConnectedSourcesOpen(true)}
-          onConversationSettings={() => setConversationSettingsOpen(true)}
-          renamingIdx={renamingIdx}
-          renameValue={renameValue}
-          onStartRename={handleStartRename}
-          onSaveRename={handleSaveRename}
-          setRenameValue={setRenameValue}
-          team={selectedTeam}
-          onDisconnect={handleDisconnectSource}
-        />
-      </Box>
-
-      {/* Modals */}
-      <ConversationSettingsModal
-        open={conversationSettingsOpen}
-        onClose={() => setConversationSettingsOpen(false)}
-        onSave={handleConversationSettingsSave}
-        initialValues={conversationSettings}
-        teams={teams}
-        selectedTeamId={selectedTeam?.id?.toString() || ''}
-        onTeamChange={handleTeamChange}
-      />
-      <TeamSettingsModal
-        open={teamSettingsOpen}
-        onClose={() => setTeamSettingsOpen(false)}
-        agents={agents}
-        teams={teams}
-        setTeams={setTeams}
-        selectedTeam={selectedTeam}
-        setSelectedTeam={setSelectedTeam}
-      />
-      <ExecutionPlanModal
-        open={executionPlanOpen}
-        onClose={() => setExecutionPlanOpen(false)}
-        mermaidDefinition={generateMermaidFromConversation(conversationHistory)}
-      />
-      <ConnectedSourcesModal
-        open={connectedSourcesOpen}
-        onClose={() => setConnectedSourcesOpen(false)}
-        team={selectedTeam}
-        onDisconnect={handleDisconnectSource}
-      />
-      <AgentSettingsModal
-        open={agentSettingsOpen}
-        onClose={() => {
-          setAgentSettingsOpen(false);
-          setSelectedEdge({ sourceId: null, targetId: null });
-        }}
-        teams={teams}
-        selectedEdge={selectedEdge}
-        onEdgeClick={handleEdgeClick}
-      />
-
-      {/* Agent Details Dialog */}
-      {selectedAgent && (
-        <Dialog open={!!selectedAgent} onClose={() => setSelectedAgent(null)} maxWidth="xs" fullWidth>
-          <DialogTitle>Agent Details</DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              <Box><b>Name:</b> {selectedAgent.name}</Box>
-              <Box><b>Type of Memory:</b> {selectedAgent.memory_type}</Box>
-              <Box><b>Foundation Model:</b> {selectedAgent.foundation_model}</Box>
-              <Box>
-                <b>Tools:</b> {getToolDisplayNames(selectedAgent.tools || [], tools)}
-              </Box>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setSelectedAgent(null)}>Close</Button>
-            <Button onClick={() => handleEditAgent(selectedAgent)} color="primary" variant="contained">Edit</Button>
-          </DialogActions>
-        </Dialog>
-      )}
-
-      {/* Tool Details Dialog */}
-      {selectedTool && (
-        <Dialog open={!!selectedTool} onClose={() => setSelectedTool(null)} maxWidth="xs" fullWidth>
-          <DialogTitle>Tool Details</DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              <Box><b>Name:</b> {selectedTool.tool_name}</Box>
-              <Box><b>Type:</b> {selectedTool.tool_type}</Box>
-              <Box><b>Host:</b> {selectedTool.hostname}</Box>
-              <Box><b>Auth Method:</b> {selectedTool.auth_method}</Box>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setSelectedTool(null)}>Close</Button>
-            <Button onClick={() => handleEditTool(selectedTool)} color="primary" variant="contained">Edit</Button>
-          </DialogActions>
-        </Dialog>
-      )}
-
-      {/* Add/Edit Agent Modal */}
-      <AgentConfigModal 
-        open={agentModalOpen} 
-        onClose={() => setAgentModalOpen(false)} 
-        onSave={handleCreateAgent} 
-        tools={tools} 
-      />
-      <AgentConfigModal 
-        open={editAgentModalOpen} 
-        onClose={() => setEditAgentModalOpen(false)} 
-        onSave={handleUpdateAgent} 
-        tools={tools} 
-        initialValues={agentToEdit} 
-        mode="edit" 
-      />
-
-      {/* Add/Edit Tool Modal */}
-      <ToolConfigModal 
-        open={toolModalOpen} 
-        onClose={() => setToolModalOpen(false)} 
-        onSave={handleAddTool} 
-      />
-      <ToolConfigModal 
-        open={editToolModalOpen} 
-        onClose={() => setEditToolModalOpen(false)} 
-        onSave={handleUpdateTool} 
-        initialValues={toolToEdit || undefined} 
-        mode="edit" 
-      />
-    </Box>
+      </Router>
+    </ThemeProvider>
   );
 };
 

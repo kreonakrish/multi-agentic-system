@@ -6,23 +6,36 @@ const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:5000/api/
 class MLService {
     async processWithTeam(teamConfig, messageData) {
         try {
-            const response = await axios.post(`${ML_SERVICE_URL}/team/execute`, {
-                team_config: teamConfig,
-                task: {
-                    description: messageData.content,
-                    requirements: {
-                        min_accuracy: 0.85,
-                        max_time: 300,
-                        output_format: "text",
-                        context: {
-                            user_id: messageData.userId,
-                            session_id: messageData.sessionId,
-                            conversation_history: messageData.context?.conversation_history || []
-                        }
-                    }
-                }
-            });
+            logger.info('[MLService] Processing with team:', { teamConfig, messageData });
 
+            const mlRequest = {
+                content: messageData.content,
+                userId: messageData.userId,
+                sessionId: messageData.sessionId,
+                context: {
+                    team_id: teamConfig.team_id,
+                    team_config: {
+                        ...teamConfig,
+                        members: teamConfig.members || [{
+                            agent_id: teamConfig.team_id,
+                            priority: 1,
+                            accuracy_threshold: 0.8,
+                            success_rate: 0.9,
+                            role: "processor"
+                        }]
+                    },
+                    conversation_settings: messageData.context?.conversation_settings || {},
+                    conversation_history: messageData.context?.conversation_history || [],
+                    documents: messageData.context?.documents || []
+                }
+            };
+
+            logger.info('[MLService] Sending request to ML service:', mlRequest);
+
+            const response = await axios.post(`${ML_SERVICE_URL}/team/execute`, mlRequest);
+            
+            logger.info('[MLService] Received response from ML service:', response.data);
+            
             return response.data;
         } catch (error) {
             logger.error('[MLService] Error processing with team:', error);

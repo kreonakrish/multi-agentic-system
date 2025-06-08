@@ -1,1 +1,0 @@
-2025-06-01 00:15:43,211 - multi_agent_system.agent.10 - ERROR - [NO_CORRELATION_ID] - Failed to send message: 1054 (42S22): Unknown column 'message' in 'field list'

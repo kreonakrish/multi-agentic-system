@@ -17,11 +17,12 @@ def initialize_agent_from_db(agent_id: int) -> Optional[Agent]:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Get agent details
+        # Get agent details with team info
         cursor.execute("""
-            SELECT name, memory_type, foundation_model, status
-            FROM agents
-            WHERE id = %s
+            SELECT a.name, a.memory_type, a.foundation_model, ta.team_id
+            FROM agents a
+            LEFT JOIN team_agents ta ON a.id = ta.agent_id
+            WHERE a.id = %s
         """, (agent_id,))
         agent_data = cursor.fetchone()
         
@@ -35,12 +36,12 @@ def initialize_agent_from_db(agent_id: int) -> Optional[Agent]:
             name=agent_data['name'],
             memory_type=agent_data['memory_type'],
             foundation_model=agent_data['foundation_model'],
-            status=agent_data['status']
+            team_id=agent_data.get('team_id')  # Use get() to handle None case
         )
         
         # Get agent's tools
         cursor.execute("""
-            SELECT t.tool_name, t.description, t.tool_type
+            SELECT t.id, t.tool_name, t.description, t.tool_type, t.hostname, t.username, t.auth_method
             FROM agent_tools at
             JOIN tools t ON at.tool_id = t.id
             WHERE at.agent_id = %s
@@ -49,7 +50,15 @@ def initialize_agent_from_db(agent_id: int) -> Optional[Agent]:
         
         # Add tools to agent
         for tool in tools:
-            agent.add_tool(tool['tool_name'], tool['description'], tool['tool_type'])
+            agent.add_tool(
+                tool_id=tool['id'],
+                tool_name=tool['tool_name'],
+                tool_type=tool['tool_type'],
+                hostname=tool['hostname'],
+                username=tool['username'],
+                auth_method=tool['auth_method'],
+                description=tool['description']
+            )
         
         logger.info(f"Successfully initialized agent {agent_id} from database")
         return agent
@@ -99,7 +108,7 @@ class AgentService:
             
             # Use OpenAI to process the message
             try:
-                response = self.openai.ChatCompletion.create(
+                response = self.openai.chat.completions.create(
                     model=agent.foundation_model,
                     messages=[
                         {"role": "system", "content": f"You are Agent_{agent_id}, communicating with Agent_{target_agent_id}"},

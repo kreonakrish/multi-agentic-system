@@ -1,2 +1,0 @@
-2025-06-01 21:57:36,622 - __main__ - ERROR - OPENAI_API_KEY not found in environment
-2025-06-01 21:57:36,622 - __main__ - ERROR - Error initializing OpenAI client: OPENAI_API_KEY not found in environment

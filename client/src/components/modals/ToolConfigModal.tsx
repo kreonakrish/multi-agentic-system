@@ -14,7 +14,14 @@ import {
 } from '@mui/material';
 import { Tool, ToolType } from '../../store/types';
 
-const TOOL_TYPES: ToolType[] = ['APIService', 'WebService', 'Database', 'Python', 'React'];
+const TOOL_TYPES: Array<{ value: ToolType; display: string }> = [
+  { value: 'APIService', display: 'API Service' },
+  { value: 'WebService', display: 'Web Service' },
+  { value: 'Database', display: 'Database' },
+  { value: 'Python', display: 'Python' },
+  { value: 'React', display: 'React' }
+];
+
 const AUTH_METHODS = ['Basic', 'OAuth', 'API Key', 'None'];
 
 interface ToolConfigModalProps {
@@ -32,7 +39,7 @@ const ToolConfigModal: React.FC<ToolConfigModalProps> = ({
   initialValues
 }) => {
   const [tool_name, setToolName] = useState(initialValues?.tool_name || '');
-  const [tool_type, setToolType] = useState<ToolType>(initialValues?.tool_type || TOOL_TYPES[0]);
+  const [tool_type, setToolType] = useState<ToolType>(initialValues?.tool_type || TOOL_TYPES[0].value);
   const [hostname, setHostname] = useState(initialValues?.hostname || '');
   const [username, setUsername] = useState(initialValues?.username || '');
   const [password, setPassword] = useState(initialValues?.password || '');
@@ -42,7 +49,7 @@ const ToolConfigModal: React.FC<ToolConfigModalProps> = ({
   useEffect(() => {
     if (initialValues) {
       setToolName(initialValues.tool_name || '');
-      setToolType(initialValues.tool_type || TOOL_TYPES[0]);
+      setToolType(initialValues.tool_type || TOOL_TYPES[0].value);
       setHostname(initialValues.hostname || '');
       setUsername(initialValues.username || '');
       setPassword(initialValues.password || '');
@@ -58,7 +65,7 @@ const ToolConfigModal: React.FC<ToolConfigModalProps> = ({
     }
 
     const toolData: Tool = {
-      id: initialValues?.id || 0, // Provide a default value for id
+      id: initialValues?.id || 0,
       tool_name,
       tool_type,
       hostname,
@@ -91,7 +98,9 @@ const ToolConfigModal: React.FC<ToolConfigModalProps> = ({
               onChange={e => setToolType(e.target.value as ToolType)}
             >
               {TOOL_TYPES.map(type => (
-                <MenuItem key={type} value={type}>{type}</MenuItem>
+                <MenuItem key={type.value} value={type.value}>
+                  {type.display}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>

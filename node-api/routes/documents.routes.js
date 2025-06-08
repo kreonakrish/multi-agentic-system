@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const db = require('../utils/db');
+const db = require('../database/db');
 const logger = require('../utils/logger');
 
 // Configure multer for file upload

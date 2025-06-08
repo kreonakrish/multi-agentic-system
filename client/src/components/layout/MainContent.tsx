@@ -25,8 +25,8 @@ const MainContent: React.FC<MainContentProps> = ({
         flex: 1,
         display: "flex",
         flexDirection: "column",
-        minWidth: 0,
-        height: '100%',
+        width: '100%',
+        height: 'calc(100vh - 64px)', // Subtract the TopBar height
         overflow: 'hidden',
         bgcolor: '#f0f2f5',
         p: 2
@@ -37,7 +37,8 @@ const MainContent: React.FC<MainContentProps> = ({
         sx={{
           flex: 1,
           display: "flex",
-          minHeight: 0,
+          width: '100%',
+          height: '100%',
           overflow: 'hidden',
           bgcolor: '#fff',
           borderRadius: 3,

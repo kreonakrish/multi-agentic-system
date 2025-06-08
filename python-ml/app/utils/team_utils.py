@@ -1,12 +1,140 @@
 """Utility functions for team task execution"""
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 import json
 import uuid
+import logging
 from app.utils.logger import logger
 from app.services.agent_service import initialize_agent_from_db
+from app.utils.db import get_db_connection, safe_close_connection
+from app.utils.openai_utils import get_openai_client
+from app.models.team import Team
+from app.models.task import TeamTask
+
+# Get workflow-specific loggers
+workflow_logger = logging.getLogger('multi_agent_system.workflow')
+workflow_steps_logger = logging.getLogger('multi_agent_system.workflow.steps')
+workflow_execution_logger = logging.getLogger('multi_agent_system.workflow.execution')
+
+# Get module-specific logger
+logger = logging.getLogger(__name__)
+
+def aggregate_team_responses(results: List[Dict[str, Any]], task_description: str) -> Dict[str, Any]:
+    """Aggregate responses from all team members."""
+    try:
+        # Initialize aggregated data structure
+        aggregated_data = {
+            'vector_store': {
+                'results': [],
+                'queries': [],
+                'datasets': []
+            },
+            'raw_data': {
+                'samples': [],
+                'total_records': 0,
+                'schemas': []
+            },
+            'tool_results': [],
+            'llm_responses': []
+        }
+        
+        # Process each agent's results
+        for result in results:
+            if result.get('status') == 'success':
+                response = result.get('response', {})
+                
+                # Handle GitHub data specifically
+                if 'github_data' in response:
+                    github_data = response['github_data']
+                    aggregated_data['raw_data']['samples'].append({
+                        'tool': 'github',
+                        'dataset': github_data.get('dataset_name', ''),
+                        'data': github_data.get('data', [])[:3],  # First 3 rows as sample
+                        'total_records': len(github_data.get('data', [])),
+                        'schema': list(github_data.get('data', [{}])[0].keys()) if github_data.get('data') else []
+                    })
+                    aggregated_data['raw_data']['total_records'] += len(github_data.get('data', []))
+                    
+                    # Add dataset info to vector store results
+                    aggregated_data['vector_store']['datasets'].append({
+                        'name': github_data.get('dataset_name', ''),
+                        'url': github_data.get('url', ''),
+                        'info': github_data.get('dataset_info', {})
+                    })
+                
+                # Add tool results
+                if 'tool_results' in response:
+                    aggregated_data['tool_results'].extend(response['tool_results'])
+                
+                # Add vector store results
+                if 'vector_store_results' in response:
+                    aggregated_data['vector_store']['results'].extend(response['vector_store_results'])
+                
+                # Add LLM response
+                if 'llm_response' in response:
+                    aggregated_data['llm_responses'].append({
+                        'agent_id': result.get('agent_id'),
+                        'response': response['llm_response']
+                    })
+        
+        # Get validation from LLM
+        validation_prompt = f"""
+        Task Description: {task_description}
+        
+        Aggregated Results:
+        {json.dumps(aggregated_data, indent=2)}
+        
+        Please analyze these results and provide:
+        1. Response Quality and Consistency
+        2. Data Completeness and Relevance
+        3. Conflicts or Inconsistencies
+        4. Vector Store Result Quality
+        5. Raw Data Samples Quality
+        
+        Provide a detailed validation summary.
+        """
+        
+        openai = get_openai_client()
+        validation_response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a data validation expert."},
+                {"role": "user", "content": validation_prompt}
+            ],
+            temperature=0.3
+        )
+        
+        validation_text = validation_response.choices[0].message.content
+        logger.info("Received validation response from LLM")
+        logger.debug(f"Validation text: {validation_text}")
+        
+        # Check if validation passed
+        validation_passed = True
+        if "not complete" in validation_text.lower() or "missing" in validation_text.lower():
+            validation_passed = False
+        
+        logger.info("Validation passed successfully" if validation_passed else "Validation failed")
+        
+        return {
+            'aggregated_data': aggregated_data,
+            'validation_result': validation_text,
+            'validation_passed': validation_passed
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in aggregate_team_responses: {str(e)}")
+        return {
+            'aggregated_data': {
+                'vector_store': {'results': [], 'queries': [], 'datasets': []},
+                'raw_data': {'samples': [], 'total_records': 0, 'schemas': []},
+                'tool_results': [],
+                'llm_responses': []
+            },
+            'validation_result': f"Error aggregating responses: {str(e)}",
+            'validation_passed': False
+        }
 
 def store_team_task(cursor, team_id: int, task_data: Dict[str, Any], correlation_id: str) -> int:
     """Store team task in database and return task_id"""
@@ -33,6 +161,7 @@ def store_team_task(cursor, team_id: int, task_data: Dict[str, Any], correlation
         datetime.now(),
         datetime.now()
     ))
+    workflow_logger.info(f"[WORKFLOW] Stored team task with ID: {task_id}")
     return cursor.lastrowid
 
 def create_workflow_record(cursor, team_id: int, task_id: int, correlation_id: str) -> int:
@@ -46,9 +175,11 @@ def create_workflow_record(cursor, team_id: int, task_id: int, correlation_id: s
     """, (team_id,))
     result = cursor.fetchone()
     if not result:
+        workflow_logger.error(f"[WORKFLOW] No agents found for team {team_id}")
         raise ValueError(f"No agents found for team {team_id}")
     
-    initiator_id = result['agent_id']
+    initiator_id = result[0]  # Access first element of tuple
+    start_time = datetime.now()
     
     cursor.execute("""
         INSERT INTO workflows (
@@ -58,8 +189,14 @@ def create_workflow_record(cursor, team_id: int, task_id: int, correlation_id: s
             message,
             team_id, 
             correlation_id, 
-            task_data
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+            task_data,
+            start_time,
+            end_time,
+            execution_time,
+            successful_agents,
+            total_agents,
+            error_message
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NULL, NULL, 0, 0, NULL)
     """, (
         initiator_id,
         'sequential',  # Default type
@@ -67,47 +204,156 @@ def create_workflow_record(cursor, team_id: int, task_id: int, correlation_id: s
         'Team task execution',
         team_id,
         correlation_id,
-        json.dumps({'task_id': task_id})
+        json.dumps({'task_id': task_id}),
+        start_time
     ))
-    return cursor.lastrowid
+    workflow_id = cursor.lastrowid
+    workflow_logger.info(f"[WORKFLOW] Created workflow record with ID: {workflow_id}")
+    workflow_logger.info(f"[WORKFLOW] Status: INITIALIZED")
+    workflow_logger.info(f"[WORKFLOW] Start Time: {start_time.isoformat()}")
+    return workflow_id
 
 def get_team_agents_ordered(cursor, team_id: int) -> List[Dict[str, Any]]:
-    """Get team agents ordered by priority, accuracy, and success rate"""
+    """Get ordered list of team agents"""
     cursor.execute("""
-        SELECT ta.agent_id, ta.priority, ta.accuracy, ta.success, a.name
-        FROM team_agents ta
-        JOIN agents a ON ta.agent_id = a.id
-        WHERE ta.team_id = %s
+        SELECT ta.agent_id, ta.team_id, ta.priority, ta.accuracy, ta.success, a.name
+        FROM team_agents ta 
+        JOIN agents a ON ta.agent_id = a.id 
+        WHERE ta.team_id = %s 
         ORDER BY ta.priority DESC, ta.accuracy DESC, ta.success DESC
     """, (team_id,))
-    return cursor.fetchall()
+    results = cursor.fetchall()
+    # Convert tuples to dictionaries with proper column names
+    return [{
+        'agent_id': row[0],
+        'team_id': row[1],
+        'priority': row[2],
+        'accuracy': row[3],
+        'success': row[4],
+        'name': row[5]
+    } for row in results]
 
 def group_agents_by_priority(agents: List[Dict[str, Any]]) -> Dict[int, List[Dict[str, Any]]]:
     """Group agents by priority level"""
     priority_groups = defaultdict(list)
     for agent in agents:
-        priority_groups[agent['priority']].append(agent)
-    return dict(sorted(priority_groups.items(), reverse=True))
+        priority = agent['priority'] or 1  # Default to priority 1 if None
+        priority_groups[priority].append(agent)
+    return dict(priority_groups)
 
 def create_workflow_steps(cursor, workflow_id: int, agents: List[Dict[str, Any]]) -> List[int]:
-    """Create workflow steps for a group of agents and return step_ids"""
+    """Create workflow steps for each agent"""
     step_ids = []
-    for idx, agent in enumerate(agents, 1):  # Start enumeration from 1
+    for idx, agent in enumerate(agents, 1):
         cursor.execute("""
             INSERT INTO workflow_steps (
-                workflow_id, 
-                agent_id, 
+                workflow_id,
+                agent_id,
                 step_order,
-                status
-            ) VALUES (%s, %s, %s, %s)
+                status,
+                created_at,
+                updated_at
+            ) VALUES (%s, %s, %s, %s, %s, %s)
         """, (
             workflow_id,
             agent['agent_id'],
-            idx,  # Use enumeration index as step_order
-            'pending'
+            idx,
+            'pending',
+            datetime.now(),
+            datetime.now()
         ))
         step_ids.append(cursor.lastrowid)
+        workflow_steps_logger.info(f"[WORKFLOW_STEPS] Created step {idx} for agent {agent['agent_id']}")
     return step_ids
+
+def update_workflow_steps_status(
+    cursor,
+    step_ids: List[int],
+    status: str,
+    error: Optional[str] = None,
+    result: Optional[Dict[str, Any]] = None
+) -> None:
+    """Update status of workflow steps"""
+    for step_id in step_ids:
+        cursor.execute("""
+            UPDATE workflow_steps 
+            SET status = %s,
+                error_message = %s,
+                result = %s,
+                updated_at = %s
+            WHERE id = %s
+        """, (
+            status,
+            error,
+            json.dumps(result) if result else None,
+            datetime.now(),
+            step_id
+        ))
+    workflow_steps_logger.info(f"[WORKFLOW_STEPS] Updated {len(step_ids)} steps to status: {status}")
+
+def update_workflow_status(cursor, workflow_id: int, status: str) -> None:
+    """Update workflow status"""
+    cursor.execute("""
+        UPDATE workflows 
+        SET status = %s,
+            end_time = %s,
+            execution_time = TIMESTAMPDIFF(SECOND, start_time, %s)
+        WHERE id = %s
+    """, (
+        status,
+        datetime.now(),
+        datetime.now(),
+        workflow_id
+    ))
+    workflow_logger.info(f"[WORKFLOW] Updated workflow {workflow_id} status to: {status}")
+
+def execute_priority_group(agents: List[Dict[str, Any]], step_ids: List[int], task: Dict[str, Any], correlation_id: str) -> List[Dict[str, Any]]:
+    """Execute tasks in parallel for agents in the same priority group"""
+    responses = []
+    workflow_execution_logger.info(f"[WORKFLOW_EXECUTION] Starting execution of priority group with {len(agents)} agents")
+    
+    with ThreadPoolExecutor(max_workers=len(agents)) as executor:
+        future_to_agent = {
+            executor.submit(
+                execute_agent_task, 
+                agent, 
+                task,
+                correlation_id
+            ): agent for agent in agents
+        }
+        for future in as_completed(future_to_agent):
+            agent = future_to_agent[future]
+            try:
+                response = future.result()
+                workflow_execution_logger.info(f"[WORKFLOW_EXECUTION] Agent {agent['agent_id']} completed execution")
+                workflow_execution_logger.debug(f"[WORKFLOW_EXECUTION] Agent {agent['agent_id']} response: {json.dumps(response, indent=2)}")
+                
+                # Extract all data from the response
+                agent_response = response.get('response', {})
+                responses.append({
+                    'agent_id': agent['agent_id'],
+                    'agent_name': agent.get('name', f"Agent_{agent['agent_id']}"),
+                    'status': response.get('status', 'failed'),
+                    'response': {
+                        'message': agent_response.get('message', ''),
+                        'data': agent_response.get('data', {}),
+                        'tool_results': agent_response.get('tool_results', []),
+                        'llm_response': agent_response.get('llm_response', ''),
+                        'vector_store_results': agent_response.get('vector_store_results', []),
+                        'raw_data': agent_response.get('raw_data', {})
+                    }
+                })
+                
+            except Exception as e:
+                workflow_execution_logger.error(f"[WORKFLOW_EXECUTION] Error executing agent {agent['agent_id']}: {str(e)}")
+                responses.append({
+                    'agent_id': agent['agent_id'],
+                    'agent_name': agent.get('name', f"Agent_{agent['agent_id']}"),
+                    'status': 'failed',
+                    'error': str(e)
+                })
+    
+    return responses
 
 def execute_agent_task(agent: Dict[str, Any], task: Dict[str, Any], correlation_id: str) -> Dict[str, Any]:
     """Execute task with a single agent"""
@@ -153,155 +399,4 @@ def execute_agent_task(agent: Dict[str, Any], task: Dict[str, Any], correlation_
             'agent_name': agent.get('name', f"Agent_{agent['agent_id']}"),
             'status': 'failed',
             'error': str(e)
-        }
-
-def execute_priority_group(agents: List[Dict[str, Any]], step_ids: List[int], task: Dict[str, Any], correlation_id: str) -> List[Dict[str, Any]]:
-    """Execute tasks in parallel for agents in the same priority group"""
-    responses = []
-    with ThreadPoolExecutor(max_workers=len(agents)) as executor:
-        future_to_agent = {
-            executor.submit(execute_agent_task, agent, task, correlation_id): agent
-            for agent in agents
-        }
-        for future in as_completed(future_to_agent):
-            agent = future_to_agent[future]
-            try:
-                response = future.result()
-                responses.append(response)
-            except Exception as e:
-                logger.error(f"Error in agent execution: {str(e)}")
-                responses.append({
-                    'agent_id': agent['agent_id'],
-                    'status': 'failed',
-                    'error': str(e)
-                })
-    return responses
-
-def update_workflow_steps_status(cursor, step_ids: List[int], status: str):
-    """Update status of workflow steps"""
-    if step_ids:
-        placeholders = ', '.join(['%s'] * len(step_ids))
-        cursor.execute(f"""
-            UPDATE workflow_steps
-            SET status = %s, updated_at = %s
-            WHERE id IN ({placeholders})
-        """, [status, datetime.now()] + step_ids)
-
-def update_workflow_status(cursor, workflow_id: int, status: str):
-    """Update workflow status"""
-    cursor.execute("""
-        UPDATE workflows
-        SET status = %s, updated_at = %s
-        WHERE id = %s
-    """, (status, datetime.now(), workflow_id))
-
-def aggregate_team_responses(responses: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Aggregate responses from multiple agents"""
-    # Consider both 'completed' and 'success' as successful statuses
-    successful_responses = [r for r in responses if r['status'] in ['completed', 'success']]
-    failed_responses = [r for r in responses if r['status'] not in ['completed', 'success']]
-    
-    if not successful_responses:
-        error_messages = []
-        for r in failed_responses:
-            if 'error' in r:
-                error_messages.append(r['error'])
-            elif 'response' in r and 'message' in r['response']:
-                error_messages.append(r['response']['message'])
-        
-        return {
-            'status': 'failed',
-            'message': 'All agents failed to process the task',
-            'data': {'errors': error_messages},
-            'tool_results': [],
-            'results': [],
-            'conversation_context': [],
-            'final_status': 'failed',
-            'execution_summary': {
-                'total_agents': len(responses),
-                'successful_executions': 0,
-                'priority_groups': [],
-                'execution_order': []
-            }
-        }
-    
-    # Combine responses from all successful agents
-    combined_data = {}
-    combined_tool_results = []
-    messages = []
-    results = []
-    conversation_context = []
-    priority_groups = set()
-    execution_order = []
-    
-    for response in successful_responses:
-        # Extract agent details
-        agent_details = {
-            'agent_id': response.get('agent_id'),
-            'agent_name': response.get('agent_name'),
-            'priority': response.get('priority', 0),
-            'accuracy': response.get('accuracy', 0),
-            'success_rate': response.get('success_rate', 0)
-        }
-        
-        # Add to results
-        result = {
-            **agent_details,
-            'result': {
-                'status': 'success',
-                'llm_response': response.get('response', {}).get('llm_response', ''),
-                'tool_results': response.get('response', {}).get('tool_results', [])
-            }
-        }
-        results.append(result)
-        
-        # Add to conversation context
-        context = {
-            **agent_details,
-            'response': response.get('response', {}).get('llm_response', '')
-        }
-        conversation_context.append(context)
-        
-        # Track priority groups and execution order
-        priority = agent_details['priority']
-        priority_groups.add(priority)
-        
-        # Update execution order
-        order_entry = next(
-            (entry for entry in execution_order if entry['priority'] == priority),
-            None
-        )
-        if order_entry:
-            order_entry['agents'].append(f"{agent_details['agent_name']} (ID: {agent_details['agent_id']})")
-        else:
-            execution_order.append({
-                'priority': priority,
-                'agents': [f"{agent_details['agent_name']} (ID: {agent_details['agent_id']})"]
-            })
-        
-        # Combine other data
-        if 'response' in response:
-            if 'message' in response['response']:
-                messages.append(response['response']['message'])
-            if 'data' in response['response']:
-                combined_data.update(response['response']['data'])
-            if 'tool_results' in response['response']:
-                combined_tool_results.extend(response['response']['tool_results'])
-            if 'llm_response' in response['response']:
-                messages.append(response['response']['llm_response'])
-    
-    return {
-        'status': 'success',
-        'message': ' | '.join(messages) if messages else 'Task completed successfully',
-        'data': combined_data,
-        'tool_results': combined_tool_results,
-        'results': results,
-        'conversation_context': conversation_context,
-        'final_status': 'completed',
-        'execution_summary': {
-            'total_agents': len(responses),
-            'successful_executions': len(successful_responses),
-            'priority_groups': sorted(list(priority_groups), reverse=True),
-            'execution_order': sorted(execution_order, key=lambda x: x['priority'], reverse=True)
-        }
-    } 
+        } 

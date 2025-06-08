@@ -1,6 +1,6 @@
 import React from 'react';
 import { Line } from 'react-chartjs-2';
-import { chartOptions } from '../../config/chartConfig';
+import { lineChartOptions } from '../../config/chartConfig';
 
 interface LineChartProps {
   data: {
@@ -18,7 +18,7 @@ interface LineChartProps {
 const LineChartComponent: React.FC<LineChartProps> = ({ data }) => {
   return (
     <div style={{ height: '300px', width: '100%' }}>
-      <Line data={data} options={chartOptions} />
+      <Line data={data} options={lineChartOptions} />
     </div>
   );
 };

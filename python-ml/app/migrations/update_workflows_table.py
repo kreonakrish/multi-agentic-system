@@ -1,6 +1,11 @@
 """Migration to update workflows table"""
 from app.utils.db import get_db_connection, safe_close_connection
-from app.utils.logger import logger
+import logging
+
+# Get workflow-specific loggers
+workflow_logger = logging.getLogger('multi_agent_system.workflow')
+workflow_steps_logger = logging.getLogger('multi_agent_system.workflow.steps')
+workflow_execution_logger = logging.getLogger('multi_agent_system.workflow.execution')
 
 def migrate():
     """Update workflows table with new columns"""
@@ -19,12 +24,13 @@ def migrate():
             ADD FOREIGN KEY (team_id) REFERENCES teams(id)
         """)
             
-        logger.info("Updated workflows table")
+        workflow_logger.info("[WORKFLOW] Updated workflows table with new columns")
             
         conn.commit()
+        workflow_logger.info("[WORKFLOW] Migration completed successfully")
         
     except Exception as e:
-        logger.error(f"Error in migration: {str(e)}")
+        workflow_logger.error(f"[WORKFLOW] Error in migration: {str(e)}", exc_info=True)
         if conn:
             conn.rollback()
         raise

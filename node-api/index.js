@@ -1,27 +1,16 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const mysql = require('mysql2/promise');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
 const logger = require('./utils/logger');
+const pool = require('./database/db');
 
 const app = express();
 const PORT = 4000;
 
-// MySQL connection pool
-const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'admin',
-    password: 'gUest@Sep2',
-    database: 'multi_agentic_system',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
-
-// Import routes after pool is initialized
+// Import routes
 const chatRoutes = require('./routes/chat.routes');
 const agentInteractionsRoutes = require('./routes/agent-interactions.routes');
 const toolRoutes = require('./routes/tool.routes');

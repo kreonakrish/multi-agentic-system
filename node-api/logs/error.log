@@ -1,0 +1,36 @@
+[2025-06-08T18:39:15.960Z] [ORCHESTRATOR-ERROR] Error processing chat message
+{
+  "error": "this._sendToMLService is not a function",
+  "stack": "TypeError: this._sendToMLService is not a function\n    at OrchestratorService.processChatMessage (C:\\multi-agentic-system\\node-api\\services\\orchestrator.service.js:71:43)\n    at ChatController.processMessage (C:\\multi-agentic-system\\node-api\\controllers\\chat.controller.js:136:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)",
+  "userId": "user-1",
+  "sessionId": 77
+}
+
+[2025-06-08T18:39:15.965Z] [ERROR] Error processing chat message
+{
+  "error": "this._sendToMLService is not a function",
+  "stack": "TypeError: this._sendToMLService is not a function\n    at OrchestratorService.processChatMessage (C:\\multi-agentic-system\\node-api\\services\\orchestrator.service.js:71:43)\n    at ChatController.processMessage (C:\\multi-agentic-system\\node-api\\controllers\\chat.controller.js:136:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+}
+
+[2025-06-08T19:01:11.552Z] [ORCHESTRATOR-ERROR] Error communicating with ML service
+{
+  "error": "Request failed with status code 400",
+  "stack": "AxiosError: Request failed with status code 400\n    at settle (C:\\multi-agentic-system\\node-api\\node_modules\\axios\\dist\\node\\axios.cjs:2049:12)\n    at IncomingMessage.handleStreamEnd (C:\\multi-agentic-system\\node-api\\node_modules\\axios\\dist\\node\\axios.cjs:3166:11)\n    at IncomingMessage.emit (node:events:532:35)\n    at endReadableNT (node:internal/streams/readable:1696:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)\n    at Axios.request (C:\\multi-agentic-system\\node-api\\node_modules\\axios\\dist\\node\\axios.cjs:4276:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async OrchestratorService._sendToMLService (C:\\multi-agentic-system\\node-api\\services\\orchestrator.service.js:342:30)\n    at async OrchestratorService.processChatMessage (C:\\multi-agentic-system\\node-api\\services\\orchestrator.service.js:71:32)\n    at async ChatController.processMessage (C:\\multi-agentic-system\\node-api\\controllers\\chat.controller.js:136:30)",
+  "requestContent": "hi",
+  "sessionId": 77
+}
+
+[2025-06-08T19:01:11.555Z] [ORCHESTRATOR-ERROR] Error processing chat message
+{
+  "error": "Request failed with status code 400",
+  "stack": "AxiosError: Request failed with status code 400\n    at settle (C:\\multi-agentic-system\\node-api\\node_modules\\axios\\dist\\node\\axios.cjs:2049:12)\n    at IncomingMessage.handleStreamEnd (C:\\multi-agentic-system\\node-api\\node_modules\\axios\\dist\\node\\axios.cjs:3166:11)\n    at IncomingMessage.emit (node:events:532:35)\n    at endReadableNT (node:internal/streams/readable:1696:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)\n    at Axios.request (C:\\multi-agentic-system\\node-api\\node_modules\\axios\\dist\\node\\axios.cjs:4276:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async OrchestratorService._sendToMLService (C:\\multi-agentic-system\\node-api\\services\\orchestrator.service.js:342:30)\n    at async OrchestratorService.processChatMessage (C:\\multi-agentic-system\\node-api\\services\\orchestrator.service.js:71:32)\n    at async ChatController.processMessage (C:\\multi-agentic-system\\node-api\\controllers\\chat.controller.js:136:30)",
+  "userId": "user-1",
+  "sessionId": 77
+}
+
+[2025-06-08T19:01:11.556Z] [ERROR] Error processing chat message
+{
+  "error": "Request failed with status code 400",
+  "stack": "AxiosError: Request failed with status code 400\n    at settle (C:\\multi-agentic-system\\node-api\\node_modules\\axios\\dist\\node\\axios.cjs:2049:12)\n    at IncomingMessage.handleStreamEnd (C:\\multi-agentic-system\\node-api\\node_modules\\axios\\dist\\node\\axios.cjs:3166:11)\n    at IncomingMessage.emit (node:events:532:35)\n    at endReadableNT (node:internal/streams/readable:1696:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)\n    at Axios.request (C:\\multi-agentic-system\\node-api\\node_modules\\axios\\dist\\node\\axios.cjs:4276:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async OrchestratorService._sendToMLService (C:\\multi-agentic-system\\node-api\\services\\orchestrator.service.js:342:30)\n    at async OrchestratorService.processChatMessage (C:\\multi-agentic-system\\node-api\\services\\orchestrator.service.js:71:32)\n    at async ChatController.processMessage (C:\\multi-agentic-system\\node-api\\controllers\\chat.controller.js:136:30)"
+}
+

@@ -1,6 +1,11 @@
 """Migration to create workflows and workflow_steps tables"""
 from app.utils.db import get_db_connection, safe_close_connection
-from app.utils.logger import logger
+import logging
+
+# Get workflow-specific loggers
+workflow_logger = logging.getLogger('multi_agent_system.workflow')
+workflow_steps_logger = logging.getLogger('multi_agent_system.workflow.steps')
+workflow_execution_logger = logging.getLogger('multi_agent_system.workflow.execution')
 
 def migrate():
     """Create workflows and workflow_steps tables if they don't exist"""
@@ -24,6 +29,7 @@ def migrate():
                 FOREIGN KEY (team_id) REFERENCES teams(id)
             )
         """)
+        workflow_logger.info("[WORKFLOW] Created workflows table")
         
         # Create workflow_steps table if it doesn't exist
         cursor.execute("""
@@ -40,13 +46,13 @@ def migrate():
                 FOREIGN KEY (agent_id) REFERENCES agents(id)
             )
         """)
-            
-        logger.info("Created workflows and workflow_steps tables")
+        workflow_steps_logger.info("[WORKFLOW_STEPS] Created workflow_steps table")
             
         conn.commit()
+        workflow_logger.info("[WORKFLOW] Migration completed successfully")
         
     except Exception as e:
-        logger.error(f"Error in migration: {str(e)}")
+        workflow_logger.error(f"[WORKFLOW] Error in migration: {str(e)}", exc_info=True)
         if conn:
             conn.rollback()
         raise

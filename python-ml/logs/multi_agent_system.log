@@ -1,3 +1,0 @@
-2025-06-01 00:15:37,040 - multi_agent_system - WARNING - [NO_CORRELATION_ID] - 404 Not Found: http://localhost:5000/api/ml/agent/10/initialize
-2025-06-01 00:15:43,195 - multi_agent_system.agent.10 - INFO - [NO_CORRELATION_ID] - Sending message to agent
-2025-06-01 00:15:43,211 - multi_agent_system.agent.10 - ERROR - [NO_CORRELATION_ID] - Failed to send message: 1054 (42S22): Unknown column 'message' in 'field list'

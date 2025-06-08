@@ -1,7 +1,69 @@
 from typing import Dict, Any, List, Optional, NamedTuple, Union
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.utils.enums import TaskPriority
 from app.utils.logger import logger
+
+class TeamPermission:
+    def __init__(self, team_id: int, tool_id: int, permission_level: str):
+        self.team_id = team_id
+        self.tool_id = tool_id
+        self.permission_level = permission_level
+
+class TeamConfig:
+    def __init__(self, team_id: int, name: str, config_data: Dict[str, Any]):
+        self.team_id = team_id
+        self.name = name
+        self.config_data = config_data
+        self.permissions = []
+
+    def add_permission(self, tool_id: int, permission_level: str):
+        self.permissions.append(TeamPermission(self.team_id, tool_id, permission_level))
+
+    def has_permission(self, tool_id: int, required_level: str) -> bool:
+        for permission in self.permissions:
+            if permission.tool_id == tool_id and permission.permission_level == required_level:
+                return True
+        return False
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "team_id": self.team_id,
+            "name": self.name,
+            "config_data": self.config_data,
+            "permissions": [
+                {
+                    "tool_id": p.tool_id,
+                    "permission_level": p.permission_level
+                } for p in self.permissions
+            ]
+        }
+
+class TeamMetrics:
+    def __init__(self, team_id: int):
+        self.team_id = team_id
+        self.metrics = {}
+        self.last_update = datetime.now()
+
+    def update_metrics(self, metric_type: str, value: Any):
+        self.metrics[metric_type] = {
+            "value": value,
+            "timestamp": datetime.now()
+        }
+
+    def get_metrics(self, time_range: str = "24h") -> Dict[str, Any]:
+        cutoff = datetime.now()
+        if time_range == "24h":
+            cutoff = cutoff - timedelta(hours=24)
+        elif time_range == "7d":
+            cutoff = cutoff - timedelta(days=7)
+        elif time_range == "30d":
+            cutoff = cutoff - timedelta(days=30)
+
+        return {
+            metric_type: data
+            for metric_type, data in self.metrics.items()
+            if data["timestamp"] >= cutoff
+        }
 
 class TeamMember:
     """Model for a team member (agent)"""
@@ -131,12 +193,7 @@ class Team:
         self.tasks: List[TeamTask] = []
         self.created_at = created_at or datetime.now()
         self.updated_at = updated_at or datetime.now()
-        self.metrics: Dict[str, Any] = {
-            'total_tasks': 0,
-            'successful_tasks': 0,
-            'failed_tasks': 0,
-            'average_completion_time': 0.0
-        }
+        self.metrics = TeamMetrics(team_id)
         self.current_task: Optional[TeamTask] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -147,7 +204,7 @@ class Team:
             'description': self.description,
             'members': [member.to_dict() for member in self.members],
             'tasks': [task.to_dict() for task in self.tasks],
-            'metrics': self.metrics,
+            'metrics': self.metrics.get_metrics(),
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
@@ -174,20 +231,38 @@ class Team:
             team.tasks.append(TeamTask.from_dict(task_data))
         
         # Load metrics
-        team.metrics = data.get('metrics', team.metrics)
+        team.metrics = TeamMetrics(team.team_id)
         return team
 
-    def add_member(self, member: TeamMember) -> None:
+    def add_member(self, member: TeamMember) -> bool:
         """Add a member to the team"""
-        self.members.append(member)
-        # Sort members by priority (highest first), then accuracy_threshold (highest first), then success_rate (highest first)
-        self.members.sort(key=lambda x: (
-            -x.priority.value,  # Negative to sort in descending order
-            -x.accuracy_threshold,  # Negative for descending order
-            -x.success_rate  # Negative for descending order
-        ))
-        self.updated_at = datetime.now()
-        logger.info(f"Agent {member.agent_id} added to team {self.team_id}")
+        if self._validate_member(member):
+            self.members.append(member)
+            # Sort members by priority (highest first), then accuracy_threshold (highest first), then success_rate (highest first)
+            self.members.sort(key=lambda x: (
+                -x.priority.value,  # Negative to sort in descending order
+                -x.accuracy_threshold,  # Negative for descending order
+                -x.success_rate  # Negative for descending order
+            ))
+            self.updated_at = datetime.now()
+            logger.info(f"Agent {member.agent_id} added to team {self.team_id}")
+            return True
+        return False
+
+    def _validate_member(self, member: TeamMember) -> bool:
+        # Basic validation rules
+        if member.priority < 1 or member.priority > 5:
+            return False
+        if member.accuracy_threshold < 0 or member.accuracy_threshold > 1:
+            return False
+        if member.success_rate < 0 or member.success_rate > 1:
+            return False
+        
+        # Check for duplicate agent_id
+        if any(m.agent_id == member.agent_id for m in self.members):
+            return False
+            
+        return True
 
     def remove_member(self, agent_id: int) -> None:
         """Remove a member from the team"""
@@ -201,27 +276,27 @@ class Team:
 
     def update_metrics(self, task_success: bool, completion_time: float) -> None:
         """Update team metrics after task completion"""
-        self.metrics['total_tasks'] += 1
+        self.metrics.update_metrics('total_tasks', self.metrics.metrics['total_tasks'] + 1)
         if task_success:
-            self.metrics['successful_tasks'] += 1
+            self.metrics.update_metrics('successful_tasks', self.metrics.metrics['successful_tasks'] + 1)
         else:
-            self.metrics['failed_tasks'] += 1
+            self.metrics.update_metrics('failed_tasks', self.metrics.metrics['failed_tasks'] + 1)
         
         # Update average completion time
-        current_avg = self.metrics['average_completion_time']
-        total_tasks = self.metrics['total_tasks']
-        self.metrics['average_completion_time'] = (
+        current_avg = self.metrics.metrics['average_completion_time']
+        total_tasks = self.metrics.metrics['total_tasks']
+        self.metrics.update_metrics('average_completion_time', (
             (current_avg * (total_tasks - 1) + completion_time) / total_tasks
-        )
+        ))
         
         self.updated_at = datetime.now()
 
     def get_success_rate(self) -> float:
         """Calculate the team's success rate"""
-        total = self.metrics['total_tasks']
+        total = self.metrics.metrics['total_tasks']
         if total == 0:
             return 0.0
-        return (self.metrics['successful_tasks'] / total) * 100
+        return (self.metrics.metrics['successful_tasks'] / total) * 100
 
     def get_active_members(self) -> List[TeamMember]:
         """Get list of active team members"""

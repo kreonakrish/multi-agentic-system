@@ -1,13 +1,12 @@
 from flask import Blueprint, request, jsonify
-from app.services.agent_service import AgentService
-from app.utils.logger import logger
+from app.services import agent_service
 from app.utils.decorators import log_execution
 from app.utils.db import get_db_connection, safe_close_connection
+from app.utils.logger import logger
 from datetime import datetime
 from typing import Dict, Any
 
-bp = Blueprint('agent', __name__, url_prefix='/api/ml')
-agent_service = AgentService()
+bp = Blueprint('agent', __name__)
 
 @bp.route('/<int:agent_id>/initialize', methods=['POST'])
 @log_execution
@@ -108,7 +107,7 @@ def execute_all_tools(agent_id: int) -> Dict[str, Any]:
             'message': f'Failed to execute tools: {str(e)}'
         }), 500
 
-@bp.route('/agent-interactions', methods=['GET'])
+@bp.route('/interactions', methods=['GET'])
 @log_execution
 def get_agent_interactions() -> Dict[str, Any]:
     """Get agent interactions from messages table"""
@@ -190,7 +189,66 @@ def get_agent_interactions() -> Dict[str, Any]:
             'message': str(e)
         }), 500
     finally:
-        if 'cursor' in locals():
-            cursor.close()
-        if 'conn' in locals():
-            conn.close() 
+        safe_close_connection(conn, cursor)
+
+@bp.route('/<int:agent_id>/workflow', methods=['POST'])
+@log_execution
+def start_agent_workflow(agent_id: int) -> Dict[str, Any]:
+    """Start a workflow for an agent"""
+    try:
+        data = request.get_json()
+        return agent_service.start_workflow(agent_id, data)
+    except Exception as e:
+        logger.error(f"Error starting workflow for agent {agent_id}: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to start workflow: {str(e)}'
+        }), 500
+
+@bp.route('/<int:agent_id>/tools', methods=['GET', 'POST'])
+@log_execution
+def manage_agent_tools(agent_id: int) -> Dict[str, Any]:
+    """Manage tools for an agent"""
+    try:
+        if request.method == 'GET':
+            return agent_service.get_agent_tools(agent_id)
+        else:  # POST
+            data = request.get_json()
+            return agent_service.add_agent_tool(agent_id, data)
+    except Exception as e:
+        logger.error(f"Error managing tools for agent {agent_id}: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to manage agent tools: {str(e)}'
+        }), 500
+
+@bp.route('/<int:agent_id>/tool/<int:tool_id>', methods=['POST', 'DELETE'])
+@log_execution
+def manage_single_agent_tool(agent_id: int, tool_id: int) -> Dict[str, Any]:
+    """Manage a single tool for an agent"""
+    try:
+        if request.method == 'POST':
+            data = request.get_json()
+            return agent_service.update_agent_tool(agent_id, tool_id, data)
+        else:  # DELETE
+            return agent_service.remove_agent_tool(agent_id, tool_id)
+    except Exception as e:
+        logger.error(f"Error managing tool {tool_id} for agent {agent_id}: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to manage agent tool: {str(e)}'
+        }), 500
+
+@bp.route('/memory', methods=['POST'])
+@log_execution
+def create_agent_memory() -> Dict[str, Any]:
+    """Create a memory entry for an agent"""
+    try:
+        data = request.get_json()
+        return agent_service.create_memory(data)
+    except Exception as e:
+        logger.error(f"Error creating agent memory: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to create agent memory: {str(e)}'
+        }), 500 

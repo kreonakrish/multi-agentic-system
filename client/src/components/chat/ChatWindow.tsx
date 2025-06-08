@@ -1,52 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, TextField, IconButton, Typography, Paper, Link } from '@mui/material';
+import { Box, TextField, IconButton, Typography, Paper, Link, useTheme } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import remarkGfm from 'remark-gfm';
-import mermaid from 'mermaid';
 import { Team, ConversationStep, ConversationSettings, Document } from '../../store/types';
+import ChatMessage from './ChatMessage';
 import './ChatWindow.css';
-
-// Initialize mermaid
-mermaid.initialize({
-  startOnLoad: true,
-  theme: 'default',
-  securityLevel: 'loose',
-});
-
-// Helper function to detect if content is a Mermaid diagram
-const isMermaidDiagram = (content: string): boolean => {
-  const mermaidStart = content.trim().startsWith('```mermaid');
-  const mermaidEnd = content.trim().endsWith('```');
-  return mermaidStart && mermaidEnd;
-};
-
-// Helper function to extract Mermaid content
-const extractMermaidContent = (content: string): string => {
-  return content
-    .trim()
-    .replace('```mermaid', '')
-    .replace('```', '')
-    .trim();
-};
-
-interface ChatWindowProps {
-  placeholder: string;
-  conversationHistory: ConversationStep[];
-  setConversationHistory: React.Dispatch<React.SetStateAction<ConversationStep[]>>;
-  selectedTeam: Team | null;
-  canChat: boolean;
-  onFileUpload: (file: File) => Promise<Document>;
-}
 
 // Document Preview Component
 const DocumentPreview: React.FC<{ document: Document }> = ({ document }) => {
   const getFileIcon = () => {
-    // You can add more file type specific icons here
     return <InsertDriveFileIcon />;
   };
 
@@ -80,6 +43,15 @@ const DocumentPreview: React.FC<{ document: Document }> = ({ document }) => {
   );
 };
 
+interface ChatWindowProps {
+  placeholder: string;
+  conversationHistory: ConversationStep[];
+  setConversationHistory: React.Dispatch<React.SetStateAction<ConversationStep[]>>;
+  selectedTeam: Team | null;
+  canChat: boolean;
+  onFileUpload: (file: File) => Promise<Document>;
+}
+
 const ChatWindow: React.FC<ChatWindowProps> = ({
   placeholder,
   conversationHistory,
@@ -91,7 +63,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [message, setMessage] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const mermaidRef = useRef<HTMLDivElement>(null);
+  const theme = useTheme();
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -101,24 +73,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     scrollToBottom();
   }, [conversationHistory]);
 
-  // Debug logging for conversation history
-  useEffect(() => {
-    console.log('Conversation history updated:', conversationHistory);
-  }, [conversationHistory]);
-
-  // Render Mermaid diagrams after component updates
-  useEffect(() => {
-    if (mermaidRef.current) {
-      mermaid.init(undefined, document.querySelectorAll('.mermaid'));
-    }
-  }, [conversationHistory]);
-
   const handleSend = async () => {
     if (message.trim() && canChat) {
       const currentMessage = message;
-      setMessage(''); // Clear the input immediately
+      setMessage('');
       
-      // Add user message to conversation history
       const userStep: ConversationStep = { 
         role: 'user', 
         content: currentMessage,
@@ -128,7 +87,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       setConversationHistory(prev => [...prev, userStep]);
       
       try {
-        // Call the backend API
         const response = await fetch('/api/chat/message', {
           method: 'POST',
           headers: {
@@ -136,11 +94,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           },
           body: JSON.stringify({
             content: currentMessage,
-            userId: 'user-1', // TODO: Replace with actual user ID
+            userId: 'user-1',
             sessionId: selectedTeam?.id || 'default-session',
             context: {
               team_id: selectedTeam?.id,
-              // Include complete team configuration
               team_config: selectedTeam?.config || {
                 name: selectedTeam?.name || "Chat Response Team",
                 description: selectedTeam?.description || "Team for processing chat messages and generating responses",
@@ -152,21 +109,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                   role: agent.role || 'assistant'
                 })) || []
               },
-              // Include conversation settings
               conversation_settings: selectedTeam?.conversation_settings || {
-                // Required fields
                 temperature: 0.7,
                 tokenLimit: 2000,
                 startPrompt: '',
                 endPrompt: '',
                 style: 'default',
-                // Optional fields
-                start_prompt: '',
-                system_prompt: '',
-                max_tokens: 2000,
                 model: "gpt-4"
               },
-              // Include complete conversation history
               conversation_history: conversationHistory.map(step => ({
                 role: step.role,
                 content: step.content,
@@ -174,7 +124,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 attachments: step.attachments,
                 timestamp: step.timestamp || new Date().toISOString()
               })),
-              // Include any documents that were attached to the conversation
               documents: conversationHistory
                 .filter(step => step.attachments)
                 .flatMap(step => step.attachments || [])
@@ -198,44 +147,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         }
 
         const responseData = await response.json();
-        console.log('Received response from server:', responseData);
         
-        // The actual response is in the data field
-        const data = responseData.data;
-        
-        // Add bot response to conversation history if we have a valid response
-        if (data && data.content) {
-          const newStep: ConversationStep = { 
-            role: 'bot', 
-            content: data.content,
-            metadata: {
-              team_id: data.metadata?.team_id,
-              processing_time: data.metadata?.processing_time,
-              confidence_score: data.metadata?.confidence_score,
-              agent_contributions: data.metadata?.agent_contributions,
-              timestamp: data.timestamp || new Date().toISOString()
-            }
+        if (responseData.status === 'success' && responseData.data) {
+          const agentStep: ConversationStep = {
+            role: 'agent',
+            content: responseData.data.content,
+            timestamp: responseData.data.timestamp || new Date().toISOString(),
+            metadata: responseData.data.metadata || {}
           };
-          console.log('Adding new conversation step:', newStep);
-          setConversationHistory(prev => {
-            const newHistory = [...prev, newStep];
-            console.log('New conversation history:', newHistory);
-            return newHistory;
-          });
-        } else {
-          console.error('Invalid response format:', responseData);
-          throw new Error('Invalid response format from server');
+          
+          setConversationHistory(prev => [...prev, agentStep]);
         }
       } catch (error) {
         console.error('Error sending message:', error);
-        setConversationHistory(prev => [...prev, { 
-          role: 'bot', 
-          content: 'Sorry, there was an error processing your message. Please try again.',
-          metadata: {
-            team_id: selectedTeam?.id?.toString(),
-            timestamp: new Date().toISOString()
-          }
-        }]);
+        // Handle error appropriately
       }
     }
   };
@@ -248,78 +173,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && canChat) {
+    if (event.target.files && event.target.files.length > 0) {
       try {
-        // First, add a message showing that we're uploading
-        const uploadingStep: ConversationStep = {
-          role: 'user',
-          content: `Uploading file: ${file.name}...`,
-          timestamp: new Date().toISOString()
-        };
-        setConversationHistory(prev => [...prev, uploadingStep]);
+        const uploadedDocs = await Promise.all(
+          Array.from(event.target.files).map(file => onFileUpload(file))
+        );
 
-        // Upload the file and get the document data
-        const uploadedDoc = await onFileUpload(file);
-
-        // Create success message with the actual document data
-        const successStep: ConversationStep = {
+        const newStep: ConversationStep = {
           role: 'user',
-          content: `Uploaded file: ${uploadedDoc.name}`,
+          content: `Uploaded ${uploadedDocs.length} file(s)`,
           timestamp: new Date().toISOString(),
-          attachments: [uploadedDoc]
+          attachments: uploadedDocs
         };
 
-        // Replace the uploading message with the success message
-        setConversationHistory(prev => 
-          prev.slice(0, -1).concat(successStep)
-        );
-
+        setConversationHistory(prev => [...prev, newStep]);
       } catch (error) {
-        console.error('Error uploading file:', error);
-        // Update the message to show error
-        setConversationHistory(prev => 
-          prev.slice(0, -1).concat({
-            role: 'bot',
-            content: `Error uploading file: ${file.name}. Please try again.`,
-            timestamp: new Date().toISOString()
-          })
-        );
+        console.error('Error uploading files:', error);
+        // Handle error appropriately
       }
-    }
-  };
-
-  // Custom renderer for code blocks
-  const renderers = {
-    code({ node, inline, className, children, ...props }: any) {
-      const match = /language-(\w+)/.exec(className || '');
-      const language = match ? match[1] : '';
-      
-      if (inline) {
-        return <code className={className} {...props}>{children}</code>;
-      }
-
-      const content = String(children).replace(/\n$/, '');
-      
-      // Check if it's a Mermaid diagram
-      if (language === 'mermaid') {
-        return (
-          <div ref={mermaidRef} className="mermaid">
-            {content}
-          </div>
-        );
-      }
-
-      return (
-        <SyntaxHighlighter
-          style={vscDarkPlus}
-          language={language}
-          PreTag="div"
-          {...props}
-        >
-          {content}
-        </SyntaxHighlighter>
-      );
     }
   };
 
@@ -328,66 +199,55 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
         width: '100%',
-        overflow: 'hidden'
+        height: '100%',
+        overflow: 'hidden',
+        position: 'relative',
+        bgcolor: theme.palette.background.paper
       }}
     >
       {/* Chat Messages */}
       <Box
         sx={{
           flex: 1,
-          overflow: 'auto',
-          p: 3,
+          overflowY: 'auto',
+          p: 2,
           display: 'flex',
           flexDirection: 'column',
           gap: 2,
-          bgcolor: '#f0f2f5'
+          width: '100%',
+          height: 'calc(100% - 80px)', // Leave space for input
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: theme.palette.background.default,
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: theme.palette.divider,
+            borderRadius: '4px',
+          },
         }}
       >
         {conversationHistory.map((step, index) => (
-          <Paper
+          <Box
             key={index}
-            elevation={0}
             sx={{
-              p: 2,
-              maxWidth: '70%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: step.role === 'user' ? 'flex-end' : 'flex-start',
+              maxWidth: '80%',
               alignSelf: step.role === 'user' ? 'flex-end' : 'flex-start',
-              bgcolor: step.role === 'user' ? '#1877f2' : '#fff',
-              color: step.role === 'user' ? '#fff' : '#050505',
-              borderRadius: 2,
-              boxShadow: '0 1px 2px rgba(0,0,0,0.07), 0 0.5px 1.5px rgba(0,0,0,0.13)'
             }}
           >
-            <Box sx={{ mb: step.attachments?.length ? 2 : 0 }}>
-              {step.role === 'user' ? (
-                <Typography
-                  variant="body1"
-                  sx={{
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                    lineHeight: 1.4
-                  }}
-                >
-                  {step.content}
-                </Typography>
-              ) : (
-                <Box className="markdown-body">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={renderers}
-                  >
-                    {step.content}
-                  </ReactMarkdown>
-                </Box>
-              )}
-            </Box>
             {step.attachments?.map((doc, docIndex) => (
-              <Box key={docIndex} sx={{ mt: 1 }}>
-                <DocumentPreview document={doc} />
-              </Box>
+              <DocumentPreview key={docIndex} document={doc} />
             ))}
-          </Paper>
+            <ChatMessage 
+              message={step.content} 
+              isUser={step.role === 'user'} 
+            />
+          </Box>
         ))}
         <div ref={chatEndRef} />
       </Box>
@@ -396,71 +256,53 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       <Box
         sx={{
           p: 2,
-          bgcolor: '#fff',
-          borderTop: '1px solid',
-          borderColor: 'divider'
+          borderTop: `1px solid ${theme.palette.divider}`,
+          bgcolor: theme.palette.background.paper,
+          position: 'sticky',
+          bottom: 0,
+          width: '100%',
+          height: '80px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            gap: 1,
-            alignItems: 'flex-end'
-          }}
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={handleFileUpload}
+          multiple
+        />
+        <IconButton
+          color="primary"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={!canChat}
         >
-          <TextField
-            fullWidth
-            multiline
-            maxRows={4}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={canChat ? placeholder : "Please select a team with agents to start chatting"}
-            disabled={!canChat}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-                bgcolor: '#f0f2f5',
-                '&:hover': {
-                  bgcolor: '#e4e6eb'
-                },
-                '&.Mui-focused': {
-                  bgcolor: '#fff'
-                }
-              }
-            }}
-          />
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileUpload}
-            style={{ display: 'none' }}
-          />
-          <IconButton
-            onClick={() => fileInputRef.current?.click()}
-            disabled={!canChat}
-            sx={{
-              color: '#1877f2',
-              '&:hover': {
-                bgcolor: 'rgba(24, 119, 242, 0.04)'
-              }
-            }}
-          >
-            <AttachFileIcon />
-          </IconButton>
-          <IconButton
-            onClick={handleSend}
-            disabled={!message.trim() || !canChat}
-            sx={{
-              color: '#1877f2',
-              '&:hover': {
-                bgcolor: 'rgba(24, 119, 242, 0.04)'
-              }
-            }}
-          >
-            <SendIcon />
-          </IconButton>
-        </Box>
+          <AttachFileIcon />
+        </IconButton>
+        <TextField
+          fullWidth
+          placeholder={canChat ? placeholder : "Please select a team with agents to start chatting"}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyPress={handleKeyPress}
+          disabled={!canChat}
+          variant="outlined"
+          size="small"
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
+            }
+          }}
+        />
+        <IconButton
+          color="primary"
+          onClick={handleSend}
+          disabled={!message.trim() || !canChat}
+        >
+          <SendIcon />
+        </IconButton>
       </Box>
     </Box>
   );

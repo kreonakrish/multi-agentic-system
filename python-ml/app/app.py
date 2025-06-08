@@ -5,20 +5,14 @@ import time
 from datetime import datetime
 import traceback
 from app.utils.logger import logger
-from app.routes import team_routes, tool_routes, agent_routes
-from app.utils.db import init_db, get_db_connection, safe_close_connection
+from app.utils.db import init_db
+
+# Initialize database on module import
+init_db()
 
 def create_app():
     app = Flask(__name__)
     CORS(app)
-    
-    # Initialize database
-    init_db()
-    
-    # Register blueprints
-    app.register_blueprint(team_routes.bp, url_prefix='/api/teams')
-    app.register_blueprint(tool_routes.bp, url_prefix='/api/tools')
-    app.register_blueprint(agent_routes.bp, url_prefix='/api/agents')
     
     @app.before_request
     def log_request():
@@ -98,8 +92,4 @@ def create_app():
             'type': error.__class__.__name__
         }), 500
     
-    return app
-
-if __name__ == '__main__':
-    app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    return app 
