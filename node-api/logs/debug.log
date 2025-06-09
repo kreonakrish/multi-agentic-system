@@ -414,3 +414,436 @@
   "hasToolResults": true
 }
 
+[2025-06-09T02:39:09.205Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T02:39:27.476Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T02:39:27.478Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T02:39:27.479Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T02:39:27.480Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T02:45:35.943Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T02:45:47.570Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T02:45:47.571Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T02:45:47.571Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T02:45:47.572Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T02:48:47.728Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T02:49:08.442Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T02:49:08.444Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T02:49:08.446Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T02:49:08.448Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T02:49:08.451Z] [DEBUG] [Orchestrator:processTeamResponse] Processing aggregation data
+{}
+
+[2025-06-09T02:49:08.452Z] [DEBUG] [Orchestrator:processTeamResponse] Processing raw data
+{}
+
+[2025-06-09T02:49:08.453Z] [DEBUG] [Orchestrator:processTeamResponse] Processing visualization data
+{}
+
+[2025-06-09T03:04:15.565Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T03:04:39.306Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T03:04:39.308Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T03:04:39.311Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T03:04:39.313Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T03:04:39.315Z] [DEBUG] [Orchestrator:processTeamResponse] Processing aggregation data
+{}
+
+[2025-06-09T03:04:39.316Z] [DEBUG] [Orchestrator:processTeamResponse] Processing raw data
+{}
+
+[2025-06-09T03:04:39.317Z] [DEBUG] [Orchestrator:processTeamResponse] Processing visualization data
+{}
+
+[2025-06-09T03:05:06.682Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T03:05:15.116Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T03:05:15.117Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T03:05:15.118Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T03:05:15.119Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T03:05:48.196Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T03:05:57.407Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T03:05:57.408Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T03:05:57.412Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T03:05:57.413Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T03:06:47.326Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T03:07:08.147Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T03:07:08.148Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T03:07:08.150Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T03:07:08.151Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T03:18:21.086Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T03:18:29.661Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T03:18:29.661Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T03:18:29.662Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T03:18:29.662Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T03:23:47.446Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T03:23:54.984Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T03:23:54.985Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T03:23:54.987Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T03:23:54.988Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T03:36:14.900Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T03:36:28.359Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T03:36:28.360Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T03:36:28.361Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T03:36:28.362Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T03:45:35.301Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T03:45:54.447Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T03:45:54.448Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T03:45:54.451Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T03:45:54.452Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T03:48:11.318Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T03:48:21.628Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T03:48:21.630Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T03:48:21.633Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T03:48:21.634Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T03:49:02.031Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T03:49:25.639Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T03:49:25.640Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T03:49:25.642Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T03:49:25.642Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T03:51:30.997Z] [DEBUG] Validating input data
+{
+  "hasContent": true,
+  "hasUserId": true,
+  "hasSessionId": true,
+  "hasContext": true
+}
+
+[2025-06-09T03:51:49.376Z] [DEBUG] [Orchestrator:processTeamResponse] Extracting base response data
+{}
+
+[2025-06-09T03:51:49.377Z] [DEBUG] [Orchestrator:processTeamResponse] Base response data extracted
+{
+  "hasResult": true,
+  "processingTime": 0
+}
+
+[2025-06-09T03:51:49.378Z] [DEBUG] [Orchestrator:processTeamResponse] Found results array
+{
+  "resultsCount": 1
+}
+
+[2025-06-09T03:51:49.380Z] [DEBUG] [Orchestrator:processTeamResponse] Processing agent result
+{
+  "agentId": 92,
+  "hasResponse": true,
+  "hasToolResults": true
+}
+
+[2025-06-09T03:51:49.382Z] [DEBUG] [Orchestrator:processTeamResponse] Processing aggregation data
+{}
+
+[2025-06-09T03:51:49.383Z] [DEBUG] [Orchestrator:processTeamResponse] Processing raw data
+{}
+
+[2025-06-09T03:51:49.384Z] [DEBUG] [Orchestrator:processTeamResponse] Processing visualization data
+{}
+

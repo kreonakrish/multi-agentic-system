@@ -222,15 +222,14 @@ def get_team_agents_ordered(cursor, team_id: int) -> List[Dict[str, Any]]:
         WHERE ta.team_id = %s 
         ORDER BY ta.priority DESC, ta.accuracy DESC, ta.success DESC
     """, (team_id,))
+    
+    # Get column names from cursor description
+    columns = [desc[0] for desc in cursor.description]
     results = cursor.fetchall()
+    
     # Convert tuples to dictionaries with proper column names
     return [{
-        'agent_id': row[0],
-        'team_id': row[1],
-        'priority': row[2],
-        'accuracy': row[3],
-        'success': row[4],
-        'name': row[5]
+        columns[i]: value for i, value in enumerate(row)
     } for row in results]
 
 def group_agents_by_priority(agents: List[Dict[str, Any]]) -> Dict[int, List[Dict[str, Any]]]:

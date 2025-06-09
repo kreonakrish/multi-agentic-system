@@ -50,6 +50,21 @@ class OrchestratorService {
                 /what\s+(?:can|could)\s+(?:you|we|i)\s+(?:do|use)/i,
                 /(?:show|list|tell)\s+(?:me\s+)?(?:the\s+)?(?:available\s+)?tools/i,
                 /what\s+(?:are|is)\s+(?:the|your)\s+capabilities/i
+            ],
+            capabilities: [
+                /what\s+can\s+you\s+do/i,
+                /what\s+(?:are|is)\s+(?:the|your)\s+capabilities/i,
+                /what\s+(?:are|is)\s+(?:the|your)\s+functions?/i
+            ],
+            agents: [
+                /what\s+agents?\s+(?:do\s+)?(?:you|we|i)\s+have/i,
+                /(?:show|list|tell)\s+(?:me\s+)?(?:the\s+)?(?:available\s+)?agents/i,
+                /who\s+(?:are|is)\s+(?:the|your)\s+agents/i
+            ],
+            team_members: [
+                /what\s+(?:team\s+)?members?\s+(?:do\s+)?(?:you|we|i)\s+have/i,
+                /(?:show|list|tell)\s+(?:me\s+)?(?:the\s+)?(?:team\s+)?members/i,
+                /who\s+(?:are|is)\s+(?:in|on)\s+(?:the\s+)?team/i
             ]
         };
     }
@@ -140,30 +155,68 @@ class OrchestratorService {
         try {
             // Get team members
             const teamResponse = await axios.get(`${ML_SERVICE_URL}/team/${teamId}/members`);
-            const members = teamResponse.data.members || [];
+            
+            // If team doesn't exist or has no members, return empty array with message
+            if (teamResponse.data.status === 'error' || !teamResponse.data.members || teamResponse.data.members.length === 0) {
+                return [{
+                    tool_name: 'No Tools Available',
+                    tool_type: 'info',
+                    description: `No tools found for team ${teamId}. ${teamResponse.data.message || 'The team may not exist or have no members.'}`,
+                    agents: []
+                }];
+            }
+
+            const members = teamResponse.data.members;
 
             // Get tools for each agent
             const toolsMap = new Map();
             for (const member of members) {
-                const agentTools = await axios.get(`${ML_SERVICE_URL}/agents/${member.agent_id}/tools`);
-                for (const tool of agentTools.data.tools || []) {
-                    if (!toolsMap.has(tool.tool_id)) {
-                        // Get detailed tool info
-                        const toolDetails = await axios.get(`${ML_SERVICE_URL}/tools/${tool.tool_id}`);
-                        toolsMap.set(tool.tool_id, {
-                            ...toolDetails.data,
-                            agents: [member.agent_id]
-                        });
-                    } else {
-                        toolsMap.get(tool.tool_id).agents.push(member.agent_id);
+                try {
+                    const agentTools = await axios.get(`${ML_SERVICE_URL}/agent/${member.agent_id}/tools`);
+                    for (const tool of agentTools.data.tools || []) {
+                        if (!toolsMap.has(tool.tool_id)) {
+                            try {
+                                // Get detailed tool info
+                                const toolDetails = await axios.get(`${ML_SERVICE_URL}/tools/${tool.tool_id}`);
+                                toolsMap.set(tool.tool_id, {
+                                    ...toolDetails.data,
+                                    agents: [member.agent_id]
+                                });
+                            } catch (toolError) {
+                                logger.error(`Error fetching details for tool ${tool.tool_id}`, toolError);
+                                // Continue with basic tool info if details fetch fails
+                                toolsMap.set(tool.tool_id, {
+                                    ...tool,
+                                    agents: [member.agent_id]
+                                });
+                            }
+                        } else {
+                            toolsMap.get(tool.tool_id).agents.push(member.agent_id);
+                        }
                     }
+                } catch (agentError) {
+                    logger.error(`Error fetching tools for agent ${member.agent_id}`, agentError);
+                    // Continue with next agent if one fails
+                    continue;
                 }
             }
 
-            return Array.from(toolsMap.values());
+            const tools = Array.from(toolsMap.values());
+            return tools.length > 0 ? tools : [{
+                tool_name: 'No Tools Available',
+                tool_type: 'info',
+                description: 'No tools found for any team members.',
+                agents: []
+            }];
         } catch (error) {
             logger.error('Error fetching team tools', error);
-            throw error;
+            // Return informative message instead of throwing
+            return [{
+                tool_name: 'Error Fetching Tools',
+                tool_type: 'error',
+                description: `Failed to fetch tools: ${error.message}. Please try again later or contact support if the issue persists.`,
+                agents: []
+            }];
         }
     }
 
@@ -176,12 +229,37 @@ class OrchestratorService {
     async _handleSystemQuestion(messageData, questionType) {
         try {
             const parsedContext = typeof messageData.context === 'string' 
-                ? JSON.parse(messageData.context) 
-                : messageData.context;
+                ? JSON.parse(messageData.context || '{}') 
+                : (messageData.context || {});
 
             const teamId = parsedContext?.team_id;
             let systemInfo = '';
             let toolData = null;
+
+            // Helper function to create response when team context is missing
+            const createTeamContextRequiredResponse = (message) => ({
+                content: message,
+                status: 'completed',
+                metadata: {
+                    team_id: 'default',
+                    processing_time: 0,
+                    confidence_score: 1,
+                    agent_contributions: [],
+                    has_tool_data: false,
+                    has_visualization: false
+                },
+                conversation_id: messageData.sessionId,
+                timestamp: new Date().toISOString(),
+                tool_data: null,
+                visualization_data: null
+            });
+
+            // If no team ID for questions that require team context
+            if (!teamId && ['tools', 'agents', 'team_members'].includes(questionType)) {
+                return createTeamContextRequiredResponse(
+                    "I notice you haven't selected a team yet. Please select a team first to see the requested information."
+                );
+            }
 
             switch (questionType) {
                 case 'tools': {
@@ -204,31 +282,94 @@ class OrchestratorService {
                         ]
                     });
 
-                    let response = completion.choices[0]?.message?.content || 
+                    systemInfo = completion.choices[0]?.message?.content || 
                         "I apologize, but I couldn't format the tools information properly.";
-
-                    // Add visualization data if we have tool type statistics
-                    const toolTypeStats = tools.reduce((acc, tool) => {
-                        acc[tool.tool_type] = (acc[tool.tool_type] || 0) + 1;
-                        return acc;
-                    }, {});
-
-                    const visualizationData = Object.entries(toolTypeStats).map(([name, value]) => ({
-                        name,
-                        value
-                    }));
-
-                    if (visualizationData.length > 0) {
-                        response += '\n\n### Tool Type Distribution\n\n';
-                        response += '[VISUALIZATION_DATA]\n';
-                        response += JSON.stringify(visualizationData);
-                        response += '\n[/VISUALIZATION_DATA]\n';
-                    }
-
-                    systemInfo = response;
                     break;
                 }
-                // Add more cases for other system question types here
+
+                case 'capabilities': {
+                    // Get OpenAI to format the system capabilities response
+                    const completion = await openai.chat.completions.create({
+                        model: parsedContext?.conversation_settings?.model || 'gpt-4',
+                        temperature: 0.7,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: `You are a helpful assistant explaining your capabilities. Format the response in markdown.`
+                            },
+                            {
+                                role: 'user',
+                                content: `Please explain what you can do, including: processing chat messages, working with teams of AI agents, using tools, and handling system questions.`
+                            }
+                        ]
+                    });
+
+                    systemInfo = completion.choices[0]?.message?.content || 
+                        "I can help you with chat processing, team management, and various tools. Please select a team to see specific capabilities.";
+                    break;
+                }
+
+                case 'agents': {
+                    try {
+                        const response = await axios.get(`${ML_SERVICE_URL}/team/${teamId}/members`);
+                        const agents = response.data.members || [];
+
+                        // Get OpenAI to format the agents response
+                        const completion = await openai.chat.completions.create({
+                            model: parsedContext?.conversation_settings?.model || 'gpt-4',
+                            temperature: 0.7,
+                            messages: [
+                                {
+                                    role: 'system',
+                                    content: `You are a helpful assistant explaining the available agents. Format the response in markdown with clear sections.`
+                                },
+                                {
+                                    role: 'user',
+                                    content: `Please describe these agents and their roles: ${JSON.stringify(agents, null, 2)}`
+                                }
+                            ]
+                        });
+
+                        systemInfo = completion.choices[0]?.message?.content || 
+                            "I apologize, but I couldn't format the agents information properly.";
+                    } catch (error) {
+                        systemInfo = "I encountered an error while fetching the agents information. Please try again later.";
+                    }
+                    break;
+                }
+
+                case 'team_members': {
+                    try {
+                        const response = await axios.get(`${ML_SERVICE_URL}/team/${teamId}/members`);
+                        const members = response.data.members || [];
+
+                        // Get OpenAI to format the team members response
+                        const completion = await openai.chat.completions.create({
+                            model: parsedContext?.conversation_settings?.model || 'gpt-4',
+                            temperature: 0.7,
+                            messages: [
+                                {
+                                    role: 'system',
+                                    content: `You are a helpful assistant explaining the team members. Format the response in markdown with clear sections.`
+                                },
+                                {
+                                    role: 'user',
+                                    content: `Please describe the team members and their roles: ${JSON.stringify(members, null, 2)}`
+                                }
+                            ]
+                        });
+
+                        systemInfo = completion.choices[0]?.message?.content || 
+                            "I apologize, but I couldn't format the team members information properly.";
+                    } catch (error) {
+                        systemInfo = "I encountered an error while fetching the team members information. Please try again later.";
+                    }
+                    break;
+                }
+
+                default: {
+                    systemInfo = "I'm not sure how to handle that system question. Please try asking about tools, capabilities, agents, or team members.";
+                }
             }
 
             return {
@@ -240,12 +381,12 @@ class OrchestratorService {
                     confidence_score: 1,
                     agent_contributions: [],
                     has_tool_data: !!toolData,
-                    has_visualization: true
+                    has_visualization: toolData?.tools?.some(t => t.tool_type !== 'info')
                 },
                 conversation_id: messageData.sessionId,
                 timestamp: new Date().toISOString(),
                 tool_data: toolData,
-                visualization_data: toolData ? {
+                visualization_data: toolData?.tools?.some(t => t.tool_type !== 'info') ? {
                     tools: toolData.tools.map(tool => ({
                         name: tool.tool_name,
                         type: tool.tool_type,
@@ -256,7 +397,24 @@ class OrchestratorService {
             };
         } catch (error) {
             logger.error('Error handling system question', error);
-            throw error;
+            // Return a user-friendly error response instead of throwing
+            return {
+                content: "I apologize, but I encountered an error while processing your request. Please try again later or contact support if the issue persists.",
+                status: 'error',
+                metadata: {
+                    error: error.message,
+                    team_id: 'default',
+                    processing_time: 0,
+                    confidence_score: 0,
+                    agent_contributions: [],
+                    has_tool_data: false,
+                    has_visualization: false
+                },
+                conversation_id: messageData.sessionId,
+                timestamp: new Date().toISOString(),
+                tool_data: null,
+                visualization_data: null
+            };
         }
     }
 

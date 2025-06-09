@@ -1,6 +1,8 @@
 from typing import Dict, Any, List
 from app.models.team import Team, TeamMember
 from app.utils.enums import TaskPriority
+from app.utils.team_utils import get_team_agents_ordered
+from app.utils.db import get_db_connection, safe_close_connection
 import logging
 
 # Get workflow-specific loggers
@@ -64,4 +66,72 @@ class TeamService:
             ]
         except Exception as e:
             workflow_logger.error(f"[WORKFLOW] Failed to get active teams: {str(e)}")
-            raise 
+            raise
+
+    def get_team_members(self, team_id: int) -> Dict[str, Any]:
+        """Get team members ordered by priority"""
+        try:
+            # First try to get from in-memory cache
+            team = self.teams.get(str(team_id))
+            if team:
+                return {
+                    'status': 'success',
+                    'members': [member.to_dict() for member in team.members]
+                }
+            
+            # If not in cache, get from database
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=False)  # Use tuple-based cursor for better performance
+            try:
+                members = get_team_agents_ordered(cursor, team_id)
+                if not members:
+                    workflow_logger.warning(f"[WORKFLOW] No members found for team {team_id}")
+                    return {
+                        'status': 'error',
+                        'message': f'No members found for team {team_id}'
+                    }
+                
+                workflow_logger.info(f"[WORKFLOW] Found {len(members)} members for team {team_id}")
+                return {
+                    'status': 'success',
+                    'members': members
+                }
+            finally:
+                safe_close_connection(conn, cursor)
+        except Exception as e:
+            workflow_logger.error(f"[WORKFLOW] Failed to get team members for team {team_id}: {str(e)}")
+            return {
+                'status': 'error',
+                'message': f'Failed to get team members: {str(e)}'
+            }
+
+# Create a singleton instance
+_team_service = TeamService()
+
+# Export module-level functions that delegate to the singleton
+def create_team(team_id: str, name: str, description: str) -> Dict[str, Any]:
+    return _team_service.create_team(team_id, name, description)
+
+def add_member(team_id: str, agent_id: int, priority: TaskPriority = TaskPriority.MEDIUM) -> Dict[str, Any]:
+    return _team_service.add_member(team_id, agent_id, priority)
+
+def get_team(team_id: str) -> Dict[str, Any]:
+    return _team_service.get_team(team_id)
+
+def get_active_teams() -> List[Dict[str, Any]]:
+    return _team_service.get_active_teams()
+
+def get_team_members(team_id: int) -> Dict[str, Any]:
+    return _team_service.get_team_members(team_id)
+
+def update_team_members(team_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
+    return _team_service.update_team_members(team_id, data)
+
+def remove_team_member(team_id: int, agent_id: int) -> Dict[str, Any]:
+    return _team_service.remove_team_member(team_id, agent_id)
+
+def get_team_config(team_id: int) -> Dict[str, Any]:
+    return _team_service.get_team_config(team_id)
+
+def update_team_config(team_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
+    return _team_service.update_team_config(team_id, data) 
