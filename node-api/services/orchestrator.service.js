@@ -49,7 +49,9 @@ class OrchestratorService {
                 /what\s+tools?\s+(?:do\s+)?(?:you|we|i)\s+have/i,
                 /what\s+(?:can|could)\s+(?:you|we|i)\s+(?:do|use)/i,
                 /(?:show|list|tell)\s+(?:me\s+)?(?:the\s+)?(?:available\s+)?tools/i,
-                /what\s+(?:are|is)\s+(?:the|your)\s+capabilities/i
+                /what\s+(?:are|is)\s+(?:the|your)\s+capabilities/i,
+                /how\s+(?:many)\s+(?:tools)\s+(?:do\s+)?(?:you|we|i)\s+have/i,
+                /^how\s+many\s+tools?\b/i
             ],
             capabilities: [
                 /what\s+can\s+you\s+do/i,
@@ -59,7 +61,9 @@ class OrchestratorService {
             agents: [
                 /what\s+agents?\s+(?:do\s+)?(?:you|we|i)\s+have/i,
                 /(?:show|list|tell)\s+(?:me\s+)?(?:the\s+)?(?:available\s+)?agents/i,
-                /who\s+(?:are|is)\s+(?:the|your)\s+agents/i
+                /who\s+(?:are|is)\s+(?:the|your)\s+agents/i,
+                /how\s+(?:many)\s+agents?\s+(?:do\s+)?(?:you|we|i)\s+have/i,
+                /^how\s+many\s+agents?\b/i
             ],
             team_members: [
                 /what\s+(?:team\s+)?members?\s+(?:do\s+)?(?:you|we|i)\s+have/i,
@@ -254,7 +258,64 @@ class OrchestratorService {
                 visualization_data: null
             });
 
-            // If no team ID for questions that require team context
+            // Check if it's a count question
+            const isCountQuestion = messageData.content.toLowerCase().startsWith('how many');
+            
+            if (isCountQuestion) {
+                if (questionType === 'tools') {
+                    // Hardcoded list of available tools
+                    const availableTools = [
+                        "GitHub Data Analysis",
+                        "Data Visualization",
+                        "Dataset Query",
+                        "Statistical Analysis",
+                        "Data Export"
+                    ];
+                    systemInfo = `I have ${availableTools.length} main tools available:\n\n` + 
+                        availableTools.map(tool => `- ${tool}`).join('\n');
+                    return {
+                        content: systemInfo,
+                        status: 'completed',
+                        metadata: {
+                            team_id: teamId || 'default',
+                            processing_time: 0,
+                            confidence_score: 1,
+                            agent_contributions: [],
+                            has_tool_data: false,
+                            has_visualization: false
+                        },
+                        conversation_id: messageData.sessionId,
+                        timestamp: new Date().toISOString(),
+                        tool_data: null,
+                        visualization_data: null
+                    };
+                } else if (questionType === 'agents') {
+                    const agents = parsedContext?.team_config?.agents || [];
+                    systemInfo = `I have ${agents.length} agents in the current team.`;
+                    if (agents.length > 0) {
+                        systemInfo += '\n\nThey have the following roles:\n' +
+                            agents.map(agent => `- Agent ${agent.agent_id}: ${agent.role} (Priority: ${agent.priority})`).join('\n');
+                    }
+                    return {
+                        content: systemInfo,
+                        status: 'completed',
+                        metadata: {
+                            team_id: teamId || 'default',
+                            processing_time: 0,
+                            confidence_score: 1,
+                            agent_contributions: [],
+                            has_tool_data: false,
+                            has_visualization: false
+                        },
+                        conversation_id: messageData.sessionId,
+                        timestamp: new Date().toISOString(),
+                        tool_data: null,
+                        visualization_data: null
+                    };
+                }
+            }
+
+            // If not a count question, proceed with existing logic
             if (!teamId && ['tools', 'agents', 'team_members'].includes(questionType)) {
                 return createTeamContextRequiredResponse(
                     "I notice you haven't selected a team yet. Please select a team first to see the requested information."
