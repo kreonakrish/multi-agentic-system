@@ -491,31 +491,76 @@ class GitHubTool(Tool):
                 if self.max_rows and len(data) > self.max_rows:
                     data = data[:self.max_rows]
                 
-                # Format data for visualization if it's NFL team data
+                # Format data for visualization if it's Avengers data
                 visualization_data = None
-                if 'nfl-favorite-team' in dataset_name.lower():
-                    # Calculate average scores for each team
-                    team_metrics = {}
-                    for record in data:
-                        team = record.get('TEAM', '')
-                        if team:
-                            if team not in team_metrics:
-                                team_metrics[team] = {
-                                    'total': sum(float(val) for val in record.values() if isinstance(val, (int, float))),
-                                    'count': sum(1 for val in record.values() if isinstance(val, (int, float)))
-                                }
+                if 'avengers' in dataset_name.lower():
+                    # Create visualizations for Avengers data
+                    gender_distribution = {}
+                    appearances_data = []
+                    years_data = []
                     
-                    # Create visualization-friendly format
-                    visualization_data = [
-                        {
-                            'name': team,
-                            'value': metrics['total'] / metrics['count'] if metrics['count'] > 0 else 0
-                        }
-                        for team, metrics in team_metrics.items()
+                    for record in data:
+                        # Gender distribution
+                        gender = record.get('Gender', 'UNKNOWN')
+                        gender_distribution[gender] = gender_distribution.get(gender, 0) + 1
+                        
+                        # Top characters by appearances
+                        if 'Name/Alias' in record and 'Appearances' in record:
+                            appearances_data.append({
+                                'name': record['Name/Alias'],
+                                'value': record['Appearances']
+                            })
+                        
+                        # Characters by year
+                        if 'Year' in record:
+                            years_data.append({
+                                'name': str(record['Year']),
+                                'value': 1
+                            })
+                    
+                    # Sort appearances data
+                    appearances_data.sort(key=lambda x: x['value'], reverse=True)
+                    appearances_data = appearances_data[:10]  # Top 10 characters
+                    
+                    # Convert gender distribution to visualization format
+                    gender_viz_data = [
+                        {'name': gender, 'value': count}
+                        for gender, count in gender_distribution.items()
                     ]
                     
-                    # Sort by value for better visualization
-                    visualization_data.sort(key=lambda x: x['value'], reverse=True)
+                    # Group years data
+                    years_grouped = {}
+                    for year_data in years_data:
+                        year = year_data['name']
+                        years_grouped[year] = years_grouped.get(year, 0) + 1
+                    years_viz_data = [
+                        {'name': year, 'value': count}
+                        for year, count in sorted(years_grouped.items())
+                    ]
+                    
+                    visualization_data = {
+                        'charts': [
+                            {
+                                'type': 'bar',
+                                'title': 'Top 10 Avengers by Appearances',
+                                'data': appearances_data,
+                                'xAxis': 'Character',
+                                'yAxis': 'Appearances'
+                            },
+                            {
+                                'type': 'pie',
+                                'title': 'Gender Distribution in Avengers',
+                                'data': gender_viz_data
+                            },
+                            {
+                                'type': 'line',
+                                'title': 'Avengers Characters by Introduction Year',
+                                'data': years_viz_data,
+                                'xAxis': 'Year',
+                                'yAxis': 'Number of Characters'
+                            }
+                        ]
+                    }
                 
                 self.logger.info(f"Successfully fetched dataset: {dataset_name}")
 
@@ -601,12 +646,7 @@ class GitHubTool(Tool):
                 }
 
                 if visualization_data:
-                    aggregation_data['visualization'] = {
-                        'type': 'chart',
-                        'data': visualization_data,
-                        'title': 'NFL Team Statistics',
-                        'description': 'Average scores across different metrics for each NFL team'
-                    }
+                    aggregation_data['visualization'] = visualization_data
                 
                 return {
                     'status': 'success',

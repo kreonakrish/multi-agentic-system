@@ -155,7 +155,24 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
             
             # Update workflow steps status
             workflow_logger.info("[WORKFLOW] Updating workflow steps status")
-            update_workflow_steps_status(cursor, workflow_id, final_results)
+            for result in final_results:
+                # Map the status to allowed enum values
+                raw_status = result.get('status', 'failed')
+                if raw_status == 'success':
+                    status = 'completed'
+                elif raw_status == 'error':
+                    status = 'failed'
+                else:
+                    status = 'failed'  # Default to failed for unknown statuses
+                
+                error_msg = result.get('message') if status == 'failed' else None
+                update_workflow_steps_status(
+                    cursor,
+                    step_ids,  # Use the step_ids we got from create_workflow_steps
+                    status,
+                    error=error_msg,
+                    result=result
+                )
             workflow_logger.info("[WORKFLOW] Workflow steps status updated")
             
             # Update workflow status
@@ -165,7 +182,7 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
             
             # Aggregate results
             workflow_logger.info("[WORKFLOW] Aggregating team responses")
-            aggregated = aggregate_team_responses(final_results)
+            aggregated = aggregate_team_responses(final_results, task.description)
             workflow_logger.info("[WORKFLOW] Team responses aggregated")
             
             workflow_logger.info("\n" + "="*80)

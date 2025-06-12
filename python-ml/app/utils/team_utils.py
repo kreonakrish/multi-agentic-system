@@ -37,7 +37,8 @@ def aggregate_team_responses(results: List[Dict[str, Any]], task_description: st
                 'schemas': []
             },
             'tool_results': [],
-            'llm_responses': []
+            'llm_responses': [],
+            'visualizations': []  # Add visualization array
         }
         
         # Process each agent's results
@@ -66,7 +67,18 @@ def aggregate_team_responses(results: List[Dict[str, Any]], task_description: st
                 
                 # Add tool results
                 if 'tool_results' in response:
-                    aggregated_data['tool_results'].extend(response['tool_results'])
+                    for tool_result in response['tool_results']:
+                        aggregated_data['tool_results'].append(tool_result)
+                        
+                        # Check for visualization data in tool result
+                        if 'aggregation_data' in tool_result.get('result', {}):
+                            agg_data = tool_result['result']['aggregation_data']
+                            if 'visualization' in agg_data:
+                                # Handle both single chart and multiple charts format
+                                if 'charts' in agg_data['visualization']:
+                                    aggregated_data['visualizations'].extend(agg_data['visualization']['charts'])
+                                else:
+                                    aggregated_data['visualizations'].append(agg_data['visualization'])
                 
                 # Add vector store results
                 if 'vector_store_results' in response:
@@ -130,7 +142,8 @@ def aggregate_team_responses(results: List[Dict[str, Any]], task_description: st
                 'vector_store': {'results': [], 'queries': [], 'datasets': []},
                 'raw_data': {'samples': [], 'total_records': 0, 'schemas': []},
                 'tool_results': [],
-                'llm_responses': []
+                'llm_responses': [],
+                'visualizations': []
             },
             'validation_result': f"Error aggregating responses: {str(e)}",
             'validation_passed': False
@@ -277,12 +290,18 @@ def update_workflow_steps_status(
     result: Optional[Dict[str, Any]] = None
 ) -> None:
     """Update status of workflow steps"""
+    # Validate status is one of the allowed enum values
+    allowed_statuses = {'pending', 'in_progress', 'completed', 'failed'}
+    if status not in allowed_statuses:
+        workflow_steps_logger.warning(f"[WORKFLOW_STEPS] Invalid status '{status}', defaulting to 'failed'")
+        status = 'failed'
+
     for step_id in step_ids:
         cursor.execute("""
             UPDATE workflow_steps 
             SET status = %s,
                 error_message = %s,
-                result = %s,
+                tool_output = %s,
                 updated_at = %s
             WHERE id = %s
         """, (

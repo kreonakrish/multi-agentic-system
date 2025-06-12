@@ -121,6 +121,7 @@ def configure_logging():
         'multi_agent_system.workflow',
         'multi_agent_system.workflow.steps',
         'multi_agent_system.workflow.execution',
+        'multi_agent_system.workflow.decisions',
         'multi_agent_system.knowledge.retrieve',
         'multi_agent_system.knowledge.llm',
         'multi_agent_system.knowledge.metrics'

@@ -139,7 +139,8 @@ def execute_team_task():
                     'schemas': []
                 },
                 'tool_results': [],
-                'llm_responses': []
+                'llm_responses': [],
+                'visualizations': []
             }),
             "validation_result": final_result.get('validation_result'),
             "execution_summary": {
@@ -149,6 +150,12 @@ def execute_team_task():
                 "execution_order": final_result.get('execution_summary', {}).get('execution_order', [])
             }
         }
+        
+        # Add visualization data to the response if available
+        if final_result.get('aggregated_data', {}).get('visualizations'):
+            response['visualization_data'] = {
+                'charts': final_result['aggregated_data']['visualizations']
+            }
         
         workflow_logger.info("[WORKFLOW] Task execution completed successfully")
         workflow_logger.debug(f"[WORKFLOW] Response: {json.dumps(response, indent=2)}")

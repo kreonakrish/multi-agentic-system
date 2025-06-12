@@ -62,7 +62,8 @@ def setup_logging():
         'multi_agent_system.knowledge.llm',
         'multi_agent_system.knowledge.metrics',
         'multi_agent_system.agent',
-        'multi_agent_system.workflow'
+        'multi_agent_system.workflow',
+        'multi_agent_system.workflow.decision'  
     ]
 
     for logger_name in loggers:

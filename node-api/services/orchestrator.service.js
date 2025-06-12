@@ -589,22 +589,76 @@ class OrchestratorService {
 
     // Helper methods for _processTeamResponse
     _appendVisualizationToResponse(response, visualizationData) {
-        return response + "\n\nNFL Team Statistics\nAverage scores across different metrics for each NFL team\n\n[VISUALIZATION_DATA]" + 
-            JSON.stringify(visualizationData) +
-            "[/VISUALIZATION_DATA]";
+        if (!visualizationData || !visualizationData.charts) {
+            return response;
+        }
+
+        let updatedResponse = response;
+        
+        // Add visualization data tags for each chart
+        visualizationData.charts.forEach((chart, index) => {
+            updatedResponse += `\n\n${chart.title}\n[VISUALIZATION_DATA]${JSON.stringify(chart)}[/VISUALIZATION_DATA]`;
+        });
+
+        return updatedResponse;
     }
 
     _createVisualizationFromRawData(sampleData) {
+        if (!sampleData || !Array.isArray(sampleData) || sampleData.length === 0) {
+            return null;
+        }
+
         const firstItem = sampleData[0];
+        
+        // For Avengers dataset, create visualizations based on appearances and gender distribution
+        if ('Appearances' in firstItem && 'Name/Alias' in firstItem) {
+            return {
+                charts: [
+                    {
+                        type: 'bar',
+                        title: 'Avengers Character Appearances',
+                        data: sampleData
+                            .sort((a, b) => b.Appearances - a.Appearances)
+                            .slice(0, 10)  // Top 10 characters
+                            .map(item => ({
+                                name: item['Name/Alias'].split('(')[0].trim(),  // Clean up name
+                                value: item.Appearances
+                            }))
+                    },
+                    {
+                        type: 'pie',
+                        title: 'Gender Distribution',
+                        data: sampleData.reduce((acc, item) => {
+                            const gender = item.Gender || 'Unknown';
+                            const existingItem = acc.find(x => x.name === gender);
+                            if (existingItem) {
+                                existingItem.value++;
+                            } else {
+                                acc.push({ name: gender, value: 1 });
+                            }
+                            return acc;
+                        }, [])
+                    }
+                ]
+            };
+        }
+
+        // Fallback to original logic for other datasets
         const numericKeys = Object.keys(firstItem).filter(key => 
             typeof firstItem[key] === 'number' && key !== 'id'
         );
 
         if (numericKeys.length > 0) {
-            return sampleData.map(item => ({
-                name: item.TEAM || item.name || item.id || 'Unknown',
-                value: item[numericKeys[0]]
-            })).sort((a, b) => b.value - a.value);
+            return {
+                charts: [{
+                    type: 'bar',
+                    title: `${numericKeys[0]} Distribution`,
+                    data: sampleData.map(item => ({
+                        name: item.TEAM || item.name || item.id || 'Unknown',
+                        value: item[numericKeys[0]]
+                    })).sort((a, b) => b.value - a.value)
+                }]
+            };
         }
         return null;
     }
