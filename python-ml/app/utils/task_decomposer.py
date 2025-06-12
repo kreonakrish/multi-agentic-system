@@ -1,5 +1,5 @@
 """Task decomposer for breaking down complex tasks."""
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import json
 import logging
 from datetime import datetime
@@ -8,6 +8,10 @@ from app.models.task import TeamTask
 from app.utils.context_analyzer import ContextAnalyzer
 from collections import defaultdict
 from app.utils.json_encoder import CustomJSONEncoder
+
+# Get specialized loggers
+workflow_logger = logging.getLogger('multi_agent_system.workflow')
+workflow_decision_logger = logging.getLogger('multi_agent_system.workflow.decisions')
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +24,13 @@ class TaskDecomposer:
     def decompose(self, task: TeamTask, context_analysis: Dict[str, Any]) -> Dict[str, Any]:
         """Decompose a task into subtasks and their dependencies."""
         try:
+            workflow_logger.info("[WORKFLOW] Starting task decomposition", extra={
+                'task_id': task.task_id,
+                'task_type': task.task_type,
+                'complexity': task.complexity,
+                'priority': task.priority
+            })
+            
             # Extract team_id from task requirements
             team_id = task.requirements.get('team_id')
             if not team_id and isinstance(task.requirements.get('context'), dict):
@@ -91,6 +102,18 @@ class TaskDecomposer:
                 decomposition_id = cursor.lastrowid
                 self.db_conn.commit()
                 
+                # Log decomposition decisions
+                workflow_decision_logger.info("[DECISION] Task decomposition completed", extra={
+                    'task_id': task.task_id,
+                    'task_type': task.task_type,
+                    'strategy': 'manual',
+                    'subtask_count': len(subtasks),
+                    'dependency_count': len(dependencies),
+                    'parallel_group_count': 1,
+                    'critical_path_length': len(self._get_critical_path(dependencies)),
+                    'complexity_score': self._calculate_complexity_score(subtasks, dependencies)
+                })
+                
                 return {
                     'status': 'success',
                     'task_id': task.task_id,
@@ -101,7 +124,12 @@ class TaskDecomposer:
                 }
                 
             except Exception as e:
-                self.logger.error(f"Error storing decomposition: {str(e)}")
+                self.logger.error(f"Error storing decomposition: {str(e)}", exc_info=True, extra={
+                    'task_id': task.task_id,
+                    'task_type': task.task_type,
+                    'error': str(e),
+                    'error_type': type(e).__name__
+                })
                 # Rollback any failed transaction
                 self.db_conn.rollback()
                 return {
@@ -117,7 +145,12 @@ class TaskDecomposer:
                 cursor.close()
                 
         except Exception as e:
-            self.logger.error(f"Critical error in task decomposition: {str(e)}")
+            self.logger.error(f"Critical error in task decomposition: {str(e)}", exc_info=True, extra={
+                'task_id': task.task_id,
+                'task_type': task.task_type,
+                'error': str(e),
+                'error_type': type(e).__name__
+            })
             return {
                 'status': 'error',
                 'error': str(e),

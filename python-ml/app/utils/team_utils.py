@@ -9,7 +9,7 @@ import logging
 from app.utils.logger import logger
 from app.services.agent_service import initialize_agent_from_db
 from app.utils.db import get_db_connection, safe_close_connection
-from app.utils.openai_utils import get_openai_client
+from app.config.openai_config import get_openai_client
 from app.models.team import Team
 from app.models.task import TeamTask
 

@@ -8,7 +8,9 @@ from app.models.team import Team, TeamTask
 from app.utils.db import get_db_connection
 from app.services.agent_service import get_agent_tools
 
-logger = logging.getLogger(__name__)
+# Get specialized loggers
+workflow_logger = logging.getLogger('multi_agent_system.workflow')
+workflow_decision_logger = logging.getLogger('multi_agent_system.workflow.decisions')
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -26,6 +28,12 @@ class ContextAnalyzer:
     def analyze(self, task: TeamTask, team: Optional[Team] = None) -> Dict[str, Any]:
         """Analyze task context and requirements."""
         try:
+            workflow_logger.info("[WORKFLOW] Starting context analysis", extra={
+                'task_id': task.task_id,
+                'team_id': team.team_id if team else None,
+                'task_type': task.task_type
+            })
+            
             # Extract explicit requirements
             explicit_reqs = {
                 'needs_data_access': True,
@@ -44,6 +52,12 @@ class ContextAnalyzer:
             
             # Get required tools
             required_tools = self._get_required_tools(explicit_reqs, implicit_reqs)
+            workflow_logger.info("[WORKFLOW] Retrieved required tools", extra={
+                'task_id': task.task_id,
+                'team_id': team.team_id if team else None,
+                'task_type': task.task_type,
+                'tool_count': len(required_tools)
+            })
             
             # Get dependencies
             dependencies = [
@@ -64,6 +78,14 @@ class ContextAnalyzer:
             
             # Get team context if available
             team_context = self._get_team_context(team) if team else None
+            if team_context:
+                workflow_logger.info("[WORKFLOW] Retrieved team context", extra={
+                    'task_id': task.task_id,
+                    'team_id': team.team_id,
+                    'task_type': task.task_type,
+                    'agent_count': team_context.get('total_agents', 0),
+                    'available_tools': len(team_context.get('available_tools', []))
+                })
             
             # Create analysis result
             analysis = {
@@ -84,13 +106,38 @@ class ContextAnalyzer:
                 'team_context': team_context
             }
             
-            self.logger.info(f"Completed context analysis for task {task.task_id}")
-            self.logger.debug(f"Analysis results: {json.dumps(analysis, indent=2, cls=DecimalEncoder)}")
+            # Log analysis completion
+            workflow_logger.info("[WORKFLOW] Completed context analysis", extra={
+                'task_id': task.task_id,
+                'team_id': team.team_id if team else None,
+                'task_type': task.task_type,
+                'complexity': complexity,
+                'tool_count': len(required_tools),
+                'dependency_count': len(dependencies)
+            })
+            
+            # Log analysis decisions
+            workflow_decision_logger.info("[DECISION] Context analysis completed", extra={
+                'task_id': task.task_id,
+                'team_id': team.team_id if team else None,
+                'task_type': task.task_type,
+                'complexity': complexity,
+                'required_tools': [t['tool_type'] for t in required_tools],
+                'dependencies': [d['requirement'] for d in dependencies],
+                'team_available_tools': len(team_context.get('available_tools', [])) if team_context else 0,
+                'team_agent_count': team_context.get('total_agents', 0) if team_context else 0
+            })
             
             return analysis
             
         except Exception as e:
-            self.logger.error(f"Error in context analysis: {str(e)}", exc_info=True)
+            self.logger.error(f"Error in context analysis: {str(e)}", exc_info=True, extra={
+                'task_id': task.task_id,
+                'team_id': team.team_id if team else None,
+                'task_type': task.task_type,
+                'error': str(e),
+                'error_type': type(e).__name__
+            })
             return {
                 'task_id': task.task_id,
                 'explicit_requirements': {},

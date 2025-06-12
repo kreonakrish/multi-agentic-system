@@ -43,12 +43,18 @@ class WorkflowManager:
             correlation_id = str(uuid.uuid4())
             
             self._log_workflow_start(task, team)
-            workflow_logger.info(f"[WORKFLOW] Generated correlation ID: {correlation_id}")
+            workflow_logger.info(f"[WORKFLOW] Generated correlation ID: {correlation_id}", extra={
+                'task_id': task.task_id,
+                'team_id': team.team_id,
+                'task_type': task.task_type,
+                'correlation_id': correlation_id
+            })
             
             # Log smart workflow decision
             workflow_decision_logger.info("[DECISION] Smart workflow execution initiated", extra={
                 'correlation_id': correlation_id,
                 'team_id': team.team_id,
+                'task_id': task.task_id,
                 'task_type': task.task_type,
                 'task_priority': task.priority,
                 'task_complexity': task.complexity,
@@ -529,12 +535,42 @@ class WorkflowManager:
 
     def _log_workflow_start(self, task: TeamTask, team: Team) -> None:
         """Log workflow start information."""
-        workflow_logger.info("\n" + "="*80)
-        workflow_logger.info("[WORKFLOW] Starting new workflow execution")
-        workflow_logger.info(f"[WORKFLOW] Task ID: {task.task_id}")
-        workflow_logger.info(f"[WORKFLOW] Team ID: {team.team_id}")
-        workflow_logger.info(f"[WORKFLOW] Description: {task.description}")
-        workflow_logger.info("="*80 + "\n")
+        workflow_logger.info("\n" + "="*80, extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': '-'
+        })
+        workflow_logger.info("[WORKFLOW] Starting new workflow execution", extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': '-'
+        })
+        workflow_logger.info(f"[WORKFLOW] Task ID: {task.task_id}", extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': '-'
+        })
+        workflow_logger.info(f"[WORKFLOW] Team ID: {team.team_id}", extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': '-'
+        })
+        workflow_logger.info(f"[WORKFLOW] Description: {task.description}", extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': '-'
+        })
+        workflow_logger.info("="*80 + "\n", extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': '-'
+        })
 
     def _log_workflow_completion(self, workflow_start_time: datetime, 
                                successful_agents: int, total_agents: int) -> None:

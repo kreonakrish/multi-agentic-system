@@ -9,7 +9,9 @@ from app.utils.knowledge_manager import KnowledgeManager
 from app.utils.context_analyzer import ContextAnalyzer
 from app.services.agent_service import get_agent_tools, initialize_agent_from_db
 
-logger = logging.getLogger(__name__)
+# Get specialized loggers
+workflow_logger = logging.getLogger('multi_agent_system.workflow')
+workflow_decision_logger = logging.getLogger('multi_agent_system.workflow.decisions')
 
 class AgentCoordinator:
     """Coordinates agent assignments and interactions."""
@@ -37,29 +39,76 @@ class AgentCoordinator:
         try:
             # Get team agents with capabilities
             team_agents = self._get_team_agents(team.team_id)
+            workflow_logger.info("[WORKFLOW] Retrieved team agents", extra={
+                'task_id': task.task_id,
+                'team_id': team.team_id,
+                'task_type': task.task_type,
+                'agent_count': len(team_agents)
+            })
             
             # Get context analysis
             context = self.context_analyzer.analyze(task, team)
+            workflow_logger.info("[WORKFLOW] Retrieved context analysis", extra={
+                'task_id': task.task_id,
+                'team_id': team.team_id,
+                'task_type': task.task_type,
+                'required_tools': context.get('required_tools', []),
+                'dependencies': context.get('dependencies', [])
+            })
             
             # Create assignments for each subtask
             assignments = []
             for subtask in decomposition['subtasks']:
                 # Find best agents for subtask
                 qualified_agents = self._find_qualified_agents(team_agents, subtask)
+                workflow_logger.info(f"[WORKFLOW] Found {len(qualified_agents)} qualified agents for subtask", extra={
+                    'task_id': task.task_id,
+                    'team_id': team.team_id,
+                    'task_type': task.task_type,
+                    'subtask_id': subtask.get('id'),
+                    'qualified_agents': [a['agent_id'] for a in qualified_agents]
+                })
                 
                 # Get agent knowledge
                 agent_knowledge = self._get_agent_knowledge(
                     qualified_agents,
                     subtask
                 )
+                workflow_logger.info("[WORKFLOW] Retrieved agent knowledge", extra={
+                    'task_id': task.task_id,
+                    'team_id': team.team_id,
+                    'task_type': task.task_type,
+                    'subtask_id': subtask.get('id'),
+                    'knowledge_count': len(agent_knowledge)
+                })
                 
                 # Create assignment
                 assignment = self._create_assignment(team, task, subtask, qualified_agents)
-                
                 assignments.append(assignment)
             
             # Store assignments
             assignment_id = self._store_assignments(task.task_id, assignments)
+            workflow_logger.info("[WORKFLOW] Stored task assignments", extra={
+                'task_id': task.task_id,
+                'team_id': team.team_id,
+                'task_type': task.task_type,
+                'assignment_id': assignment_id,
+                'assignment_count': len(assignments)
+            })
+            
+            # Log assignment decisions
+            workflow_decision_logger.info("[DECISION] Task assignments created", extra={
+                'task_id': task.task_id,
+                'team_id': team.team_id,
+                'task_type': task.task_type,
+                'assignment_id': assignment_id,
+                'total_assignments': len(assignments),
+                'subtask_count': len(decomposition['subtasks']),
+                'agent_distribution': {
+                    agent['agent_id']: len([a for a in assignments if agent['agent_id'] in a.get('assigned_agents', [])])
+                    for agent in team_agents
+                }
+            })
             
             return {
                 'status': 'success',
@@ -68,7 +117,13 @@ class AgentCoordinator:
             }
             
         except Exception as e:
-            self.logger.error(f"Error in task assignment: {str(e)}", exc_info=True)
+            self.logger.error(f"Error in task assignment: {str(e)}", exc_info=True, extra={
+                'task_id': task.task_id,
+                'team_id': team.team_id,
+                'task_type': task.task_type,
+                'error': str(e),
+                'error_type': type(e).__name__
+            })
             return {
                 'status': 'error',
                 'error': str(e)

@@ -33,13 +33,48 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
         workflow_start_time = datetime.now()
         correlation_id = str(uuid.uuid4())
         
-        workflow_logger.info("\n" + "="*80)
-        workflow_logger.info("[WORKFLOW] Starting new workflow execution")
-        workflow_logger.info(f"[WORKFLOW] Task ID: {task.task_id}")
-        workflow_logger.info(f"[WORKFLOW] Team ID: {team.team_id}")
-        workflow_logger.info(f"[WORKFLOW] Description: {task.description}")
-        workflow_logger.info(f"[WORKFLOW] Correlation ID: {correlation_id}")
-        workflow_logger.info("="*80 + "\n")
+        workflow_logger.info("\n" + "="*80, extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': correlation_id
+        })
+        workflow_logger.info("[WORKFLOW] Starting new workflow execution", extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': correlation_id
+        })
+        workflow_logger.info(f"[WORKFLOW] Task ID: {task.task_id}", extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': correlation_id
+        })
+        workflow_logger.info(f"[WORKFLOW] Team ID: {team.team_id}", extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': correlation_id
+        })
+        workflow_logger.info(f"[WORKFLOW] Description: {task.description}", extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': correlation_id
+        })
+        workflow_logger.info(f"[WORKFLOW] Correlation ID: {correlation_id}", extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': correlation_id
+        })
+        workflow_logger.info("="*80 + "\n", extra={
+            'task_id': task.task_id,
+            'team_id': team.team_id,
+            'task_type': task.task_type,
+            'correlation_id': correlation_id
+        })
         
         # Get database connection
         conn = get_db_connection()
