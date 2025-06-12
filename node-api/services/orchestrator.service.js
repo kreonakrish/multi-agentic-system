@@ -11,6 +11,7 @@ class OrchestratorService {
         this.defaultTeamConfig = {
             name: "Chat Response Team",
             description: "Team for processing chat messages and generating responses",
+            use_smart_workflow: false,
             members: [
                 {
                     agent_id: 10,
@@ -488,55 +489,39 @@ class OrchestratorService {
      * @param {Object} messageData.context - Additional context (optional)
      */
     async processChatMessage(messageData) {
-        const startTime = Date.now();
         try {
-            // Log received message
-            logger.orchestrator.messageReceived(
-                messageData.userId,
-                messageData.sessionId,
-                messageData.content,
-                messageData.context
-            );
-
-            // Check if it's a simple greeting
-            if (this._isSimpleGreeting(messageData.content)) {
-                logger.info('Detected simple greeting, handling directly with OpenAI');
-                const response = await this._handleSimpleGreeting(messageData);
-                
-                // Store conversation history
-                await this._storeConversationHistory(messageData, response);
-                
-                return response;
-            }
-
-            // Check if it's a system question
-            const systemQuestionType = this._getSystemQuestionType(messageData.content);
-            if (systemQuestionType) {
-                logger.info(`Detected system question of type: ${systemQuestionType}`);
-                const response = await this._handleSystemQuestion(messageData, systemQuestionType);
-                await this._storeConversationHistory(messageData, response);
-                return response;
-            }
-
-            // Validate input
-            logger.debug('Validating input data', {
-                hasContent: !!messageData.content,
-                hasUserId: !!messageData.userId,
-                hasSessionId: !!messageData.sessionId,
-                hasContext: !!messageData.context
-            });
-
-            // Parse context if it's a string
-            let parsedContext = typeof messageData.context === 'string' 
+            const parsedContext = typeof messageData.context === 'string' 
                 ? JSON.parse(messageData.context) 
                 : messageData.context;
 
-            // Prepare ML request
-            logger.info('Preparing ML service request');
+            logger.info('Processing chat message', {
+                userId: messageData.userId,
+                sessionId: messageData.sessionId,
+                contentLength: messageData.content.length,
+                hasContext: !!parsedContext,
+                team_id: parsedContext?.team_id,
+                use_smart_workflow: parsedContext?.team_config?.use_smart_workflow,
+                content: messageData.content
+            });
+
+            // Check for simple greeting
+            if (this.greetingPatterns.some(pattern => pattern.test(messageData.content))) {
+                return this._handleSimpleGreeting(messageData);
+            }
+
+            // Check for system questions
+            const systemQuestionType = this._getSystemQuestionType(messageData.content);
+            if (systemQuestionType) {
+                return this._handleSystemQuestion(messageData, systemQuestionType);
+            }
+            
+            // Prepare ML service request
             const mlRequest = {
                 content: messageData.content,
                 userId: messageData.userId,
                 sessionId: messageData.sessionId,
+                task_type: parsedContext.task_type || 'general',
+                complexity: parsedContext.complexity || 'medium',
                 context: {
                     team_id: parsedContext.team_id,
                     team_config: {
@@ -544,227 +529,61 @@ class OrchestratorService {
                         name: parsedContext.team_config.name,
                         description: parsedContext.team_config.description,
                         members: parsedContext.team_config.members,
+                        use_smart_workflow: parsedContext.team_config.use_smart_workflow || false,
                         temperature: parsedContext.team_config.temperature,
                         token_limit: parsedContext.team_config.token_limit,
                         start_prompt: parsedContext.team_config.start_prompt,
                         end_prompt: parsedContext.team_config.end_prompt,
                         style: parsedContext.team_config.style || ''
                     },
-                    conversation_settings: {
-                        temperature: parsedContext.conversation_settings.temperature,
-                        tokenLimit: parsedContext.conversation_settings.tokenLimit,
-                        startPrompt: parsedContext.conversation_settings.startPrompt,
-                        endPrompt: parsedContext.conversation_settings.endPrompt,
-                        style: parsedContext.conversation_settings.style,
-                        start_prompt: parsedContext.conversation_settings.start_prompt || '',
-                        system_prompt: parsedContext.conversation_settings.system_prompt || '',
-                        max_tokens: parsedContext.conversation_settings.max_tokens || 2000,
-                        model: parsedContext.conversation_settings.model || 'gpt-4'
-                    },
+                    conversation_settings: parsedContext.conversation_settings || {},
                     conversation_history: parsedContext.conversation_history || [],
                     documents: parsedContext.documents || []
                 }
             };
 
+            logger.info('Prepared ML service request', {
+                team_id: mlRequest.context.team_id,
+                use_smart_workflow: mlRequest.context.team_config.use_smart_workflow,
+                content_length: mlRequest.content.length,
+                content: mlRequest.content,
+                conversation_history_length: mlRequest.context.conversation_history.length,
+                has_documents: mlRequest.context.documents.length > 0
+            });
+
             // Send to ML service
             const mlResponse = await this._sendToMLService(mlRequest);
             
-            // Process the response
-            const processedResponse = await this._processTeamResponse(mlResponse, messageData.sessionId);
-
-            // Log the processed response
-            logger.orchestrator.messageSent(
-                messageData.userId,
+            // Process the response based on workflow type
+            const processedResponse = await this._processTeamResponse(
+                mlResponse, 
                 messageData.sessionId,
-                processedResponse
+                mlRequest.context.team_config.use_smart_workflow
             );
 
-            // Store conversation history
-            try {
-                const historyStartTime = Date.now();
-                await this._storeConversationHistory(messageData, processedResponse);
-                logger.info('Conversation history stored', {
-                    storageTimeMs: Date.now() - historyStartTime
-                });
-            } catch (storeError) {
-                logger.orchestrator.error('Error storing conversation history', storeError, {
-                    sessionId: messageData.sessionId
-                });
-            }
-
-            logger.info('Processing completed successfully', {
-                totalProcessingTimeMs: Date.now() - startTime
+            // Log the processed response
+            logger.info('Chat message processed successfully', {
+                userId: messageData.userId,
+                sessionId: messageData.sessionId,
+                responseStatus: processedResponse.status,
+                workflow_type: mlRequest.context.team_config.use_smart_workflow ? 'smart' : 'standard',
+                processing_time: processedResponse.metadata.processing_time,
+                response_length: processedResponse.content.length,
+                has_tool_data: processedResponse.metadata.has_tool_data,
+                has_visualization: processedResponse.metadata.has_visualization,
+                agent_contributions: processedResponse.metadata.agent_contributions
             });
 
             return processedResponse;
         } catch (error) {
-            logger.orchestrator.error('Error processing chat message', error, {
-                userId: messageData?.userId,
-                sessionId: messageData?.sessionId
-            });
-            throw error;
-        }
-    }
-
-    /**
-     * Process and format team response for chat
-     * @param {Object} teamResponse - Raw response from team service
-     * @param {string} sessionId - Chat session ID
-     * @returns {Object} Formatted chat response
-     */
-    _processTeamResponse(teamResponse, sessionId) {
-        const startTime = Date.now();
-        try {
-            logger.info('[Orchestrator:processTeamResponse] Starting response processing', {
-                sessionId,
-                hasTeamResponse: !!teamResponse
-            });
-
-            // Validate input
-            if (!teamResponse) {
-                logger.error('[Orchestrator:processTeamResponse] Team response is null or undefined');
-                throw new Error('Team response is null or undefined');
-            }
-
-            // Extract result and processing time
-            logger.debug('[Orchestrator:processTeamResponse] Extracting base response data');
-            const result = teamResponse.result || teamResponse;
-            const processing_time_seconds = teamResponse.processing_time_seconds || 0;
-            
-            if (!result) {
-                logger.error('[Orchestrator:processTeamResponse] Invalid team response structure');
-                throw new Error('Invalid team response structure');
-            }
-
-            logger.debug('[Orchestrator:processTeamResponse] Base response data extracted', {
-                hasResult: !!result,
-                processingTime: processing_time_seconds
-            });
-
-            // Initialize response variables
-            let finalResponse = '';
-            let toolData = null;
-            let visualizationData = null;
-
-            // Process results array
-            logger.info('[Orchestrator:processTeamResponse] Processing agent results');
-            if (result.results && Array.isArray(result.results)) {
-                logger.debug('[Orchestrator:processTeamResponse] Found results array', {
-                    resultsCount: result.results.length
-                });
-
-                for (const agentResult of result.results) {
-                    logger.debug('[Orchestrator:processTeamResponse] Processing agent result', {
-                        agentId: agentResult?.agent_id,
-                        hasResponse: !!agentResult?.response?.message,
-                        hasToolResults: !!agentResult?.response?.tool_results
-                    });
-
-                    if (agentResult?.response?.message) {
-                        finalResponse = agentResult.response.message;
-                        
-                        // Process tool results
-                        if (agentResult.response.tool_results?.length > 0) {
-                            logger.info('[Orchestrator:processTeamResponse] Processing tool results');
-                            const toolResult = agentResult.response.tool_results[0];
-                            
-                            if (toolResult?.result?.aggregation_data) {
-                                logger.debug('[Orchestrator:processTeamResponse] Processing aggregation data');
-                                const aggregationData = toolResult.result.aggregation_data;
-                                
-                                // Handle raw data
-                                if (aggregationData.raw_data) {
-                                    logger.debug('[Orchestrator:processTeamResponse] Processing raw data');
-                                    const rawData = aggregationData.raw_data;
-                                    toolData = {
-                                        sample: rawData.sample || [],
-                                        total_records: rawData.total_records || 0,
-                                        schema: rawData.schema || []
-                                    };
-                                }
-
-                                // Handle visualization data
-                                if (aggregationData.visualization) {
-                                    logger.debug('[Orchestrator:processTeamResponse] Processing visualization data');
-                                    visualizationData = aggregationData.visualization.data;
-                                    finalResponse = this._appendVisualizationToResponse(finalResponse, visualizationData);
-                                }
-                                // Create visualization from raw data if needed
-                                else if (toolData?.sample && toolData.sample.length > 0) {
-                                    logger.debug('[Orchestrator:processTeamResponse] Creating visualization from raw data');
-                                    visualizationData = this._createVisualizationFromRawData(toolData.sample);
-                                    if (visualizationData) {
-                                        finalResponse = this._appendVisualizationToResponse(finalResponse, visualizationData);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Process aggregated data if needed
-            if (!finalResponse && result.aggregated_data) {
-                logger.info('[Orchestrator:processTeamResponse] Processing aggregated data');
-                finalResponse = this._processAggregatedData(result.aggregated_data);
-            }
-
-            // Use default message if no response found
-            if (!finalResponse) {
-                logger.warn('[Orchestrator:processTeamResponse] No response generated, using default message');
-                finalResponse = "I apologize, but I couldn't process your request properly.";
-            }
-
-            // Append tool data if needed
-            if (toolData && !visualizationData) {
-                logger.debug('[Orchestrator:processTeamResponse] Appending raw tool data to response');
-                finalResponse = this._appendToolDataToResponse(finalResponse, toolData);
-            }
-
-            // Create metadata
-            logger.info('[Orchestrator:processTeamResponse] Creating response metadata');
-            const metadata = {
-                team_id: result.team_id || 'unknown',
-                processing_time: processing_time_seconds,
-                confidence_score: 1,
-                agent_contributions: (result.results || []).map(r => ({
-                    agent_id: r?.agent_id || 'unknown',
-                    confidence: r?.result?.validation_results?.confidence || 0
-                })),
-                has_tool_data: !!toolData,
-                has_visualization: !!visualizationData
-            };
-
-            const totalProcessingTime = Date.now() - startTime;
-            logger.info('[Orchestrator:processTeamResponse] Response processing completed', {
-                processingTimeMs: totalProcessingTime,
-                responseLength: finalResponse.length,
-                hasToolData: !!toolData,
-                hasVisualization: !!visualizationData
-            });
-
-            return {
-                content: finalResponse,
-                status: result.final_status || 'completed',
-                metadata,
-                conversation_id: sessionId,
-                timestamp: new Date().toISOString(),
-                tool_data: toolData,
-                visualization_data: visualizationData
-            };
-
-        } catch (error) {
-            const processingTime = Date.now() - startTime;
-            logger.error('[Orchestrator:processTeamResponse] Error processing team response', {
+            logger.error('Error processing chat message', {
                 error: error.message,
                 stack: error.stack,
-                processingTimeMs: processingTime,
-                sessionId
+                userId: messageData?.userId,
+                sessionId: messageData?.sessionId,
+                response: error.response?.data
             });
-            logger.error('[Orchestrator:processTeamResponse] Team response was:', 
-                JSON.stringify(teamResponse, null, 2)
-            );
-            throw new Error('Failed to process team response: ' + error.message);
+            throw error;
         }
     }
 
@@ -808,6 +627,263 @@ class OrchestratorService {
         return response;
     }
 
+    _processTeamResponse(teamResponse, sessionId, isSmartWorkflow) {
+        const startTime = Date.now();
+        try {
+            logger.info('[Orchestrator:processTeamResponse] Starting response processing', {
+                sessionId,
+                isSmartWorkflow,
+                hasTeamResponse: !!teamResponse
+            });
+
+            // Validate input
+            if (!teamResponse) {
+                logger.error('[Orchestrator:processTeamResponse] Team response is null or undefined');
+                throw new Error('Team response is null or undefined');
+            }
+
+            // Extract result and processing time
+            const result = teamResponse.result || teamResponse;
+            
+            if (!result) {
+                logger.error('[Orchestrator:processTeamResponse] Invalid team response structure');
+                throw new Error('Invalid team response structure');
+            }
+
+            logger.debug('[Orchestrator:processTeamResponse] Processing response structure', {
+                hasResults: !!result.results,
+                hasAggregatedData: !!result.aggregated_data,
+                resultCount: result.results?.length,
+                responseStructure: Object.keys(result)
+            });
+
+            // Initialize response components
+            let finalResponse = '';
+            let toolData = null;
+            let visualizationData = null;
+            let smartWorkflowData = null;
+
+            // Process aggregated data
+            if (result.aggregated_data) {
+                const aggregatedData = result.aggregated_data;
+                
+                // Process LLM responses first
+                if (aggregatedData.llm_responses?.length > 0) {
+                    // Get the most detailed response
+                    const sortedResponses = aggregatedData.llm_responses
+                        .filter(r => r.response)
+                        .sort((a, b) => (b.response?.length || 0) - (a.response?.length || 0));
+                    
+                    if (sortedResponses.length > 0) {
+                        finalResponse = sortedResponses[0].response;
+                    }
+                }
+                
+                // Process vector store results
+                if (aggregatedData.vector_store) {
+                    toolData = {
+                        ...toolData,
+                        vector_store: {
+                            results: aggregatedData.vector_store.results,
+                            queries: aggregatedData.vector_store.queries,
+                            datasets: aggregatedData.vector_store.datasets
+                        }
+                    };
+                }
+                
+                // Process raw data
+                if (aggregatedData.raw_data) {
+                    toolData = {
+                        ...toolData,
+                        raw_data: {
+                            samples: aggregatedData.raw_data.samples,
+                            total_records: aggregatedData.raw_data.total_records,
+                            schemas: aggregatedData.raw_data.schemas
+                        }
+                    };
+                }
+                
+                // Process tool results
+                if (aggregatedData.tool_results?.length > 0) {
+                    toolData = {
+                        ...toolData,
+                        tool_results: aggregatedData.tool_results
+                    };
+
+                    // If no LLM response, try to construct one from tool results
+                    if (!finalResponse) {
+                        const toolMessages = aggregatedData.tool_results
+                            .filter(t => t.result?.message)
+                            .map(t => t.result.message)
+                            .join('\n');
+                        
+                        if (toolMessages) {
+                            finalResponse = toolMessages;
+                        }
+                    }
+
+                    // Process visualization from tool results
+                    for (const toolResult of aggregatedData.tool_results) {
+                        if (toolResult?.result?.aggregation_data?.visualization?.data) {
+                            visualizationData = toolResult.result.aggregation_data.visualization.data;
+                            finalResponse = this._appendVisualizationToResponse(finalResponse, visualizationData);
+                        }
+                    }
+                }
+            }
+
+            // Process individual agent results if no aggregated response
+            if (!finalResponse && result.results?.length > 0) {
+                for (const agentResult of result.results) {
+                    // Add agent response to final response if no aggregated response exists
+                    if (agentResult.response?.message) {
+                        finalResponse = agentResult.response.message;
+                        break;
+                    }
+
+                    // Process tool results from individual agents
+                    if (agentResult.response?.tool_results) {
+                        logger.debug('[Orchestrator:processTeamResponse] Processing agent tool results', {
+                            agentId: agentResult.agent_id,
+                            toolResultCount: agentResult.response.tool_results.length,
+                            hasToolResults: !!agentResult.response.tool_results
+                        });
+
+                        // Initialize tool data if not exists
+                        if (!toolData) {
+                            toolData = { tool_results: [] };
+                        }
+
+                        // Add each tool result
+                        for (const toolResult of agentResult.response.tool_results) {
+                            // Add to tool results array
+                            toolData.tool_results.push(toolResult);
+
+                            // If still no response, use tool result message
+                            if (!finalResponse && toolResult.result?.message) {
+                                finalResponse = toolResult.result.message;
+                            }
+
+                            // Process visualization data if present
+                            if (toolResult?.result?.aggregation_data?.visualization?.data) {
+                                visualizationData = toolResult.result.aggregation_data.visualization.data;
+                                finalResponse = this._appendVisualizationToResponse(finalResponse, visualizationData);
+                            }
+                            // Handle raw data if no visualization
+                            else if (toolResult?.result?.aggregation_data?.raw_data) {
+                                const rawData = toolResult.result.aggregation_data.raw_data;
+                                if (!toolData.raw_data) {
+                                    toolData.raw_data = {
+                                        samples: [],
+                                        total_records: 0,
+                                        schemas: []
+                                    };
+                                }
+                                toolData.raw_data.samples.push(...(rawData.sample || []));
+                                toolData.raw_data.total_records += (rawData.total_records || 0);
+                                if (rawData.schema) {
+                                    toolData.raw_data.schemas.push(rawData.schema);
+                                }
+
+                                // Try to create visualization from raw data
+                                if (!visualizationData && rawData.sample?.length > 0) {
+                                    visualizationData = this._createVisualizationFromRawData(rawData.sample);
+                                    if (visualizationData) {
+                                        finalResponse = this._appendVisualizationToResponse(finalResponse, visualizationData);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Use default message if no response found
+            if (!finalResponse) {
+                logger.warn('[Orchestrator:processTeamResponse] No response generated, using default message');
+                finalResponse = "I apologize, but I couldn't process your request properly.";
+            }
+
+            // Append tool data if needed
+            if (toolData?.raw_data && !visualizationData) {
+                finalResponse = this._appendToolDataToResponse(finalResponse, toolData.raw_data);
+            }
+
+            // Create metadata
+            const metadata = {
+                team_id: result.team_id || 'unknown',
+                processing_time: result.execution_summary?.execution_time || 0,
+                confidence_score: 1,
+                agent_contributions: result.results?.map(r => ({
+                    agent_id: r.agent_id || 'unknown',
+                    confidence: r.response?.validation_result?.confidence || 0
+                })) || [],
+                has_tool_data: !!toolData,
+                has_visualization: !!visualizationData,
+                workflow_type: isSmartWorkflow ? 'smart' : 'standard',
+                validation_result: result.validation_result,
+                validation_passed: result.validation_passed,
+                successful_agents: result.execution_summary?.successful_agents || 0,
+                total_agents: result.execution_summary?.total_agents || 0
+            };
+
+            const totalProcessingTime = Date.now() - startTime;
+            logger.info('[Orchestrator:processTeamResponse] Response processing completed', {
+                processingTimeMs: totalProcessingTime,
+                responseLength: finalResponse.length,
+                hasToolData: !!toolData,
+                hasVisualization: !!visualizationData,
+                hasSmartWorkflowData: !!smartWorkflowData,
+                workflowType: isSmartWorkflow ? 'smart' : 'standard',
+                toolResultsCount: toolData?.tool_results?.length || 0
+            });
+
+            return {
+                content: finalResponse,
+                status: result.final_status || 'completed',
+                metadata,
+                conversation_id: sessionId,
+                timestamp: new Date().toISOString(),
+                tool_data: toolData,
+                visualization_data: visualizationData,
+                smart_workflow_data: smartWorkflowData
+            };
+
+        } catch (error) {
+            const processingTime = Date.now() - startTime;
+            logger.error('[Orchestrator:processTeamResponse] Error processing team response', {
+                error: error.message,
+                stack: error.stack,
+                processingTimeMs: processingTime,
+                sessionId,
+                isSmartWorkflow
+            });
+            throw new Error('Failed to process team response: ' + error.message);
+        }
+    }
+
+    _appendSmartWorkflowDetails(response, smartWorkflowData) {
+        if (!smartWorkflowData) return response;
+
+        let details = '\n\nTask Execution Details:';
+        
+        if (smartWorkflowData.execution_metrics) {
+            const metrics = smartWorkflowData.execution_metrics;
+            details += `\n- Execution Time: ${metrics.execution_time.toFixed(2)}s`;
+            details += `\n- Success Rate: ${metrics.success_rate.toFixed(1)}%`;
+            details += `\n- Agents: ${metrics.successful_agents}/${metrics.total_agents} successful`;
+        }
+
+        if (smartWorkflowData.task_decomposition?.subtasks?.length > 0) {
+            details += '\n\nTask was broken down into:';
+            smartWorkflowData.task_decomposition.subtasks.forEach((subtask, index) => {
+                details += `\n${index + 1}. ${subtask.description || subtask.type}`;
+            });
+        }
+
+        return response + details;
+    }
+
     /**
      * Get conversation history for a session
      * @param {string} sessionId - Chat session ID
@@ -835,22 +911,105 @@ class OrchestratorService {
      */
     async _sendToMLService(mlRequest) {
         try {
-            logger.info('Sending request to ML service');
+            // Log full request details
+            logger.info('Sending request to ML service - Full Details', {
+                request: {
+                    content: mlRequest.content,
+                    userId: mlRequest.userId,
+                    sessionId: mlRequest.sessionId,
+                    task_type: mlRequest.task_type || 'general',
+                    complexity: mlRequest.complexity || 'medium',
+                    context: {
+                        team_id: mlRequest.context.team_id,
+                        team_config: {
+                            team_id: mlRequest.context.team_config.team_id,
+                            name: mlRequest.context.team_config.name,
+                            description: mlRequest.context.team_config.description,
+                            use_smart_workflow: mlRequest.context.team_config.use_smart_workflow,
+                            temperature: mlRequest.context.team_config.temperature,
+                            token_limit: mlRequest.context.team_config.token_limit,
+                            start_prompt: mlRequest.context.team_config.start_prompt,
+                            end_prompt: mlRequest.context.team_config.end_prompt,
+                            style: mlRequest.context.team_config.style,
+                            members: mlRequest.context.team_config.members
+                        },
+                        conversation_settings: mlRequest.context.conversation_settings,
+                        conversation_history_length: mlRequest.context.conversation_history?.length || 0,
+                        documents_count: mlRequest.context.documents?.length || 0
+                    }
+                }
+            });
+            
             const startTime = Date.now();
+            const response = await axios.post(`${ML_SERVICE_URL}/team/execute`, {
+                ...mlRequest,
+                task_type: mlRequest.task_type || 'general',
+                complexity: mlRequest.complexity || 'medium'
+            });
+            const processingTime = Date.now() - startTime;
             
-            const response = await axios.post(`${ML_SERVICE_URL}/team/execute`, mlRequest);
-            
-            logger.info('Received response from ML service', {
-                processingTimeMs: Date.now() - startTime,
+            // Log full response details
+            logger.info('Received response from ML service - Full Details', {
+                response: {
+                    processingTimeMs: processingTime,
+                    status: response.status,
+                    data: {
+                        task_id: response.data?.task_id,
+                        team_id: response.data?.team_id,
+                        status: response.data?.status,
+                        final_status: response.data?.final_status,
+                        workflow_type: response.data?.workflow_type,
+                        execution_summary: response.data?.execution_summary,
+                        validation_result: response.data?.validation_result,
+                        aggregated_data: response.data?.aggregated_data,
+                        results: response.data?.results?.map(r => ({
+                            agent_id: r.agent_id,
+                            status: r.status,
+                            response: {
+                                content: r.response?.content,
+                                tool_results: r.response?.tool_results,
+                                validation_result: r.response?.validation_result,
+                                metadata: r.response?.metadata
+                            }
+                        }))
+                    }
+                }
+            });
+
+            // Keep the original summary log for quick reference
+            logger.info('ML Service Request Summary', {
+                team_id: mlRequest.context.team_id,
+                use_smart_workflow: mlRequest.context.team_config.use_smart_workflow,
+                request_type: 'team_execute',
+                content: mlRequest.content,
+                userId: mlRequest.userId,
+                sessionId: mlRequest.sessionId
+            });
+
+            logger.info('ML Service Response Summary', {
+                processingTimeMs: processingTime,
                 responseStatus: response.status,
-                hasData: !!response.data
+                hasData: !!response.data,
+                workflow_type: mlRequest.context.team_config.use_smart_workflow ? 'smart' : 'standard',
+                response_type: response.data?.type || 'unknown',
+                task_id: response.data?.task_id,
+                team_id: response.data?.team_id,
+                status: response.data?.status,
+                final_status: response.data?.final_status
             });
 
             return response.data;
         } catch (error) {
-            logger.orchestrator.error('Error communicating with ML service', error, {
-                requestContent: mlRequest.content,
-                sessionId: mlRequest.session_id
+            logger.error('Error communicating with ML service', {
+                error: error.message,
+                stack: error.stack,
+                request: {
+                    content: mlRequest.content,
+                    sessionId: mlRequest.sessionId,
+                    team_id: mlRequest.context.team_id,
+                    use_smart_workflow: mlRequest.context.team_config.use_smart_workflow
+                },
+                response: error.response?.data
             });
             throw error;
         }

@@ -38,6 +38,7 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
         workflow_logger.info(f"[WORKFLOW] Task ID: {task.task_id}")
         workflow_logger.info(f"[WORKFLOW] Team ID: {team.team_id}")
         workflow_logger.info(f"[WORKFLOW] Description: {task.description}")
+        workflow_logger.info(f"[WORKFLOW] Correlation ID: {correlation_id}")
         workflow_logger.info("="*80 + "\n")
         
         # Get database connection
@@ -46,24 +47,40 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
         
         try:
             # Store team task
+            workflow_logger.info("[WORKFLOW] Storing team task")
             task_data = {
                 'description': task.description,
-                'requirements': task.requirements
+                'requirements': task.requirements,
+                'task_type': task.task_type,
+                'complexity': task.complexity,
+                'priority': task.priority
             }
             task_id = store_team_task(cursor, team.team_id, task_data, correlation_id)
+            workflow_logger.info(f"[WORKFLOW] Stored team task with ID: {task_id}")
             
             # Create workflow record
+            workflow_logger.info("[WORKFLOW] Creating workflow record")
             workflow_id = create_workflow_record(cursor, team.team_id, task_id, correlation_id)
+            workflow_logger.info(f"[WORKFLOW] Created workflow record with ID: {workflow_id}")
             
             # Get ordered list of team agents
+            workflow_logger.info("[WORKFLOW] Getting ordered list of team agents")
             team_agents = get_team_agents_ordered(cursor, team.team_id)
+            workflow_logger.info(f"[WORKFLOW] Retrieved {len(team_agents)} team agents")
             
             # Create workflow steps for agents
+            workflow_logger.info("[WORKFLOW] Creating workflow steps")
             step_ids = create_workflow_steps(cursor, workflow_id, team_agents)
+            workflow_logger.info(f"[WORKFLOW] Created {len(step_ids)} workflow steps")
             
             # Group agents by priority
+            workflow_logger.info("[WORKFLOW] Grouping agents by priority")
             priority_groups = group_agents_by_priority(team_agents)
             sorted_priorities = sorted(priority_groups.keys(), reverse=True)
+            workflow_logger.info(f"[WORKFLOW] Created {len(priority_groups)} priority groups")
+            
+            for priority in sorted_priorities:
+                workflow_logger.info(f"[WORKFLOW] Priority {priority} group has {len(priority_groups[priority])} agents")
             
             # Initialize results tracking
             final_results = []
@@ -72,75 +89,84 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
             # Execute agents in priority order
             for priority in sorted_priorities:
                 qualified_agents = priority_groups[priority]
-                workflow_logger.info(f"[WORKFLOW] Executing priority {priority} group with {len(qualified_agents)} agents")
+                workflow_logger.info(f"\n[WORKFLOW] Starting execution of priority {priority} group")
+                workflow_logger.info(f"[WORKFLOW] {len(qualified_agents)} agents in this group")
                 
-                # Execute each agent in the current priority group
                 for agent_data in qualified_agents:
+                    workflow_logger.info(f"\n[WORKFLOW] Processing agent {agent_data['agent_id']} ({agent_data['name']})")
+                    workflow_logger.info(f"[WORKFLOW] Agent tools: {json.dumps(agent_data.get('tools', []), indent=2)}")
+                    
                     try:
                         # Initialize agent
+                        workflow_logger.info(f"[WORKFLOW] Initializing agent {agent_data['agent_id']}")
                         agent = initialize_agent_from_db(agent_data['agent_id'])
                         if not agent:
-                            workflow_logger.error(f"Could not initialize agent {agent_data['agent_id']}")
+                            workflow_logger.error(f"[WORKFLOW] Could not initialize agent {agent_data['agent_id']}")
                             continue
                         
-                        # Set correlation ID for tracking
+                        # Set correlation ID
                         agent.set_correlation_id(correlation_id)
+                        workflow_logger.info(f"[WORKFLOW] Set correlation ID for agent {agent_data['agent_id']}")
                         
-                        # Prepare message with context and requirements
+                        # Prepare message
+                        workflow_logger.info(f"[WORKFLOW] Preparing execution message for agent {agent_data['agent_id']}")
                         message = {
                             "task_description": task.description,
                             "requirements": task.requirements,
                             "conversation_context": final_results,
-                            "accuracy_threshold": agent_data['accuracy'] or 0.8,
-                            "success_rate": agent_data['success'] or 0.9,
+                            "accuracy_threshold": float(agent_data['accuracy'] or 0.8),
+                            "success_rate": float(agent_data['success'] or 0.9),
                             "priority": priority
                         }
                         
                         # Execute with agent
+                        workflow_logger.info(f"[WORKFLOW] Executing agent {agent_data['agent_id']}")
                         result = agent.execute_with_tools(json.dumps(message))
+                        workflow_logger.info(f"[WORKFLOW] Agent {agent_data['agent_id']} execution completed")
+                        workflow_logger.info(f"[WORKFLOW] Execution status: {result.get('status', 'unknown')}")
                         
                         if result['status'] == 'success':
                             successful_agents += 1
-                            
+                            workflow_logger.info(f"[WORKFLOW] Agent {agent_data['agent_id']} execution successful")
+                        
                         # Add agent info to result
                         result.update({
                             'agent_id': agent_data['agent_id'],
                             'agent_name': agent_data['name'],
                             'priority': priority,
                             'step_order': len(final_results) + 1,
-                            'accuracy': agent_data['accuracy'],
-                            'success_rate': agent_data['success']
+                            'accuracy': float(agent_data['accuracy'] or 0),
+                            'success_rate': float(agent_data['success'] or 0)
                         })
                         
                         final_results.append(result)
+                        workflow_logger.info(f"[WORKFLOW] Added result for agent {agent_data['agent_id']}")
                         
                     except Exception as e:
-                        workflow_logger.error(f"Error executing agent {agent_data['agent_id']}: {str(e)}")
+                        workflow_logger.error(f"[WORKFLOW] Error executing agent {agent_data['agent_id']}: {str(e)}", exc_info=True)
                         final_results.append({
                             'agent_id': agent_data['agent_id'],
                             'agent_name': agent_data['name'],
                             'status': 'error',
                             'message': str(e)
                         })
+                
+                workflow_logger.info(f"[WORKFLOW] Completed execution of priority {priority} group")
+            
+            # Update workflow steps status
+            workflow_logger.info("[WORKFLOW] Updating workflow steps status")
+            update_workflow_steps_status(cursor, workflow_id, final_results)
+            workflow_logger.info("[WORKFLOW] Workflow steps status updated")
+            
+            # Update workflow status
+            workflow_logger.info("[WORKFLOW] Updating workflow status")
+            update_workflow_status(cursor, workflow_id, 'completed')
+            workflow_logger.info("[WORKFLOW] Workflow status updated")
             
             # Aggregate results
-            aggregated = aggregate_team_responses(final_results, task.description)
-            
-            # Update workflow record with completion
-            cursor.execute("""
-                UPDATE workflows 
-                SET status = %s, end_time = %s, execution_time = %s, 
-                    successful_agents = %s, total_agents = %s
-                WHERE id = %s
-            """, (
-                'completed',
-                datetime.now(),
-                (datetime.now() - workflow_start_time).total_seconds(),
-                successful_agents,
-                len(team_agents),
-                workflow_id
-            ))
-            conn.commit()
+            workflow_logger.info("[WORKFLOW] Aggregating team responses")
+            aggregated = aggregate_team_responses(final_results)
+            workflow_logger.info("[WORKFLOW] Team responses aggregated")
             
             workflow_logger.info("\n" + "="*80)
             workflow_logger.info("[WORKFLOW] Task execution completed")
@@ -166,56 +192,26 @@ def execute_task_with_team(team: Team, task: TeamTask) -> Dict[str, Any]:
             }
             
         except Exception as e:
-            workflow_logger.error(f"[WORKFLOW] Error in team execution: {str(e)}", exc_info=True)
+            workflow_logger.error(f"[WORKFLOW] Error in task execution: {str(e)}", exc_info=True)
+            if workflow_id:
+                workflow_logger.info("[WORKFLOW] Updating workflow status to failed")
+                update_workflow_status(cursor, workflow_id, 'failed')
+                workflow_logger.info("[WORKFLOW] Workflow status updated")
             return {
-                'workflow_id': workflow_id,
-                'final_status': 'failed',
-                'error': str(e),
-                'results': final_results if 'final_results' in locals() else [],
-                'aggregated_data': {
-                    'vector_store': {
-                        'results': [],
-                        'queries': [],
-                        'datasets': []
-                    },
-                    'raw_data': {
-                        'samples': [],
-                        'total_records': 0,
-                        'schemas': []
-                    },
-                    'tool_results': [],
-                    'llm_responses': []
-                },
-                'execution_summary': {
-                    'total_agents': len(team_agents) if 'team_agents' in locals() else 0,
-                    'successful_agents': successful_agents if 'successful_agents' in locals() else 0,
-                    'priority_groups': sorted(priority_groups.keys(), reverse=True) if 'priority_groups' in locals() else [],
-                    'execution_time': (datetime.now() - workflow_start_time).total_seconds()
-                }
+                'status': 'error',
+                'message': str(e),
+                'workflow_id': workflow_id
             }
             
         finally:
             safe_close_connection(conn, cursor)
             
     except Exception as e:
-        workflow_logger.error(f"[WORKFLOW] Critical error in team execution: {str(e)}", exc_info=True)
+        workflow_logger.error(f"[WORKFLOW] Critical error in task execution: {str(e)}", exc_info=True)
         return {
-            'workflow_id': workflow_id if 'workflow_id' in locals() else None,
-            'final_status': 'failed',
-            'error': str(e),
-            'results': [],
-            'aggregated_data': {
-                'vector_store': {'results': [], 'queries': [], 'datasets': []},
-                'raw_data': {'samples': [], 'total_records': 0, 'schemas': []},
-                'tool_results': [],
-                'llm_responses': []
-            },
-            'execution_summary': {
-                'total_agents': 0,
-                'successful_agents': 0,
-                'priority_groups': [],
-                'execution_time': (datetime.now() - workflow_start_time).total_seconds()
-            }
+            'status': 'error',
+            'message': str(e),
+            'workflow_id': None
         }
 
 def execute_agent_task(agent: Any, task: TeamTask, context: Dict[str, Any]) -> Dict[str, Any]:

@@ -46,6 +46,12 @@ const logger = {
         writeToLog(logFiles.debug, entry);
     },
 
+    warn: (message, data) => {
+        const entry = formatLogEntry('warn', message, data);
+        console.warn(entry);
+        writeToLog(logFiles.info, entry);
+    },
+
     orchestrator: {
         messageReceived: (userId, sessionId, content, context) => {
             const entry = formatLogEntry('orchestrator', 'Message Received', {

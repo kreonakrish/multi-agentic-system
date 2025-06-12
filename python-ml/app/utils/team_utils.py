@@ -140,23 +140,27 @@ def store_team_task(cursor, team_id: int, task_data: Dict[str, Any], correlation
     """Store team task in database and return task_id"""
     task_id = str(uuid.uuid4())  # Generate a unique task ID
     cursor.execute("""
-        INSERT INTO team_messages (
-            team_id,
+        INSERT INTO team_tasks (
             task_id,
-            task_description,
-            task_requirements,
-            team_config,
+            team_id,
+            task_type,
+            complexity,
+            description,
+            requirements,
+            priority,
             status,
             created_at,
             updated_at
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """, (
-        team_id,
         task_id,
+        team_id,
+        task_data.get('task_type', None),
+        task_data.get('complexity', None),
         task_data.get('description', ''),
         json.dumps(task_data.get('requirements', {})),
-        json.dumps({'correlation_id': correlation_id}),
+        task_data.get('priority', 1),
         'pending',
         datetime.now(),
         datetime.now()

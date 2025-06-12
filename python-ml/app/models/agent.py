@@ -101,24 +101,28 @@ class Agent:
 
     def add_tool(self, tool_id: int, tool_name: str, tool_type: str, hostname: str, username: str = "", password: str = "", auth_method: str = "none", description: str = "") -> None:
         """Add a tool to the agent"""
-        # Create the appropriate tool instance based on type
-        tool: Optional[Tool] = None
+        from app.core.tools import (
+            GitHubTool, DatabaseTool, APITool, WebServiceTool,
+            PythonTool, ReactTool
+        )
         
-        if tool_type.lower() == "github":
+        tool_type = tool_type.lower().replace("_", "").replace("-", "")
+        
+        if tool_type == "github":
             tool = GitHubTool(tool_id, tool_name, hostname, username, password, auth_method, description)
-        elif tool_type.lower() == "database":
+        elif tool_type == "database":
             tool = DatabaseTool(tool_id, tool_name, hostname, username, password, auth_method, description)
-        elif tool_type.lower() == "api":
+        elif tool_type in ["api", "apiservice"]:
             tool = APITool(tool_id, tool_name, hostname, username, password, auth_method, description)
-        elif tool_type.lower() == "webservice":
+        elif tool_type == "webservice":
             tool = WebServiceTool(tool_id, tool_name, hostname, username, password, auth_method, description)
-        elif tool_type.lower() == "python":
+        elif tool_type == "python":
             tool = PythonTool(tool_id, tool_name, hostname, username, password, auth_method, description)
-        elif tool_type.lower() == "react":
+        elif tool_type == "react":
             tool = ReactTool(tool_id, tool_name, hostname, username, password, auth_method, description)
         else:
-            logger.warning(f"Unknown tool type: {tool_type}, using base Tool class")
-            tool = Tool(tool_id, tool_name, hostname, username, password, auth_method, description)
+            logger.warning(f"Unknown tool type: {tool_type}, defaulting to APITool")
+            tool = APITool(tool_id, tool_name, hostname, username, password, auth_method, description)
         
         if tool:
             self.tools.append(tool)

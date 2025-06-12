@@ -37,10 +37,18 @@ export interface Team {
   tools: Tool[];
   created_at?: string;
   updated_at?: string;
-  config?: {
+  use_smart_workflow?: boolean;
+  configuration?: {
     name: string;
-    description: string;
-    agents: Agent[];
+    description?: string;
+    use_smart_workflow?: boolean;
+    agents?: {
+      id: number;
+      accuracy: number;
+      success: number;
+      priority: number;
+    }[];
+    updated_at?: string;
   };
   conversation_settings?: ConversationSettings;
 }

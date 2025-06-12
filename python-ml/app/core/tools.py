@@ -1099,25 +1099,32 @@ def create_tool(tool_data: Dict[str, Any]) -> Tool:
     tool_types = {
         "database": DatabaseTool,
         "apiservice": APITool,
+        "api": APITool,
         "webservice": WebServiceTool,
+        "web": WebServiceTool,
         "github": GitHubTool,
         "python": PythonTool,
         "react": ReactTool
     }
     
-    tool_type = (tool_data.get("type") or tool_data.get("tool_type") or "").lower()
+    tool_type = (tool_data.get("type") or tool_data.get("tool_type") or "").lower().replace("_", "").replace("-", "")
     if not tool_type:
         raise ValueError("Tool type not specified")
     
-    # Try to match case-insensitive
+    # Try to match case-insensitive and handle variations
+    matched_type = None
     for known_type in tool_types:
-        if known_type.lower() == tool_type.lower():
-            tool_type = known_type
+        if known_type.lower() == tool_type.lower() or (
+            known_type == "api" and tool_type.lower() == "apiservice"
+        ):
+            matched_type = known_type
             break
-    else:
-        raise ValueError(f"Unknown tool type: {tool_type}")
     
-    tool_class = tool_types[tool_type]
+    if not matched_type:
+        logger.warning(f"Unknown tool type: {tool_type}, defaulting to APITool")
+        tool_class = APITool
+    else:
+        tool_class = tool_types[matched_type]
     
     # Common parameters for all tools
     common_params = {
@@ -1131,38 +1138,39 @@ def create_tool(tool_data: Dict[str, Any]) -> Tool:
     }
     
     # Additional parameters based on tool type
-    if tool_type == 'github':
+    if matched_type == 'github':
         return tool_class(
             **common_params,
             max_rows=tool_data.get('max_rows', 100)
         )
-    elif tool_type == 'database':
+    elif matched_type == 'database':
         return tool_class(
             **common_params,
-            database=tool_data['database'],
+            database=tool_data.get('database', 'default'),
             port=tool_data.get('port', 3306)
         )
-    elif tool_type == 'apiservice':
+    elif matched_type in ['apiservice', 'api']:
         return tool_class(
             **common_params,
             api_version=tool_data.get('api_version', 'v1'),
             timeout=tool_data.get('timeout', 30)
         )
-    elif tool_type == 'webservice':
+    elif matched_type in ['webservice', 'web']:
         return tool_class(
             **common_params,
             service_type=tool_data.get('service_type', 'REST'),
             timeout=tool_data.get('timeout', 30)
         )
-    elif tool_type == 'python':
-        return PythonTool(
+    elif matched_type == 'python':
+        return tool_class(
             **common_params,
             python_version=tool_data.get('python_version', '3.8')
         )
-    elif tool_type == 'react':
-        return ReactTool(
+    elif matched_type == 'react':
+        return tool_class(
             **common_params,
             react_version=tool_data.get('react_version', '18.0')
         )
     else:
-        return tool_class(**common_params)
+        # Default to APITool with basic parameters
+        return APITool(**common_params)

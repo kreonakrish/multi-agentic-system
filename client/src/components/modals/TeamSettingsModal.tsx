@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Box, TextField, Select, MenuItem, FormControl, InputLabel, Button, List, ListItem, ListItemText, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Slider, Typography, IconButton, Collapse } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Box, TextField, Select, MenuItem, FormControl, InputLabel, Button, List, ListItem, ListItemText, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Slider, Typography, IconButton, Collapse, Switch, FormControlLabel } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import AgentHierarchyGraph from '../agents/AgentHierarchyGraph';
@@ -41,15 +41,23 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
   const [teamAgents, setTeamAgents] = useState<TeamAgent[]>([]);
   const [editMode, setEditMode] = useState(false);
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
+  const [useSmartWorkflow, setUseSmartWorkflow] = useState(false);
 
   useEffect(() => {
     if (selectedTeam) {
       setEditMode(true);
       setNewTeamName(selectedTeam.name);
+      // Initialize from selectedTeam first
+      setUseSmartWorkflow(selectedTeam.use_smart_workflow || selectedTeam.configuration?.use_smart_workflow || false);
+      
       // Get fresh team data when selecting a team
       fetch(`/api/teams/${selectedTeam.id}`)
         .then(res => res.json())
         .then(teamData => {
+          console.log('Fetched team data:', teamData);
+          // Update smart workflow state from fetched data - check both locations
+          setUseSmartWorkflow(teamData.use_smart_workflow || teamData.configuration?.use_smart_workflow || false);
+          
           const initializedAgents = (teamData.agents || []).map((agent: any) => ({
             id: agent.id,
             name: agent.name,
@@ -64,6 +72,8 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
         .catch(error => {
           console.error('Error fetching team data:', error);
           // Fallback to existing data if fetch fails
+          setUseSmartWorkflow(selectedTeam.use_smart_workflow || selectedTeam.configuration?.use_smart_workflow || false);
+          
           const initializedAgents = (selectedTeam.agents || []).map((agent: any) => ({
             id: agent.id,
             name: agent.name,
@@ -79,19 +89,23 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
       setNewTeamName('');
       setTeamAgents([]);
       setSelectedAgents([]);
+      setUseSmartWorkflow(false);
     }
   }, [selectedTeam, open]);
 
   // Reset form when modal opens
   useEffect(() => {
     if (open) {
-      setSelectedTeam(null);
-      setEditMode(false);
-      setNewTeamName('');
-      setTeamAgents([]);
-      setSelectedAgents([]);
+      if (!selectedTeam) {
+        setSelectedTeam(null);
+        setEditMode(false);
+        setNewTeamName('');
+        setTeamAgents([]);
+        setSelectedAgents([]);
+        setUseSmartWorkflow(false);
+      }
     }
-  }, [open]);
+  }, [open, selectedTeam]);
 
   const handleEscapeTeamSelection = () => {
     setSelectedTeam(null);
@@ -99,11 +113,14 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
     setNewTeamName('');
     setTeamAgents([]);
     setSelectedAgents([]);
+    setUseSmartWorkflow(false);
   };
 
   const handleCreateTeam = async () => {
     if (!newTeamName) return;
     try {
+      console.log('Creating team with smart workflow:', useSmartWorkflow);
+      
       // Map agents with their correct IDs and metrics
       const agentsWithMetrics = teamAgents.map(agent => {
         const originalAgent = agents.find(a => a.name === agent.name);
@@ -118,21 +135,41 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
         };
       });
 
-      // Create the team with all data in one request
-      const response = await axios.post('/api/teams', {
+      const payload = {
         name: newTeamName,
+        description: 'Team for processing chat messages and generating responses',
+        team_config: {
+          name: newTeamName,
+          description: 'Team for processing chat messages and generating responses',
+          use_smart_workflow: useSmartWorkflow,
+          agents: agentsWithMetrics
+        },
         agents: agentsWithMetrics
-      });
+      };
+
+      console.log('Create team payload:', payload);
+
+      // Create the team with all data in one request
+      const response = await axios.post('/api/teams', payload);
+
+      console.log('Create team response:', response.data);
 
       if (response.data) {
         // Fetch the newly created team to ensure we have the correct data
         const teamResponse = await axios.get(`/api/teams/${response.data.id}`);
         const newTeam = teamResponse.data;
 
+        console.log('Fetched new team data:', newTeam);
+        console.log('New team config:', newTeam.team_config);
+
+        // Update teams list with the new team
         setTeams([...teams, newTeam]);
+        
+        // Reset form
         setNewTeamName('');
         setTeamAgents([]);
         setSelectedAgents([]);
+        setUseSmartWorkflow(false);
         onClose();
       }
     } catch (err) {
@@ -144,6 +181,9 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
   const handleUpdateTeam = async () => {
     if (!selectedTeam || !newTeamName) return;
     try {
+      console.log('Updating team with smart workflow:', useSmartWorkflow);
+      console.log('Current team config:', selectedTeam.configuration);
+      
       // Map agents with their correct IDs and metrics
       const agentsWithMetrics = teamAgents.map(agent => ({
         id: agent.id,
@@ -152,19 +192,44 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
         priority: Number(agent.priority)
       }));
 
-      // Update the team with all data in one request
-      const response = await axios.put(`/api/teams/${selectedTeam.id}`, {
+      const payload = {
         name: newTeamName,
+        description: selectedTeam.description || 'Team for processing chat messages and generating responses',
+        team_config: {
+          name: newTeamName,
+          description: selectedTeam.description || 'Team for processing chat messages and generating responses',
+          use_smart_workflow: useSmartWorkflow,
+          agents: agentsWithMetrics
+        },
         agents: agentsWithMetrics
-      });
+      };
+
+      console.log('Update team payload:', payload);
+
+      // Update the team with all data in one request
+      const response = await axios.put(`/api/teams/${selectedTeam.id}`, payload);
+
+      console.log('Update team response:', response.data);
 
       if (response.data) {
         // Fetch the updated team to ensure we have the correct data
         const teamResponse = await axios.get(`/api/teams/${selectedTeam.id}`);
         const updatedTeam = teamResponse.data;
 
-        setTeams(teams.map(t => t.id === selectedTeam.id ? updatedTeam : t));
-        setSelectedTeam(updatedTeam);
+        console.log('Fetched updated team data:', updatedTeam);
+        console.log('Updated team config:', updatedTeam.configuration);
+
+        // Update the local state with the new value
+        setUseSmartWorkflow(updatedTeam.use_smart_workflow || updatedTeam.configuration?.use_smart_workflow || false);
+        
+        // Update teams list and selected team
+        const newTeam = {
+          ...updatedTeam,
+          use_smart_workflow: updatedTeam.use_smart_workflow || updatedTeam.configuration?.use_smart_workflow || false
+        };
+        
+        setTeams(teams.map(t => t.id === selectedTeam.id ? newTeam : t));
+        setSelectedTeam(newTeam);
       }
     } catch (err) {
       console.error('Failed to update team:', err);
@@ -232,6 +297,13 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
     }
   };
 
+  // Add logging to the smart workflow toggle handler
+  const handleSmartWorkflowToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.checked;
+    console.log('Smart workflow toggle changed:', newValue);
+    setUseSmartWorkflow(newValue);
+  };
+
   return (
     <Dialog
       open={open}
@@ -274,6 +346,17 @@ const TeamSettingsModal: React.FC<TeamSettingsModalProps> = ({
                   value={newTeamName}
                   onChange={e => setNewTeamName(e.target.value)}
                   fullWidth
+                  sx={{ mb: 2 }}
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={useSmartWorkflow}
+                      onChange={handleSmartWorkflowToggle}
+                      color="primary"
+                    />
+                  }
+                  label="Use Smart Workflow"
                   sx={{ mb: 2 }}
                 />
                 <FormControl fullWidth sx={{ mb: 2 }}>

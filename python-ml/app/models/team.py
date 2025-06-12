@@ -2,6 +2,7 @@ from typing import Dict, Any, List, Optional, NamedTuple, Union
 from datetime import datetime, timedelta
 from app.utils.enums import TaskPriority
 from app.utils.logger import logger
+from app.models.task import TeamTask  # Import TeamTask from task.py
 
 class TeamPermission:
     def __init__(self, team_id: int, tool_id: int, permission_level: str):
@@ -123,57 +124,6 @@ class TeamMember:
             self.successful_tasks += 1
         self.success_rate = (self.successful_tasks / self.total_tasks) if self.total_tasks > 0 else 0.0
         self.last_active = datetime.utcnow()
-
-class TeamTask:
-    """Model for a team task"""
-    
-    def __init__(
-        self,
-        task_id: str,
-        description: str,
-        requirements: Dict[str, Any],
-        created_at: Optional[datetime] = None,
-        updated_at: Optional[datetime] = None
-    ):
-        self.task_id = task_id
-        self.description = description
-        self.requirements = requirements
-        self.created_at = created_at or datetime.utcnow()
-        self.updated_at = updated_at or datetime.utcnow()
-        self.status = 'pending'
-        self.result: Optional[Dict[str, Any]] = None
-        self.error_message: Optional[str] = None
-        self.processing_time: Optional[float] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert task to dictionary representation"""
-        return {
-            'task_id': self.task_id,
-            'description': self.description,
-            'requirements': self.requirements,
-            'status': self.status,
-            'result': self.result,
-            'error_message': self.error_message,
-            'processing_time': self.processing_time,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
-        }
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TeamTask':
-        """Create a task instance from dictionary data"""
-        task = cls(
-            task_id=data['task_id'],
-            description=data['description'],
-            requirements=data['requirements'],
-            created_at=datetime.fromisoformat(data['created_at']) if 'created_at' in data else None,
-            updated_at=datetime.fromisoformat(data['updated_at']) if 'updated_at' in data else None
-        )
-        task.status = data.get('status', 'pending')
-        task.result = data.get('result')
-        task.error_message = data.get('error_message')
-        task.processing_time = data.get('processing_time')
-        return task
 
 class Team:
     """Model for a team of agents"""

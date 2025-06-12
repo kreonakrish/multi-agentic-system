@@ -13,6 +13,7 @@ from app.utils.db import get_db_connection, safe_close_connection
 from app.services.agent_service import initialize_agent_from_db
 from app.utils.task_executor import execute_task_with_team
 import logging
+from app.utils.workflow_manager import WorkflowManager
 
 # Get workflow-specific loggers
 workflow_logger = logging.getLogger('multi_agent_system.workflow')
@@ -82,16 +83,40 @@ def execute_team_task():
 
         # Initialize team and task
         team = Team(team_id=team_id, name=team_config['name'], description=team_config['description'])
-        task = TeamTask(task_id=str(uuid.uuid4()), description=data['content'], requirements=data['context'])
+
+        # Determine task type, complexity and priority based on content analysis
+        task_type = data.get('task_type', 'general')  # Default to 'general' if not specified
+        complexity = data.get('complexity', 'medium')  # Default to 'medium' if not specified
+        priority = data.get('priority', 1)  # Default to 1 (lowest) if not specified
+
+        task = TeamTask(
+            task_id=str(uuid.uuid4()),
+            task_type=task_type,
+            complexity=complexity,
+            description=data['content'],
+            requirements=data['context'],
+            priority=priority
+        )
         
         workflow_logger.info(f"[WORKFLOW] Initializing team task execution")
         workflow_logger.info(f"[WORKFLOW] Team ID: {team_id}")
         workflow_logger.info(f"[WORKFLOW] Task ID: {task.task_id}")
+        workflow_logger.info(f"[WORKFLOW] Task Type: {task_type}")
+        workflow_logger.info(f"[WORKFLOW] Task Complexity: {complexity}")
+        workflow_logger.info(f"[WORKFLOW] Task Priority: {priority}")
         workflow_logger.debug(f"[WORKFLOW] Team config: {json.dumps(team_config, indent=2)}")
         workflow_logger.debug(f"[WORKFLOW] Task requirements: {json.dumps(data['context'], indent=2)}")
         
-        # Execute task with team
-        final_result = execute_task_with_team(team, task)
+        # Determine execution mode from team_config
+        use_smart_workflow = team_config.get('use_smart_workflow', False)
+        workflow_logger.info(f"[WORKFLOW] Using {'smart' if use_smart_workflow else 'standard'} workflow execution")
+        
+        # Execute task with team using appropriate mode
+        if use_smart_workflow:
+            workflow_manager = WorkflowManager()
+            final_result = workflow_manager.execute_workflow(team, task)
+        else:
+            final_result = execute_task_with_team(team, task)
         
         # Prepare response
         response = {

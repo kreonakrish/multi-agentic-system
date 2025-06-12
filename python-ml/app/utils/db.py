@@ -1,6 +1,10 @@
 import os
+import mysql.connector
 from mysql.connector import pooling
+import logging
 from app.utils.logger import logger
+
+logger = logging.getLogger(__name__)
 
 # Database configuration with environment variable support and optimized pool settings
 DB_CONFIG = {
@@ -26,20 +30,18 @@ _connection_pool = None
 
 def init_db():
     """Initialize database connection pool"""
-    global _connection_pool
     try:
-        if _connection_pool is None:
-            _connection_pool = pooling.MySQLConnectionPool(**DB_CONFIG)
-            logger.info(
-                "Database connection pool initialized",
-                extra={
-                    'pool_name': DB_CONFIG['pool_name'],
-                    'pool_size': DB_CONFIG['pool_size'],
-                    'host': DB_CONFIG['host'],
-                    'database': DB_CONFIG['database']
-                }
-            )
-        return _connection_pool
+        pool = mysql.connector.pooling.MySQLConnectionPool(**DB_CONFIG)
+        logger.info(
+            "Database connection pool initialized",
+            extra={
+                'pool_name': DB_CONFIG['pool_name'],
+                'pool_size': DB_CONFIG['pool_size'],
+                'host': DB_CONFIG['host'],
+                'database': DB_CONFIG['database']
+            }
+        )
+        return pool
     except Exception as e:
         logger.error(
             "Failed to initialize database pool",
@@ -61,16 +63,16 @@ def get_db_connection():
         conn = _connection_pool.get_connection()
         logger.debug("Database connection acquired from pool")
         return conn
-    except pooling.PoolError as e:
+    except mysql.connector.errors.PoolError as e:
         logger.error(f"Pool error getting connection: {str(e)}")
-        # Try to reinitialize the pool
         try:
+            # Try to reinitialize the pool
             _connection_pool = init_db()
             conn = _connection_pool.get_connection()
             logger.info("Successfully got connection after pool reinitialization")
             return conn
-        except Exception as reinit_error:
-            logger.error(f"Failed to reinitialize pool: {str(reinit_error)}")
+        except Exception as e:
+            logger.error(f"Failed to reinitialize pool: {str(e)}")
             raise
     except Exception as e:
         logger.error(f"Error getting database connection: {str(e)}")

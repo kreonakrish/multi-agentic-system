@@ -110,15 +110,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             sessionId: selectedTeam?.id || 'default-session',
             context: {
               team_id: selectedTeam?.id,
-              team_config: selectedTeam?.config || {
+              team_config: selectedTeam?.configuration || {
                 name: selectedTeam?.name || "Chat Response Team",
                 description: selectedTeam?.description || "Team for processing chat messages and generating responses",
                 agents: selectedTeam?.agents?.map(agent => ({
-                  agent_id: agent.id,
-                  priority: agent.priority || 1,
-                  accuracy_threshold: agent.accuracy_threshold || 0.8,
-                  success_rate: agent.success_rate || 0.9,
-                  role: agent.role || 'assistant'
+                  id: agent.id,
+                  accuracy: agent.accuracy || 100,
+                  success: agent.success || 100,
+                  priority: agent.priority || 1
                 })) || []
               },
               conversation_settings: selectedTeam?.conversation_settings || {

@@ -10,6 +10,7 @@ class ToolService:
         self.tool_types: Dict[str, Type[Tool]] = {
             'database': DatabaseTool,
             'api': APITool,
+            'apiservice': APITool,
             'webservice': WebServiceTool,
             'github': GitHubTool
         }
