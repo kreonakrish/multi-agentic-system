@@ -17,7 +17,18 @@ class SafeFormatter(logging.Formatter):
             'openai_request': '-',
             'openai_response': '-',
             'endpoint': '-',
-            'params': '-'
+            'params': '-',
+            'task_id': '-',
+            'task_type': '-',
+            'knowledge_count': '-',
+            'knowledge_relevance': '-',
+            'memory_id': '-',
+            'task_relevance': '-',
+            'response_length': '-',
+            'system_message_length': '-',
+            'knowledge_integrated': '-',
+            'matches_found': '-',
+            'sample_match': '-'
         }
         
         # Add any missing keys to the record
@@ -26,7 +37,7 @@ class SafeFormatter(logging.Formatter):
                 setattr(record, key, default_value)
         
         # Format any dict/list fields as JSON strings
-        for field in ['openai_request', 'openai_response', 'params']:
+        for field in ['openai_request', 'openai_response', 'params', 'knowledge_relevance']:
             value = getattr(record, field)
             if isinstance(value, (dict, list)):
                 setattr(record, field, json.dumps(value, indent=2))
@@ -44,8 +55,18 @@ def configure_logging():
     # Create formatters using our SafeFormatter
     detailed_formatter = SafeFormatter(
         '%(asctime)s | %(levelname)-8s | %(name)s | %(funcName)s:%(lineno)d |\n'
-        '[Agent:%(agent_id)s Team:%(team_id)s Correlation:%(correlation_id)s]\n'
+        '[Agent:%(agent_id)s Team:%(team_id)s Task:%(task_id)s Correlation:%(correlation_id)s]\n'
         'Message: %(message)s\n'
+        'Task Type: %(task_type)s\n'
+        'Knowledge Count: %(knowledge_count)s\n'
+        'Knowledge Relevance: %(knowledge_relevance)s\n'
+        'Memory ID: %(memory_id)s\n'
+        'Task Relevance: %(task_relevance)s\n'
+        'Response Length: %(response_length)s\n'
+        'System Message Length: %(system_message_length)s\n'
+        'Knowledge Integrated: %(knowledge_integrated)s\n'
+        'Matches Found: %(matches_found)s\n'
+        'Sample Match: %(sample_match)s\n'
         'Endpoint: %(endpoint)s\n'
         'Parameters: %(params)s\n'
         'OpenAI Request: %(openai_request)s\n'
@@ -99,7 +120,10 @@ def configure_logging():
         'multi_agent_system.openai',
         'multi_agent_system.workflow',
         'multi_agent_system.workflow.steps',
-        'multi_agent_system.workflow.execution'
+        'multi_agent_system.workflow.execution',
+        'multi_agent_system.knowledge.retrieve',
+        'multi_agent_system.knowledge.llm',
+        'multi_agent_system.knowledge.metrics'
     ]
     
     for logger_name in loggers_to_configure:

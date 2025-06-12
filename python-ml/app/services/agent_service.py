@@ -4,6 +4,7 @@ from app.utils.logger import logger
 from app.utils.enums import InteractionType, AgentStatus
 from app.config.openai_config import get_openai_client
 from app.utils.db import get_db_connection, safe_close_connection
+from app.utils.knowledge_manager import KnowledgeManager
 
 def initialize_agent_from_db(agent_id: int) -> Optional[Agent]:
     """
@@ -38,6 +39,9 @@ def initialize_agent_from_db(agent_id: int) -> Optional[Agent]:
             foundation_model=agent_data['foundation_model'],
             team_id=agent_data.get('team_id')  # Use get() to handle None case
         )
+        
+        # Set knowledge manager
+        agent.knowledge_manager = KnowledgeManager()
         
         # Get agent's tools
         cursor.execute("""
@@ -232,6 +236,9 @@ def initialize_agent_from_db(agent_id: int) -> Optional[Agent]:
             foundation_model=agent_data['foundation_model'],
             team_id=agent_data.get('team_id')  # Use get() to handle None case
         )
+        
+        # Set knowledge manager
+        agent.knowledge_manager = KnowledgeManager()
         
         # Get agent's tools
         cursor.execute("""
