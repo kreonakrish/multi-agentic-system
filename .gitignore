@@ -1,1 +1,4 @@
 /client/node_modules/*
+python-ml/logs/
+node-api/migrations/
+node-api/uploads/
