@@ -12,13 +12,15 @@ from app.models.team import Team, TeamMember, TeamTask
 from app.utils.db import get_db_connection, safe_close_connection
 from app.services.agent_service import initialize_agent_from_db
 from app.utils.task_executor import execute_task_with_team
-import logging
 from app.utils.workflow_manager import WorkflowManager
+from app.utils.logger import (
+    workflow_logger,
+    workflow_steps_logger,
+    workflow_execution_logger,
+    workflow_decision_logger
+)
+from app.utils.team_utils import aggregate_team_responses
 
-# Get workflow-specific loggers
-workflow_logger = logging.getLogger('multi_agent_system.workflow')
-workflow_steps_logger = logging.getLogger('multi_agent_system.workflow.steps')
-workflow_execution_logger = logging.getLogger('multi_agent_system.workflow.execution')
 
 # Create blueprint without url_prefix (will be set in app.py)
 bp = Blueprint('team', __name__)
@@ -52,71 +54,60 @@ def _convert_priority(priority_value: Any) -> TaskPriority:
 @bp.route('/execute', methods=['POST'])
 @log_execution
 def execute_team_task():
-    """Execute a task using a team of agents"""
     try:
-        data = request.json
+        # Get request data
+        data = request.get_json()
+        workflow_logger.debug(f"[WORKFLOW] Received request data: {json.dumps(data, indent=2)}")
+        
         if not data:
             workflow_logger.error("[WORKFLOW] Request body is required")
             return jsonify({
-                "status": "error",
-                "message": "Request body is required"
+                'status': 'error',
+                'message': 'Request body is required'
             }), 400
-
-        # Validate required fields
-        required_fields = ['content', 'userId', 'sessionId', 'context']
-        if not all(field in data for field in required_fields):
-            workflow_logger.error(f"[WORKFLOW] Missing required fields. Required: {required_fields}")
-            return jsonify({
-                "status": "error",
-                "message": f"Missing required fields. Required: {required_fields}"
-            }), 400
-
-        # Get team_id from context
-        team_id = data['context'].get('team_id')
-        team_config = data['context'].get('team_config')
+        
+        # Extract team_id and task_id from context
+        context = data.get('context', {})
+        team_id = context.get('team_id')
+        team_config = context.get('team_config', {})
+        
         if not team_id or not team_config:
             workflow_logger.error("[WORKFLOW] team_id and team_config are required in context")
             return jsonify({
-                "status": "error",
-                "message": "team_id and team_config are required in context"
+                'status': 'error',
+                'message': 'team_id and team_config are required in context'
             }), 400
-
-        # Initialize team and task
-        team = Team(team_id=team_id, name=team_config['name'], description=team_config['description'])
-
-        # Determine task type, complexity and priority based on content analysis
-        task_type = data.get('task_type', 'general')  # Default to 'general' if not specified
-        complexity = data.get('complexity', 'medium')  # Default to 'medium' if not specified
-        priority = data.get('priority', 1)  # Default to 1 (lowest) if not specified
-
+        
+        # Initialize team
+        team = Team(team_id=team_id, name=team_config.get('name', ''), description=team_config.get('description', ''))
+        
+        # Create task
         task = TeamTask(
             task_id=str(uuid.uuid4()),
-            task_type=task_type,
-            complexity=complexity,
-            description=data['content'],
-            requirements=data['context'],
-            priority=priority
+            task_type=data.get('task_type', 'general'),
+            complexity=data.get('complexity', 'medium'),
+            description=data.get('content', ''),
+            requirements=context,
+            priority=data.get('priority', 1)
         )
         
         workflow_logger.info(f"[WORKFLOW] Initializing team task execution")
         workflow_logger.info(f"[WORKFLOW] Team ID: {team_id}")
         workflow_logger.info(f"[WORKFLOW] Task ID: {task.task_id}")
-        workflow_logger.info(f"[WORKFLOW] Task Type: {task_type}")
-        workflow_logger.info(f"[WORKFLOW] Task Complexity: {complexity}")
-        workflow_logger.info(f"[WORKFLOW] Task Priority: {priority}")
-        workflow_logger.debug(f"[WORKFLOW] Team config: {json.dumps(team_config, indent=2)}")
-        workflow_logger.debug(f"[WORKFLOW] Task requirements: {json.dumps(data['context'], indent=2)}")
+        workflow_logger.info(f"[WORKFLOW] Task Type: {task.task_type}")
+        workflow_logger.info(f"[WORKFLOW] Task Complexity: {task.complexity}")
+        workflow_logger.info(f"[WORKFLOW] Task Priority: {task.priority}")
         
-        # Determine execution mode from team_config
-        use_smart_workflow = team_config.get('use_smart_workflow', False)
-        workflow_logger.info(f"[WORKFLOW] Using {'smart' if use_smart_workflow else 'standard'} workflow execution")
+        # Initialize workflow manager
+        workflow_manager = WorkflowManager()
         
-        # Execute task with team using appropriate mode
-        if use_smart_workflow:
-            workflow_manager = WorkflowManager()
-            final_result = workflow_manager.execute_workflow(team, task)
-        else:
-            final_result = execute_task_with_team(team, task)
+        # Execute workflow
+        final_result = workflow_manager.execute_workflow(team, task)
+        workflow_logger.info("[WORKFLOW] Workflow execution completed")
+        
+        # Aggregate team responses
+        aggregated = aggregate_team_responses(final_result.get('results', []), task.description)
+        workflow_logger.info("[WORKFLOW] Team responses aggregated")
         
         # Prepare response
         response = {
@@ -127,7 +118,7 @@ def execute_team_task():
             "results": final_result.get('results', []),
             "conversation_context": final_result.get('conversation_context', []),
             "final_status": final_result.get('final_status', 'failed'),
-            "aggregated_data": final_result.get('aggregated_data', {
+            "aggregated_data": aggregated.get('aggregated_data', {
                 'vector_store': {
                     'results': [],
                     'queries': [],
@@ -142,7 +133,7 @@ def execute_team_task():
                 'llm_responses': [],
                 'visualizations': []
             }),
-            "validation_result": final_result.get('validation_result'),
+            "validation_result": aggregated.get('validation_result'),
             "execution_summary": {
                 "total_agents": final_result.get('execution_summary', {}).get('total_agents', 0),
                 "successful_executions": final_result.get('execution_summary', {}).get('successful_agents', 0),
@@ -152,9 +143,9 @@ def execute_team_task():
         }
         
         # Add visualization data to the response if available
-        if final_result.get('aggregated_data', {}).get('visualizations'):
+        if aggregated.get('aggregated_data', {}).get('visualizations'):
             response['visualization_data'] = {
-                'charts': final_result['aggregated_data']['visualizations']
+                'charts': aggregated['aggregated_data']['visualizations']
             }
         
         workflow_logger.info("[WORKFLOW] Task execution completed successfully")
@@ -163,11 +154,10 @@ def execute_team_task():
         return jsonify(response)
         
     except Exception as e:
-        error_msg = f"Error executing team task: {str(e)}"
-        workflow_logger.error(f"[WORKFLOW] {error_msg}", exc_info=True)
+        workflow_logger.error(f"[WORKFLOW] Error in team task execution: {str(e)}", exc_info=True)
         return jsonify({
             'status': 'error',
-            'message': error_msg
+            'message': str(e)
         }), 500
 
 @bp.route('/create', methods=['POST'])

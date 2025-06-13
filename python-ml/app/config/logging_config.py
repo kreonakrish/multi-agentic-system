@@ -55,22 +55,7 @@ def configure_logging():
     # Create formatters using our SafeFormatter
     detailed_formatter = SafeFormatter(
         '%(asctime)s | %(levelname)-8s | %(name)s | %(funcName)s:%(lineno)d |\n'
-        '[Agent:%(agent_id)s Team:%(team_id)s Task:%(task_id)s Correlation:%(correlation_id)s]\n'
-        'Message: %(message)s\n'
-        'Task Type: %(task_type)s\n'
-        'Knowledge Count: %(knowledge_count)s\n'
-        'Knowledge Relevance: %(knowledge_relevance)s\n'
-        'Memory ID: %(memory_id)s\n'
-        'Task Relevance: %(task_relevance)s\n'
-        'Response Length: %(response_length)s\n'
-        'System Message Length: %(system_message_length)s\n'
-        'Knowledge Integrated: %(knowledge_integrated)s\n'
-        'Matches Found: %(matches_found)s\n'
-        'Sample Match: %(sample_match)s\n'
-        'Endpoint: %(endpoint)s\n'
-        'Parameters: %(params)s\n'
-        'OpenAI Request: %(openai_request)s\n'
-        'OpenAI Response: %(openai_response)s\n',
+        'Message: %(message)s\n',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     

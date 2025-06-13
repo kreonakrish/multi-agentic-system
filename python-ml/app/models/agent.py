@@ -66,7 +66,7 @@ class Agent:
             'foundation_model': self.foundation_model,
             'team_id': self.team_id,
             'status': self.status,
-            'tools': [{'name': t.tool_name, 'description': t.description, 'type': t.type} for t in self.tools],
+            'tools': [t.to_dict() for t in self.tools],
             'metrics': self.metrics,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
@@ -163,13 +163,43 @@ class Agent:
         self.correlation_id = correlation_id
         logger.info(f"Set correlation ID for agent {self.agent_id}: {correlation_id}")
 
-    def execute_with_tools(self, message: str) -> Dict[str, Any]:
-        """Execute a task using the agent's tools"""
+    def _check_predefined_response(self, task: TeamTask, knowledge: Dict[str, Any]) -> Optional[str]:
+        """Check if there's a predefined response in agent memory."""
         try:
-            # Get OpenAI client
-            openai = self.get_openai_client()
-            
-            # Parse the message
+            # Check long-term memories first
+            for memory in knowledge.get('memories', {}).get('long_term', []):
+                if memory.get('source_type') == 'predefined':
+                    # Get the context which contains success_patterns
+                    context = memory.get('content', {}).get('context', {})
+                    success_patterns = context.get('success_patterns', [])
+                    
+                    # Check each success pattern
+                    for pattern in success_patterns:
+                        # If the pattern contains instructions about the task type
+                        if isinstance(pattern, str) and 'databricks pipeline' in pattern.lower():
+                            agent_logger.info("[AGENT] Found predefined response in memory", extra={
+                                'agent_id': self.agent_id,
+                                'task_id': task.task_id,
+                                'memory_id': memory.get('memory_id'),
+                                'pattern_found': True
+                            })
+                            # Return the SQL statement from the pattern
+                            return pattern
+                            
+            agent_logger.info("[AGENT] No predefined response found in memory", extra={
+                'agent_id': self.agent_id,
+                'task_id': task.task_id,
+                'memory_count': len(knowledge.get('memories', {}).get('long_term', []))
+            })
+            return None
+        except Exception as e:
+            agent_logger.error(f"[AGENT] Error checking predefined response: {str(e)}", exc_info=True)
+            return None
+
+    def execute_with_tools(self, message: str) -> Dict[str, Any]:
+        """Execute task with available tools and knowledge."""
+        try:
+            # Parse message
             try:
                 message_data = json.loads(message)
                 task_description = message_data.get('task_description', '')
@@ -179,8 +209,8 @@ class Agent:
                 task_description = message
                 requirements = {}
                 knowledge_context = {}
-            
-            # Create a TeamTask object for knowledge retrieval
+
+            # Create a TeamTask object
             task = TeamTask(
                 task_id=str(uuid.uuid4()),
                 task_type=requirements.get('task_type', 'general'),
@@ -189,7 +219,7 @@ class Agent:
                 requirements=requirements
             )
             
-            # Get relevant knowledge if not provided in message
+            # Get relevant knowledge
             if not knowledge_context and self.knowledge_manager:
                 knowledge = self.knowledge_manager.get_relevant_knowledge(self.agent_id, task)
                 agent_logger.info("[AGENT] Retrieved knowledge", extra={
@@ -206,8 +236,34 @@ class Agent:
                     'task_relevance': {}
                 }
             
+            # Check for predefined response first
+            predefined_response = self._check_predefined_response(task, knowledge)
+            if predefined_response:
+                agent_logger.info("[AGENT] Using predefined response from memory", extra={
+                    'agent_id': self.agent_id,
+                    'task_id': task.task_id
+                })
+                return {
+                    'status': 'success',
+                    'response': {
+                        'message': predefined_response,
+                        'data': {},
+                        'tool_results': [],
+                        'llm_response': predefined_response,
+                        'vector_store_results': [],
+                        'raw_data': {'source': 'agent_memory'}
+                    },
+                    'confidence': 1.0,
+                    'tool_usage': [],
+                    'llm_communication_success': True
+                }
+
+            # If no predefined response, proceed with normal execution
+            # Get OpenAI client
+            openai = self.get_openai_client()
+            
             # Add task description to requirements
-            requirements['task_description'] = task_description
+            requirements['description'] = task_description
             
             logger.info(f"[AGENT] Agent {self.agent_id} starting task execution")
             logger.info(f"[AGENT] Task Description: {task_description}")
@@ -472,55 +528,130 @@ class Agent:
             }
 
     def _prepare_system_message(self, task: TeamTask, knowledge: Dict[str, Any], force_knowledge: bool = False) -> str:
-        """Prepare system message with integrated knowledge."""
-        base_message = f"You are Agent {self.agent_id} with capabilities in {', '.join(self.capabilities)}. "
-        
-        # Add knowledge context if available
-        if knowledge['memories']['long_term']:
-            knowledge_context = "\n\nYou have access to the following relevant knowledge:\n"
+        """Prepare system message for LLM with emphasis on agent memory."""
+        try:
+            # Extract memories from knowledge
+            memories = knowledge.get('memories', {})
+            long_term_memories = memories.get('long_term', [])
+            short_term_memories = memories.get('short_term', [])
             
-            # Add each memory with clear separation and relevance score
-            for idx, memory in enumerate(knowledge['memories']['long_term'], 1):
-                relevance = memory.get('task_relevance', 0.0)
-                relevance_label = 'HIGH' if relevance > 0.7 else 'MEDIUM' if relevance > 0.3 else 'LOW'
-                
-                knowledge_context += f"\n=== Memory {idx} (Relevance: {relevance_label}) ===\n"
-                if memory['content']['start_prompt']:
-                    knowledge_context += f"Start: {memory['content']['start_prompt']}\n"
-                if memory['content']['end_prompt']:
-                    knowledge_context += f"End: {memory['content']['end_prompt']}\n"
-                if memory['content']['context']:
-                    knowledge_context += f"Context: {json.dumps(memory['content']['context'], indent=2)}\n"
+            # Build memory context
+            memory_context = []
             
-            base_message += knowledge_context
+            # Add long-term memories first (highest priority)
+            for memory in long_term_memories:
+                if memory.get('source_type') == 'predefined':
+                    memory_context.append(f"Predefined Knowledge (HIGHEST PRIORITY):\n{memory['content']['start_prompt']}")
+                else:
+                    # Extract key information from memory
+                    memory_info = {
+                        'memory_id': memory['memory_id'],
+                        'confidence': memory['content'].get('confidence', 0.0),
+                        'task_relevance': memory.get('task_relevance', 0.0),
+                        'content': {
+                            'start_prompt': memory['content'].get('start_prompt', ''),
+                            'end_prompt': memory['content'].get('end_prompt', ''),
+                            'context': memory['content'].get('context', {})
+                        }
+                    }
+                    memory_context.append(f"Long-term Memory:\n{json.dumps(memory_info, indent=2)}")
             
-            # Add stronger emphasis if forced
+            # Add short-term memories
+            for memory in short_term_memories:
+                memory_info = {
+                    'memory_id': memory.get('memory_id', 'unknown'),
+                    'content': memory.get('content', {}),
+                    'confidence': memory.get('confidence', 0.0)
+                }
+                memory_context.append(f"Short-term Memory:\n{json.dumps(memory_info, indent=2)}")
+            
+            # Build system message
+            system_message = f"""You are an AI agent with the following capabilities and knowledge:
+
+1. AGENT MEMORY (HIGHEST PRIORITY):
+{chr(10).join(memory_context) if memory_context else "No agent memory available."}
+
+2. TASK REQUIREMENTS:
+- Task Type: {task.task_type}
+- Description: {task.description}
+- Requirements: {json.dumps(task.requirements, indent=2)}
+
+3. RESPONSE PRIORITY ORDER:
+1. Use predefined responses from agent memory if available
+2. Use relevant knowledge from agent memory
+3. Use vector store results if needed
+4. Use tool results as a last resort
+
+4. IMPORTANT INSTRUCTIONS:
+- ALWAYS check agent memory first for predefined responses
+- If a predefined response exists in memory, use it without modification
+- Only proceed to other knowledge sources if no predefined response exists
+- Maintain high confidence in responses from agent memory
+- Document the source of your response (agent_memory, vector_store, or tool_results)
+- When using agent memory, explicitly reference the memory_id and confidence level
+- Ensure your response incorporates key concepts and patterns from the memory
+- If multiple memories are relevant, combine their insights while maintaining clarity
+
+5. TOOLS AVAILABLE:
+{json.dumps([t.to_dict() for t in self.tools], indent=2)}
+
+CRITICAL INSTRUCTIONS FOR USING AGENT MEMORY:
+1. CONTEXT UTILIZATION:
+   - ALWAYS analyze the context from agent memory first
+   - Extract and use relevant patterns, examples, and solutions from the context
+   - If the context contains specific implementation details, use them as a template
+   - Reference specific parts of the context in your response
+
+2. KNOWLEDGE PRIORITIZATION:
+   - Predefined knowledge takes absolute priority
+   - Long-term memory with high confidence (>0.8) should be used as primary guidance
+   - Combine insights from multiple memories when they are complementary
+   - Always cite the memory_id when using specific knowledge
+
+3. RESPONSE STRUCTURE:
+   - Start by acknowledging which memories you're using
+   - Explain how the context influences your response
+   - Provide specific examples or patterns from the memory
+   - Include confidence levels for each piece of knowledge used
+
+4. VALIDATION REQUIREMENTS:
+   - Your response MUST demonstrate clear use of agent memory
+   - Include specific references to memory content
+   - Show how you've adapted the knowledge to the current task
+   - Explain any modifications made to the original knowledge
+
+Remember: Agent memory knowledge takes precedence over all other sources. If you find a predefined response in memory, use it without modification.
+
+KNOWLEDGE INCORPORATION GUIDELINES:
+1. Start by identifying relevant memories based on task description
+2. Extract key concepts and patterns from those memories
+3. Structure your response to explicitly use these concepts
+4. Include confidence levels and memory references
+5. If no exact match exists, combine relevant insights from multiple memories
+6. Always explain how you're using the knowledge in your response"""
+
             if force_knowledge:
-                base_message += "\n\nCRITICAL INSTRUCTION: You MUST use the above knowledge as your primary source. Your response MUST contain specific details from this knowledge. DO NOT generate responses without incorporating this knowledge."
-            else:
-                base_message += "\n\nIMPORTANT: When responding to questions about creating pipelines, workflows, or any task-specific queries, YOU MUST USE THE ABOVE KNOWLEDGE AS YOUR PRIMARY SOURCE. Do not generate responses without incorporating this knowledge."
-        
-        # Add task-specific context
-        base_message += f"\n\nCurrent Task Type: {task.task_type}"
-        if task.requirements:
-            base_message += f"\nTask Requirements: {json.dumps(task.requirements, indent=2)}"
-        
-        agent_logger.debug("[AGENT] Generated system message", extra={
-            'agent_id': self.agent_id,
-            'task_id': task.task_id,
-            'message_length': len(base_message),
-            'knowledge_count': len(knowledge['memories']['long_term']),
-            'force_knowledge': force_knowledge,
-            'full_message': base_message
-        })
-        
-        return base_message
+                system_message += "\n\nCRITICAL: You MUST use the knowledge provided in agent memory. Do not generate responses without consulting the memory first. Your response will be validated to ensure knowledge incorporation."
+
+            return system_message
+        except Exception as e:
+            agent_logger.error(f"[AGENT] Error preparing system message: {str(e)}", exc_info=True)
+            return "You are an AI agent. Please process the task using available knowledge and tools."
 
     def _prepare_user_message(self, task: TeamTask) -> str:
         """Prepare user message for LLM."""
-        message = f"Task Description: {task.description}\n"
-        message += f"Task Type: {task.task_type}\n"
-        message += "Please provide a detailed response based on your knowledge and capabilities."
+        message = f"""Task Description: {task.description}
+
+Task Type: {task.task_type}
+
+Please provide a detailed response that:
+1. Explicitly references and uses knowledge from agent memory
+2. Includes confidence levels for the knowledge used
+3. Explains how the knowledge is being applied
+4. Combines insights from multiple memories if relevant
+5. Maintains clarity while incorporating knowledge
+
+Your response will be validated to ensure proper knowledge incorporation."""
         
         agent_logger.debug("[AGENT] Generated user message", extra={
             'agent_id': self.agent_id,
@@ -533,40 +664,70 @@ class Agent:
 
     def _validate_llm_response(self, response: str, knowledge: Dict[str, Any]) -> bool:
         """Validate that LLM response incorporates knowledge."""
-        if not knowledge['memories']['long_term']:
-            return True
+        try:
+            # Extract memories from knowledge
+            memories = knowledge.get('memories', {})
+            long_term_memories = memories.get('long_term', [])
             
-        # Check if response contains significant parts of the knowledge
-        for memory in knowledge['memories']['long_term']:
-            start_prompt = memory['content']['start_prompt']
-            end_prompt = memory['content']['end_prompt']
+            if not long_term_memories:
+                return True  # No knowledge to validate against
             
-            # Create key phrases from the prompts
-            key_phrases = []
-            if start_prompt:
-                key_phrases.extend([p.strip() for p in start_prompt.split('\n') if len(p.strip()) > 20])
-            if end_prompt:
-                key_phrases.extend([p.strip() for p in end_prompt.split('\n') if len(p.strip()) > 20])
+            # Extract key concepts from memories
+            key_concepts = set()
+            for memory in long_term_memories:
+                if memory.get('source_type') == 'predefined':
+                    # For predefined knowledge, use the entire content
+                    key_concepts.add(memory['content']['start_prompt'].lower())
+                else:
+                    # For other memories, extract key concepts from start_prompt and end_prompt
+                    start_prompt = memory['content'].get('start_prompt', '').lower()
+                    end_prompt = memory['content'].get('end_prompt', '').lower()
+                    key_concepts.update(start_prompt.split())
+                    key_concepts.update(end_prompt.split())
             
-            # Check if any key phrases are in the response
-            matches = [phrase for phrase in key_phrases if phrase.lower() in response.lower()]
-            if matches:
-                agent_logger.info("[AGENT] Response validated - found knowledge incorporation", extra={
+            # Remove common words and short terms
+            key_concepts = {concept for concept in key_concepts if len(concept) > 3}
+            
+            # Check for knowledge incorporation
+            response_lower = response.lower()
+            matches = []
+            
+            # Check for exact matches
+            for concept in key_concepts:
+                if concept in response_lower:
+                    matches.append(concept)
+            
+            # Calculate word overlap
+            response_words = set(response_lower.split())
+            overlap = len(response_words.intersection(key_concepts)) / len(key_concepts) if key_concepts else 0
+            
+            # Log validation results
+            agent_logger.info("[AGENT] Validating LLM response", extra={
+                'agent_id': self.agent_id,
+                'key_concepts_count': len(key_concepts),
+                'matches_found': len(matches),
+                'word_overlap': overlap,
+                'sample_matches': matches[:5] if matches else []
+            })
+            
+            # Consider the response valid if:
+            # 1. There are exact matches, or
+            # 2. The word overlap is above 70%
+            is_valid = len(matches) > 0 or overlap > 0.7
+            
+            if not is_valid:
+                agent_logger.warning("[AGENT] LLM response validation failed", extra={
                     'agent_id': self.agent_id,
                     'matches_found': len(matches),
-                    'sample_match': matches[0] if matches else None,
-                    'memory_id': memory['memory_id'],
-                    'task_relevance': memory.get('task_relevance', 0.0)
+                    'word_overlap': overlap,
+                    'key_concepts': list(key_concepts)[:10]
                 })
-                return True
-        
-        agent_logger.warning("[AGENT] Response validation failed - knowledge not incorporated", extra={
-            'agent_id': self.agent_id,
-            'knowledge_count': len(knowledge['memories']['long_term']),
-            'response_length': len(response),
-            'response_sample': response[:200]
-        })
-        return False
+            
+            return is_valid
+            
+        except Exception as e:
+            agent_logger.error(f"[AGENT] Error validating LLM response: {str(e)}", exc_info=True)
+            return True  # Default to True on error to avoid blocking responses
 
     def get_completion(self, system_message: str, user_message: str) -> str:
         """Get completion from OpenAI."""

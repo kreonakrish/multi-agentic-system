@@ -38,7 +38,7 @@ def aggregate_team_responses(results: List[Dict[str, Any]], task_description: st
             },
             'tool_results': [],
             'llm_responses': [],
-            'visualizations': []  # Add visualization array
+            'visualizations': []
         }
         
         # Process each agent's results
@@ -68,27 +68,60 @@ def aggregate_team_responses(results: List[Dict[str, Any]], task_description: st
                 # Add tool results
                 if 'tool_results' in response:
                     for tool_result in response['tool_results']:
-                        aggregated_data['tool_results'].append(tool_result)
-                        
-                        # Check for visualization data in tool result
-                        if 'aggregation_data' in tool_result.get('result', {}):
-                            agg_data = tool_result['result']['aggregation_data']
-                            if 'visualization' in agg_data:
-                                # Handle both single chart and multiple charts format
-                                if 'charts' in agg_data['visualization']:
-                                    aggregated_data['visualizations'].extend(agg_data['visualization']['charts'])
-                                else:
-                                    aggregated_data['visualizations'].append(agg_data['visualization'])
+                        if tool_result:
+                            aggregated_data['tool_results'].append({
+                                'tool': tool_result.get('tool_name', 'unknown'),
+                                'result': tool_result.get('result', {}),
+                                'agent_id': result.get('agent_id'),
+                                'agent_name': result.get('agent_name')
+                            })
                 
                 # Add vector store results
                 if 'vector_store_results' in response:
-                    aggregated_data['vector_store']['results'].extend(response['vector_store_results'])
+                    for vs_result in response['vector_store_results']:
+                        if vs_result:
+                            aggregated_data['vector_store']['results'].append({
+                                'query': vs_result.get('query', ''),
+                                'results': vs_result.get('results', []),
+                                'agent_id': result.get('agent_id'),
+                                'agent_name': result.get('agent_name')
+                            })
+                            if vs_result.get('query'):
+                                aggregated_data['vector_store']['queries'].append(vs_result['query'])
                 
-                # Add LLM response
-                if 'llm_response' in response:
+                # Add raw data
+                if 'raw_data' in response:
+                    raw_data = response['raw_data']
+                    if raw_data.get('samples'):
+                        aggregated_data['raw_data']['samples'].extend(raw_data['samples'])
+                    if raw_data.get('total_records'):
+                        aggregated_data['raw_data']['total_records'] += raw_data['total_records']
+                    if raw_data.get('schemas'):
+                        aggregated_data['raw_data']['schemas'].extend(raw_data['schemas'])
+                
+                # Add LLM response - check in multiple locations
+                llm_response = None
+                
+                # Check in response.llm_response
+                if isinstance(response, dict) and 'llm_response' in response:
+                    llm_response = response['llm_response']
+                # Check in result.llm_response
+                elif 'llm_response' in result:
+                    llm_response = result['llm_response']
+                # Check in response.message if it's a string
+                elif isinstance(response, dict) and 'message' in response and isinstance(response['message'], str):
+                    llm_response = response['message']
+                
+                if llm_response:
                     aggregated_data['llm_responses'].append({
                         'agent_id': result.get('agent_id'),
-                        'response': response['llm_response']
+                        'agent_name': result.get('agent_name'),
+                        'response': llm_response,
+                        'confidence': result.get('confidence', 0.0),
+                        'priority': result.get('priority', 0),
+                        'timestamp': datetime.now().isoformat(),
+                        'accuracy': result.get('accuracy', 0.0),
+                        'success_rate': result.get('success_rate', 0.0)
                     })
         
         # Get validation from LLM

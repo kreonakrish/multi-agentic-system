@@ -1,16 +1,15 @@
 """Context analyzer for task execution."""
 from typing import Dict, Any, List, Optional
 import json
-import logging
 from datetime import datetime
 from decimal import Decimal
 from app.models.team import Team, TeamTask
 from app.utils.db import get_db_connection
 from app.services.agent_service import get_agent_tools
-
-# Get specialized loggers
-workflow_logger = logging.getLogger('multi_agent_system.workflow')
-workflow_decision_logger = logging.getLogger('multi_agent_system.workflow.decisions')
+from app.utils.logger import (
+    workflow_logger,
+    workflow_decision_logger,
+)
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -22,131 +21,74 @@ class DecimalEncoder(json.JSONEncoder):
 
 class ContextAnalyzer:
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
         self.db_conn = get_db_connection()
 
-    def analyze(self, task: TeamTask, team: Optional[Team] = None) -> Dict[str, Any]:
-        """Analyze task context and requirements."""
+    def analyze(self, task: TeamTask, team: Team) -> Dict[str, Any]:
+        """Analyze task context and determine required tools."""
         try:
-            workflow_logger.info("[WORKFLOW] Starting context analysis", extra={
-                'task_id': task.task_id,
-                'team_id': team.team_id if team else None,
-                'task_type': task.task_type
-            })
+            # Get team agents with their tools
+            team_agents = self._get_team_agents(team.team_id)
             
-            # Extract explicit requirements
-            explicit_reqs = {
-                'needs_data_access': True,
-                'needs_api': True,
-                'needs_pipeline': True,
-                'pipeline_type': ['databricks_pipeline', 'nifi_pipeline']
-            }
+            # Get all unique tools available to the team
+            available_tools = set()
+            for agent in team_agents:
+                agent_tools = agent.get('tools', [])
+                available_tools.update(agent_tools)
             
-            # Analyze implicit requirements
-            implicit_reqs = {
-                'needs_error_handling': True,
-                'needs_validation': True,
-                'needs_monitoring': True,
-                'needs_reporting': True
-            }
-            
-            # Get required tools
-            required_tools = self._get_required_tools(explicit_reqs, implicit_reqs)
-            workflow_logger.info("[WORKFLOW] Retrieved required tools", extra={
-                'task_id': task.task_id,
-                'team_id': team.team_id if team else None,
-                'task_type': task.task_type,
-                'tool_count': len(required_tools)
-            })
+            # Analyze task requirements
+            required_tools = []
+            for tool_id in available_tools:
+                tool = self._get_tool_details(tool_id)
+                if tool and self._is_tool_required(task, tool):
+                    required_tools.append({
+                        'tool_id': tool_id,
+                        'tool_name': tool['tool_name'],
+                        'tool_type': tool['tool_type'],
+                        'description': tool.get('description'),
+                        'match_reason': 'explicit_match' if tool_id in available_tools else 'implicit_match'
+                    })
             
             # Get dependencies
-            dependencies = [
-                {
-                    'type': 'tool',
-                    'requirement': 'database_access',
-                    'priority': 'high'
-                },
-                {
-                    'type': 'tool',
-                    'requirement': 'api_client',
-                    'priority': 'high'
-                }
-            ]
+            dependencies = self._get_task_dependencies(task)
             
-            # Estimate complexity
-            complexity = 'medium'
+            # Calculate complexity and confidence scores
+            complexity_score = self._calculate_complexity(task, required_tools)
+            confidence_score = self._calculate_confidence(task, required_tools)
             
-            # Get team context if available
-            team_context = self._get_team_context(team) if team else None
-            if team_context:
-                workflow_logger.info("[WORKFLOW] Retrieved team context", extra={
-                    'task_id': task.task_id,
-                    'team_id': team.team_id,
-                    'task_type': task.task_type,
-                    'agent_count': team_context.get('total_agents', 0),
-                    'available_tools': len(team_context.get('available_tools', []))
-                })
-            
-            # Create analysis result
-            analysis = {
-                'task_id': task.task_id,
-                'explicit_requirements': explicit_reqs,
-                'implicit_requirements': implicit_reqs,
-                'required_tools': [
-                    {
-                        'tool_id': t['id'],
-                        'tool_name': t['tool_name'],
-                        'tool_type': t['tool_type'],
-                        'description': t['description'],
-                        'match_reason': t['match_reason']
-                    } for t in required_tools
-                ],
-                'dependencies': dependencies,
-                'complexity': complexity,
-                'team_context': team_context
-            }
-            
-            # Log analysis completion
-            workflow_logger.info("[WORKFLOW] Completed context analysis", extra={
-                'task_id': task.task_id,
-                'team_id': team.team_id if team else None,
-                'task_type': task.task_type,
-                'complexity': complexity,
-                'tool_count': len(required_tools),
-                'dependency_count': len(dependencies)
-            })
-            
-            # Log analysis decisions
-            workflow_decision_logger.info("[DECISION] Context analysis completed", extra={
-                'task_id': task.task_id,
-                'team_id': team.team_id if team else None,
-                'task_type': task.task_type,
-                'complexity': complexity,
-                'required_tools': [t['tool_type'] for t in required_tools],
-                'dependencies': [d['requirement'] for d in dependencies],
-                'team_available_tools': len(team_context.get('available_tools', [])) if team_context else 0,
-                'team_agent_count': team_context.get('total_agents', 0) if team_context else 0
-            })
-            
-            return analysis
-            
-        except Exception as e:
-            self.logger.error(f"Error in context analysis: {str(e)}", exc_info=True, extra={
-                'task_id': task.task_id,
-                'team_id': team.team_id if team else None,
-                'task_type': task.task_type,
-                'error': str(e),
-                'error_type': type(e).__name__
-            })
             return {
-                'task_id': task.task_id,
-                'explicit_requirements': {},
-                'implicit_requirements': {},
-                'required_tools': [],
-                'dependencies': [],
-                'complexity': 'unknown',
-                'team_context': None
+                'required_tools': required_tools,
+                'dependencies': dependencies,
+                'complexity_score': complexity_score,
+                'confidence_score': confidence_score,
+                'tool_compatibility': self._get_tool_compatibility(required_tools),
+                'agent_requirements': self._get_agent_requirements(task, team_agents)
             }
+        except Exception as e:
+            workflow_logger.error(f"Error analyzing task context: {str(e)}", exc_info=True)
+            raise
+
+    def _is_tool_required(self, task: TeamTask, tool: Dict[str, Any]) -> bool:
+        """Determine if a tool is required for the task."""
+        try:
+            # Check task description for tool keywords
+            description = task.description.lower()
+            tool_name = tool['tool_name'].lower()
+            tool_type = tool['tool_type'].lower()
+            
+            # Check for explicit tool mentions
+            if tool_name in description or tool_type in description:
+                return True
+            
+            # Check for implicit requirements based on task type
+            if task.task_type == 'predefined':
+                # For predefined tasks, only use tools explicitly mentioned
+                return False
+            
+            # Add more sophisticated tool requirement logic here
+            return False
+        except Exception as e:
+            workflow_logger.error(f"Error checking tool requirement: {str(e)}", exc_info=True)
+            return False
 
     def _extract_explicit_requirements(self, task: TeamTask) -> Dict[str, Any]:
         """Extract explicit requirements from task description and requirements."""
@@ -524,3 +466,184 @@ class ContextAnalyzer:
             
         finally:
             cursor.close() 
+
+    def _get_team_agents(self, team_id: int) -> List[Dict[str, Any]]:
+        """Get team agents with their tools and capabilities."""
+        try:
+            cursor = self.db_conn.cursor(dictionary=True)
+            
+            # Get team agents with their tools
+            cursor.execute("""
+                SELECT 
+                    a.id as agent_id,
+                    a.name,
+                    a.memory_type,
+                    a.foundation_model,
+                    ta.priority,
+                    GROUP_CONCAT(at.tool_id) as tools
+                FROM agents a
+                JOIN team_agents ta ON a.id = ta.agent_id
+                LEFT JOIN agent_tools at ON a.id = at.agent_id
+                WHERE ta.team_id = %s
+                GROUP BY a.id, a.name, a.memory_type, a.foundation_model, ta.priority
+                ORDER BY ta.priority DESC
+            """, (team_id,))
+            
+            agents = cursor.fetchall()
+            
+            # Process tools string into list and add default values
+            for agent in agents:
+                if agent['tools']:
+                    agent['tools'] = [int(tool_id) for tool_id in agent['tools'].split(',')]
+                else:
+                    agent['tools'] = []
+                
+                # Add default values for missing columns
+                agent['accuracy'] = 0.8  # Default accuracy
+                agent['success'] = 0.9   # Default success rate
+            
+            workflow_logger.info(f"[WORKFLOW] Retrieved {len(agents)} team agents", extra={
+                'team_id': team_id,
+                'agent_count': len(agents)
+            })
+            
+            return agents
+            
+        except Exception as e:
+            workflow_logger.error(f"Error getting team agents: {str(e)}", exc_info=True)
+            return []
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+
+    def _get_tool_details(self, tool_id: int) -> Optional[Dict[str, Any]]:
+        """Get tool details by ID."""
+        try:
+            cursor = self.db_conn.cursor(dictionary=True)
+            
+            cursor.execute("""
+                SELECT id, tool_name, tool_type, description
+                FROM tools
+                WHERE id = %s
+            """, (tool_id,))
+            
+            tool = cursor.fetchone()
+            return tool
+            
+        except Exception as e:
+            workflow_logger.error(f"Error getting tool details: {str(e)}", exc_info=True)
+            return None
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+
+    def _get_task_dependencies(self, task: TeamTask) -> List[Dict[str, Any]]:
+        """Get task dependencies."""
+        try:
+            # Basic dependencies based on task type
+            dependencies = []
+            
+            if task.task_type == 'predefined':
+                dependencies.append({
+                    'type': 'knowledge',
+                    'requirement': 'agent_memory',
+                    'priority': 'high'
+                })
+            else:
+                dependencies.extend([
+                    {
+                        'type': 'tool',
+                        'requirement': 'database_access',
+                        'priority': 'high'
+                    },
+                    {
+                        'type': 'tool',
+                        'requirement': 'api_client',
+                        'priority': 'high'
+                    }
+                ])
+            
+            return dependencies
+            
+        except Exception as e:
+            workflow_logger.error(f"Error getting task dependencies: {str(e)}", exc_info=True)
+            return []
+
+    def _calculate_complexity(self, task: TeamTask, required_tools: List[Dict[str, Any]]) -> float:
+        """Calculate task complexity score."""
+        try:
+            base_complexity = 0.5  # Base complexity score
+            
+            # Adjust based on number of required tools
+            tool_factor = min(len(required_tools) * 0.1, 0.3)
+            
+            # Adjust based on task type
+            type_factor = 0.2 if task.task_type == 'predefined' else 0.4
+            
+            # Calculate final complexity
+            complexity = base_complexity + tool_factor + type_factor
+            
+            return min(complexity, 1.0)  # Cap at 1.0
+            
+        except Exception as e:
+            workflow_logger.error(f"Error calculating complexity: {str(e)}", exc_info=True)
+            return 0.5
+
+    def _calculate_confidence(self, task: TeamTask, required_tools: List[Dict[str, Any]]) -> float:
+        """Calculate confidence score."""
+        try:
+            base_confidence = 0.7  # Base confidence score
+            
+            # Adjust based on task type
+            type_factor = 0.2 if task.task_type == 'predefined' else 0.1
+            
+            # Adjust based on tool availability
+            tool_factor = min(len(required_tools) * 0.05, 0.1)
+            
+            # Calculate final confidence
+            confidence = base_confidence + type_factor + tool_factor
+            
+            return min(confidence, 1.0)  # Cap at 1.0
+            
+        except Exception as e:
+            workflow_logger.error(f"Error calculating confidence: {str(e)}", exc_info=True)
+            return 0.7
+
+    def _get_tool_compatibility(self, required_tools: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Get tool compatibility information."""
+        try:
+            compatibility = {
+                'required_tools': len(required_tools),
+                'tool_types': list(set(tool['tool_type'] for tool in required_tools)),
+                'compatibility_score': min(len(required_tools) * 0.2, 1.0)
+            }
+            return compatibility
+            
+        except Exception as e:
+            workflow_logger.error(f"Error getting tool compatibility: {str(e)}", exc_info=True)
+            return {
+                'required_tools': 0,
+                'tool_types': [],
+                'compatibility_score': 0.0
+            }
+
+    def _get_agent_requirements(self, task: TeamTask, team_agents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Get agent requirements for the task."""
+        try:
+            requirements = []
+            
+            for agent in team_agents:
+                requirements.append({
+                    'agent_id': agent['agent_id'],
+                    'name': agent['name'],
+                    'required_tools': agent.get('tools', []),
+                    'memory_type': agent.get('memory_type'),
+                    'accuracy': float(agent.get('accuracy', 0.8)),
+                    'success_rate': float(agent.get('success', 0.9))
+                })
+            
+            return requirements
+            
+        except Exception as e:
+            workflow_logger.error(f"Error getting agent requirements: {str(e)}", exc_info=True)
+            return [] 

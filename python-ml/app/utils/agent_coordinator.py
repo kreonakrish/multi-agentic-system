@@ -1,17 +1,16 @@
 """Agent coordinator for managing agent collaboration and task assignment."""
 from typing import Dict, Any, List, Optional
 import json
-import logging
 from datetime import datetime
 from app.models.team import Team, TeamTask
 from app.utils.db import get_db_connection
 from app.utils.knowledge_manager import KnowledgeManager
 from app.utils.context_analyzer import ContextAnalyzer
 from app.services.agent_service import get_agent_tools, initialize_agent_from_db
-
-# Get specialized loggers
-workflow_logger = logging.getLogger('multi_agent_system.workflow')
-workflow_decision_logger = logging.getLogger('multi_agent_system.workflow.decisions')
+from app.utils.logger import (
+    workflow_logger,
+    workflow_decision_logger,
+)
 
 class AgentCoordinator:
     """Coordinates agent assignments and interactions."""
@@ -21,7 +20,6 @@ class AgentCoordinator:
         self.db_conn = get_db_connection()
         self.knowledge_manager = KnowledgeManager()
         self.context_analyzer = ContextAnalyzer()
-        self.logger = logging.getLogger(__name__)
 
     def assign_tasks(self, team: Team, task: TeamTask, 
                     decomposition: Dict[str, Any]) -> Dict[str, Any]:
@@ -96,251 +94,165 @@ class AgentCoordinator:
                 'assignment_count': len(assignments)
             })
             
-            # Log assignment decisions
-            workflow_decision_logger.info("[DECISION] Task assignments created", extra={
-                'task_id': task.task_id,
-                'team_id': team.team_id,
-                'task_type': task.task_type,
-                'assignment_id': assignment_id,
-                'total_assignments': len(assignments),
-                'subtask_count': len(decomposition['subtasks']),
-                'agent_distribution': {
-                    agent['agent_id']: len([a for a in assignments if agent['agent_id'] in a.get('assigned_agents', [])])
-                    for agent in team_agents
-                }
-            })
-            
             return {
-                'status': 'success',
-                'assignment_id': assignment_id,
-                'assignments': assignments
+                'assignments': assignments,
+                'assignment_id': assignment_id
             }
             
         except Exception as e:
-            self.logger.error(f"Error in task assignment: {str(e)}", exc_info=True, extra={
-                'task_id': task.task_id,
-                'team_id': team.team_id,
-                'task_type': task.task_type,
-                'error': str(e),
-                'error_type': type(e).__name__
-            })
+            workflow_logger.error(f"Error assigning tasks: {str(e)}", exc_info=True)
             return {
-                'status': 'error',
-                'error': str(e)
+                'assignments': [],
+                'assignment_id': None
             }
 
     def _get_team_agents(self, team_id: int) -> List[Dict[str, Any]]:
         """Get team agents with their capabilities."""
-        cursor = self.db_conn.cursor()
         try:
+            cursor = self.db_conn.cursor(dictionary=True)
+            
+            # Get team agents with their tools
             cursor.execute("""
-                SELECT a.id, a.name, a.accuracy_rate, a.success_rate, a.priority
+                SELECT 
+                    a.id as agent_id,
+                    a.name,
+                    a.memory_type,
+                    a.foundation_model,
+                    ta.priority,
+                    GROUP_CONCAT(at.tool_id) as tools
                 FROM agents a
                 JOIN team_agents ta ON a.id = ta.agent_id
+                LEFT JOIN agent_tools at ON a.id = at.agent_id
                 WHERE ta.team_id = %s
+                GROUP BY a.id, a.name, a.memory_type, a.foundation_model, ta.priority
+                ORDER BY ta.priority DESC
             """, (team_id,))
             
-            agents = []
-            for row in cursor.fetchall():
-                agent_id, name, accuracy, success_rate, priority = row
-                capabilities = self._get_agent_capabilities(agent_id)
-                agents.append({
-                    'agent_id': agent_id,
-                    'name': name,
-                    'accuracy': float(accuracy) if accuracy else 0.0,
-                    'success_rate': float(success_rate) if success_rate else 0.0,
-                    'priority': priority or 1,
-                    'capabilities': capabilities
-                })
+            agents = cursor.fetchall()
+            
+            # Process tools string into list and add default values
+            for agent in agents:
+                if agent['tools']:
+                    agent['tools'] = [int(tool_id) for tool_id in agent['tools'].split(',')]
+                else:
+                    agent['tools'] = []
+                
+                # Add default values for missing columns
+                agent['accuracy'] = 0.8  # Default accuracy
+                agent['success'] = 0.9   # Default success rate
+            
             return agents
             
         except Exception as e:
-            self.logger.error(f"Error getting team agents: {str(e)}")
+            workflow_logger.error(f"Error getting team agents: {str(e)}", exc_info=True)
             return []
         finally:
-            cursor.close()
-
-    def _get_agent_capabilities(self, agent_id: int) -> Dict[str, Any]:
-        """Get agent capabilities from memory and performance history."""
-        cursor = self.db_conn.cursor()
-        try:
-            cursor.execute("""
-                SELECT t.tool_name, t.tool_type
-                FROM tools t
-                JOIN agent_tools at ON t.id = at.tool_id
-                WHERE at.agent_id = %s
-            """, (agent_id,))
-            
-            tools = [{'name': row[0], 'type': row[1]} for row in cursor.fetchall()]
-            
-            return {
-                'tools': tools,
-                'tool_count': len(tools)
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Error getting agent capabilities: {str(e)}")
-            return {'tools': [], 'tool_count': 0}
-        finally:
-            cursor.close()
-
-    def _find_qualified_agents(self, team_agents: List[Dict[str, Any]], subtask: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Find agents qualified for a subtask based on their tools and capabilities."""
-        qualified_agents = []
-        required_tools = set(subtask.get('requirements', {}).get('tools', []))
-        
-        for agent in team_agents:
-            # Get agent tools from service
-            agent_tools_response = get_agent_tools(agent['agent_id'])
-            if agent_tools_response.get('status') != 'success':
-                continue
-            
-            # Extract tool names from the response
-            agent_tools = set(
-                tool['tool_name'].lower() 
-                for tool in agent_tools_response.get('tools', [])
-            )
-            
-            # Check if agent has required tools
-            if required_tools and not required_tools.issubset(agent_tools):
-                continue
-            
-            # Calculate qualification score
-            qualification_score = agent.get('accuracy', 0) * 0.6 + agent.get('success_rate', 0) * 0.4
-            
-            qualified_agents.append({
-                'agent_id': agent['agent_id'],
-                'qualification_score': qualification_score,
-                'tools': list(agent_tools)
-            })
-        
-        # Sort by qualification score
-        return sorted(qualified_agents, key=lambda x: x['qualification_score'], reverse=True)
-
-    def _calculate_success_rate(self, capabilities: Dict[str, Any], 
-                             subtask: Dict[str, Any]) -> float:
-        """Calculate success rate for a subtask based on agent capabilities."""
-        success_rate = 0.0
-        
-        # Check if agent has required tools
-        required_tools = set(subtask.get('requirements', {}).get('tools', []))
-        if not required_tools.issubset(set(capabilities['tools'].keys())):
-            return success_rate
-        
-        # Calculate success rate based on tool usage
-        for tool in required_tools:
-            tool_stats = capabilities['tools'][tool]
-            success_rate += tool_stats['success_rate'] * 0.2
-        
-        return min(success_rate, 1.0)
-
-    def _get_agent_knowledge(self, qualified_agents: List[Dict[str, Any]], 
-                           subtask: Dict[str, Any]) -> Dict[str, Any]:
-        """Get relevant knowledge for qualified agents."""
-        knowledge = {}
-        
-        for qual_agent in qualified_agents:
-            agent_id = qual_agent['agent_id']
-            
-            # Create subtask as TeamTask for knowledge retrieval
-            subtask_as_task = TeamTask(
-                task_id=subtask['subtask_id'],
-                description=subtask['description'],
-                requirements=subtask['requirements']
-            )
-            
-            # Get relevant knowledge
-            agent_knowledge = self.knowledge_manager.get_relevant_knowledge(
-                agent_id,
-                subtask_as_task
-            )
-            
-            knowledge[agent_id] = {
-                'relevant_memories': agent_knowledge['memories'],
-                'memory_counts': agent_knowledge['source_counts']
-            }
-        
-        return knowledge
-
-    def _create_assignment(self, team: Team, task: TeamTask, subtask: Dict[str, Any], available_agents: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Create an assignment for a subtask."""
-        try:
-            # Extract or set default priority
-            priority = subtask.get('priority', 1)
-            
-            # Get the best matching agents for the subtask
-            matched_agents = self._match_agents_to_subtask(subtask, available_agents)
-            
-            if not matched_agents:
-                return {
-                    'status': 'error',
-                    'error': f'No qualified agents found for subtask {subtask.get("subtask_id")}',
-                    'subtask_id': subtask.get('subtask_id')
-                }
-
-            # Create the assignment record
-            cursor = self.db_conn.cursor()
-            try:
-                assignment_data = {
-                    'subtask_id': subtask.get('subtask_id'),
-                    'priority': priority,
-                    'assigned_agents': matched_agents
-                }
-                
-                cursor.execute("""
-                    INSERT INTO task_assignments (task_id, assignments)
-                    VALUES (%s, %s)
-                """, (task.task_id, json.dumps(assignment_data)))
-                
-                assignment_id = cursor.lastrowid
-                self.db_conn.commit()
-                
-                return {
-                    'status': 'success',
-                    'assignment_id': assignment_id,
-                    'subtask_id': subtask.get('subtask_id'),
-                    'assigned_agents': matched_agents
-                }
-                
-            except Exception as e:
-                self.logger.error(f"Database error in assignment creation: {str(e)}")
-                self.db_conn.rollback()
-                return {
-                    'status': 'error',
-                    'error': str(e),
-                    'subtask_id': subtask.get('subtask_id')
-                }
-            finally:
+            if 'cursor' in locals():
                 cursor.close()
-                
-        except Exception as e:
-            self.logger.error(f"Error in assignment creation: {str(e)}")
-            return {
-                'status': 'error',
-                'error': str(e),
-                'subtask_id': subtask.get('subtask_id')
-            }
 
-    def _store_assignments(self, task_id: str, assignments: List[Dict[str, Any]]) -> int:
-        """Store task assignments in database."""
-        cursor = self.db_conn.cursor()
+    def _find_qualified_agents(self, team_agents: List[Dict[str, Any]], 
+                             subtask: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Find agents qualified for a subtask."""
         try:
-            # Store assignments as JSON
+            qualified_agents = []
+            required_tools = subtask.get('required_tools', [])
+            
+            for agent in team_agents:
+                agent_tools = agent.get('tools', [])
+                
+                # Check if agent has required tools
+                if all(tool['tool_id'] in agent_tools for tool in required_tools):
+                    qualified_agents.append(agent)
+            
+            return qualified_agents
+            
+        except Exception as e:
+            workflow_logger.error(f"Error finding qualified agents: {str(e)}", exc_info=True)
+            return []
+
+    def _get_agent_knowledge(self, agents: List[Dict[str, Any]], 
+                           subtask: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Get relevant knowledge for agents."""
+        try:
+            knowledge_list = []
+            
+            for agent in agents:
+                # Get agent's knowledge
+                knowledge = self.knowledge_manager.get_relevant_knowledge(
+                    agent['agent_id'],
+                    subtask
+                )
+                
+                if knowledge and knowledge.get('memories'):
+                    knowledge_list.append({
+                        'agent_id': agent['agent_id'],
+                        'memories': knowledge['memories'],
+                        'source_counts': knowledge.get('source_counts', {})
+                    })
+            
+            return knowledge_list
+            
+        except Exception as e:
+            workflow_logger.error(f"Error getting agent knowledge: {str(e)}", exc_info=True)
+            return []
+
+    def _create_assignment(self, team: Team, task: TeamTask, 
+                         subtask: Dict[str, Any],
+                         qualified_agents: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Create task assignment."""
+        try:
+            return {
+                'subtask_id': subtask['id'],
+                'task_id': task.task_id,
+                'team_id': team.team_id,
+                'assigned_agents': [
+                    {
+                        'agent_id': agent['agent_id'],
+                        'name': agent['name'],
+                        'priority': agent.get('priority', 1),
+                        'tools': agent.get('tools', [])
+                    }
+                    for agent in qualified_agents
+                ],
+                'required_tools': subtask.get('required_tools', []),
+                'dependencies': subtask.get('dependencies', []),
+                'estimated_time': subtask.get('estimated_time', 0),
+                'complexity': subtask.get('complexity', 0.5),
+                'confidence': subtask.get('confidence', 0.7)
+            }
+            
+        except Exception as e:
+            workflow_logger.error(f"Error creating assignment: {str(e)}", exc_info=True)
+            return {}
+
+    def _store_assignments(self, task_id: int, assignments: List[Dict[str, Any]]) -> Optional[int]:
+        """Store task assignments in database."""
+        try:
+            cursor = self.db_conn.cursor()
+            
+            # Store assignments
             cursor.execute("""
-                INSERT INTO task_assignments (task_id, assignments)
-                VALUES (%s, %s)
-            """, (task_id, json.dumps(assignments)))
+                INSERT INTO task_assignments (
+                    task_id,
+                    assignments,
+                    created_at
+                ) VALUES (%s, %s, NOW())
+            """, (
+                task_id,
+                json.dumps(assignments)
+            ))
             
             assignment_id = cursor.lastrowid
             self.db_conn.commit()
+            
             return assignment_id
             
         except Exception as e:
-            self.logger.error(f"Error storing assignments: {str(e)}")
-            self.db_conn.rollback()
-            raise
+            workflow_logger.error(f"Error storing assignments: {str(e)}", exc_info=True)
+            return None
         finally:
-            cursor.close()
+            if 'cursor' in locals():
+                cursor.close()
 
     def get_assignment(self, assignment_id: int) -> Optional[Dict[str, Any]]:
         """Retrieve stored task assignment."""

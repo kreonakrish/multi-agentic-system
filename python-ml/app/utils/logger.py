@@ -14,6 +14,7 @@ logger = logging.getLogger('multi_agent_system')
 # Create specialized loggers for different components
 agent_logger = logging.getLogger('multi_agent_system.agent')
 knowledge_retrieve_logger = logging.getLogger('multi_agent_system.knowledge.retrieve')
+knowledge_store_logger = logging.getLogger('multi_agent_system.knowledge.store')
 knowledge_llm_logger = logging.getLogger('multi_agent_system.knowledge.llm')
 knowledge_metrics_logger = logging.getLogger('multi_agent_system.knowledge.metrics')
 workflow_logger = logging.getLogger('multi_agent_system.workflow')
@@ -25,12 +26,13 @@ workflow_steps_logger = logging.getLogger('multi_agent_system.workflow.steps')
 specialized_loggers = [
     agent_logger,
     knowledge_retrieve_logger,
+    knowledge_store_logger,
     knowledge_llm_logger,
     knowledge_metrics_logger,
     workflow_logger,
-    workflow_decision_logger,
-    workflow_execution_logger,
-    workflow_steps_logger
+    workflow_decision_logger,  # Workflow decision
+    workflow_execution_logger,  # Workflow execution
+    workflow_steps_logger  # Workflow steps
 ]
 
 for specialized_logger in specialized_loggers:

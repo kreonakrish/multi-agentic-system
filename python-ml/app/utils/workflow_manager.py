@@ -2,7 +2,6 @@
 from typing import Dict, Any, List, Optional
 import json
 import uuid
-import logging
 from datetime import datetime
 from app.models.team import Team, TeamTask
 from app.utils.db import get_db_connection, safe_close_connection
@@ -20,16 +19,15 @@ from app.utils.team_utils import (
     create_workflow_steps,
     aggregate_team_responses
 )
-
-# Get workflow-specific loggers
-workflow_logger = logging.getLogger('multi_agent_system.workflow')
-workflow_steps_logger = logging.getLogger('multi_agent_system.workflow.steps')
-workflow_execution_logger = logging.getLogger('multi_agent_system.workflow.execution')
-workflow_decision_logger = logging.getLogger('multi_agent_system.workflow.decisions')
+from app.utils.logger import (
+    workflow_logger,
+    workflow_steps_logger,
+    workflow_execution_logger,
+    workflow_decision_logger,
+)
 
 class WorkflowManager:
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
         self.context_analyzer = ContextAnalyzer()
         self.task_decomposer = TaskDecomposer()
         self.knowledge_manager = KnowledgeManager()

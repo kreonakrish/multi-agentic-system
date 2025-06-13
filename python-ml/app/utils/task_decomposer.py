@@ -1,23 +1,21 @@
 """Task decomposer for breaking down complex tasks."""
 from typing import Dict, Any, List, Optional
 import json
-import logging
 from datetime import datetime
 from app.utils.db import get_db_connection, safe_close_connection
 from app.models.task import TeamTask
 from app.utils.context_analyzer import ContextAnalyzer
 from collections import defaultdict
 from app.utils.json_encoder import CustomJSONEncoder
+from app.utils.logger import (
+    workflow_logger,
+    workflow_decision_logger,
+)
+import uuid
 
-# Get specialized loggers
-workflow_logger = logging.getLogger('multi_agent_system.workflow')
-workflow_decision_logger = logging.getLogger('multi_agent_system.workflow.decisions')
-
-logger = logging.getLogger(__name__)
 
 class TaskDecomposer:
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
         self.context_analyzer = ContextAnalyzer()
         self.db_conn = get_db_connection()
 
@@ -109,8 +107,8 @@ class TaskDecomposer:
                     'strategy': 'manual',
                     'subtask_count': len(subtasks),
                     'dependency_count': len(dependencies),
-                    'parallel_group_count': 1,
-                    'critical_path_length': len(self._get_critical_path(dependencies)),
+                    'parallel_group_count': len(execution_plan['parallel_groups']),
+                    'critical_path_length': len(execution_plan['critical_path']),
                     'complexity_score': self._calculate_complexity_score(subtasks, dependencies)
                 })
                 
@@ -124,7 +122,7 @@ class TaskDecomposer:
                 }
                 
             except Exception as e:
-                self.logger.error(f"Error storing decomposition: {str(e)}", exc_info=True, extra={
+                workflow_logger.error(f"Error storing decomposition: {str(e)}", exc_info=True, extra={
                     'task_id': task.task_id,
                     'task_type': task.task_type,
                     'error': str(e),
@@ -139,13 +137,18 @@ class TaskDecomposer:
                     'decomposition_id': None,
                     'subtasks': [],
                     'dependencies': [],
-                    'execution_plan': []
+                    'execution_plan': {
+                        'parallel_groups': [],
+                        'dependencies': [],
+                        'critical_path': [],
+                        'estimated_time': 0
+                    }
                 }
             finally:
                 cursor.close()
                 
         except Exception as e:
-            self.logger.error(f"Critical error in task decomposition: {str(e)}", exc_info=True, extra={
+            workflow_logger.error(f"Critical error in task decomposition: {str(e)}", exc_info=True, extra={
                 'task_id': task.task_id,
                 'task_type': task.task_type,
                 'error': str(e),
@@ -158,7 +161,12 @@ class TaskDecomposer:
                 'decomposition_id': None,
                 'subtasks': [],
                 'dependencies': [],
-                'execution_plan': []
+                'execution_plan': {
+                    'parallel_groups': [],
+                    'dependencies': [],
+                    'critical_path': [],
+                    'estimated_time': 0
+                }
             }
 
     def _decompose_task(self, task: TeamTask) -> Dict[str, Any]:
@@ -183,62 +191,103 @@ class TaskDecomposer:
         }
 
     def _create_subtasks(self, task: TeamTask, context_analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Create atomic subtasks based on task requirements."""
-        subtasks = []
-        
-        # Get pipeline requirements
-        needs_pipeline = context_analysis['explicit_requirements'].get('needs_pipeline', False)
-        pipeline_types = context_analysis['explicit_requirements'].get('pipeline_type', [])
-        
-        # Add pipeline creation subtasks
-        if needs_pipeline:
-            for pipeline_type in pipeline_types:
-                subtask_id = f"sub-{len(subtasks) + 1}"
+        """Create subtasks based on task and context analysis."""
+        try:
+            subtasks = []
+            
+            # Get required tools and dependencies
+            required_tools = context_analysis.get('required_tools', [])
+            dependencies = context_analysis.get('dependencies', [])
+            
+            # Check if this is a predefined task
+            if task.task_type == 'predefined':
+                # For predefined tasks, create a single subtask
                 subtasks.append({
-                    'subtask_id': subtask_id,
-                    'type': pipeline_type,
-                    'description': f"Create {pipeline_type.replace('_', ' ')}",
-                    'requirements': {'tools': [pipeline_type.split('_')[0].lower()]},
-                    'priority': 1,
-                    'estimated_complexity': 'high'
+                    'id': str(uuid.uuid4()),
+                    'name': f"Execute {task.task_type} task",
+                    'description': task.description,
+                    'type': task.task_type,
+                    'priority': 'high',
+                    'dependencies': [],
+                    'required_tools': required_tools,
+                    'estimated_time': 5,  # Default time for predefined tasks
+                    'complexity': context_analysis.get('complexity_score', 0.5),
+                    'confidence': context_analysis.get('confidence_score', 0.7)
                 })
-        
-        # Add data preparation subtask
-        if context_analysis['implicit_requirements'].get('data_processing'):
-            subtask_id = f"sub-{len(subtasks) + 1}"
-            subtasks.append({
-                'subtask_id': subtask_id,
-                'type': 'data_preparation',
-                'description': 'Prepare and validate input data',
-                'requirements': {'tools': ['database', 'data_processing']},
-                'priority': 2,
-                'estimated_complexity': 'medium'
-            })
-        
-        # Add validation subtask
-        if context_analysis['implicit_requirements'].get('needs_validation'):
-            subtask_id = f"sub-{len(subtasks) + 1}"
-            subtasks.append({
-                'subtask_id': subtask_id,
-                'type': 'validation',
-                'description': 'Validate results and ensure quality',
-                'requirements': {'tools': ['validation_engine']},
-                'priority': 3,
-                'estimated_complexity': 'medium'
-            })
-        
-        # Add result compilation subtask
-        subtask_id = f"sub-{len(subtasks) + 1}"
-        subtasks.append({
-            'subtask_id': subtask_id,
-            'type': 'result_compilation',
-            'description': 'Compile and format final results',
-            'requirements': {'tools': ['result_formatter']},
-            'priority': 4,
-            'estimated_complexity': 'low'
-        })
-        
-        return subtasks
+                return subtasks
+            
+            # For non-predefined tasks, analyze requirements
+            needs_database = any(tool['tool_type'] == 'Database' for tool in required_tools)
+            needs_api = any(tool['tool_type'] == 'APIService' for tool in required_tools)
+            needs_pipeline = any(tool['tool_type'] in ['WebService', 'APIService'] for tool in required_tools)
+            
+            # Create subtasks based on requirements
+            if needs_database:
+                subtasks.append({
+                    'id': str(uuid.uuid4()),
+                    'name': 'Database Operations',
+                    'description': 'Perform database operations',
+                    'type': 'database',
+                    'priority': 'high',
+                    'dependencies': [],
+                    'required_tools': [tool for tool in required_tools if tool['tool_type'] == 'Database'],
+                    'estimated_time': 10,
+                    'complexity': context_analysis.get('complexity_score', 0.5),
+                    'confidence': context_analysis.get('confidence_score', 0.7)
+                })
+            
+            if needs_api:
+                subtasks.append({
+                    'id': str(uuid.uuid4()),
+                    'name': 'API Integration',
+                    'description': 'Handle API integration tasks',
+                    'type': 'api',
+                    'priority': 'high',
+                    'dependencies': [],
+                    'required_tools': [tool for tool in required_tools if tool['tool_type'] == 'APIService'],
+                    'estimated_time': 15,
+                    'complexity': context_analysis.get('complexity_score', 0.5),
+                    'confidence': context_analysis.get('confidence_score', 0.7)
+                })
+            
+            if needs_pipeline:
+                subtasks.append({
+                    'id': str(uuid.uuid4()),
+                    'name': 'Pipeline Processing',
+                    'description': 'Process pipeline operations',
+                    'type': 'pipeline',
+                    'priority': 'high',
+                    'dependencies': [],
+                    'required_tools': [tool for tool in required_tools if tool['tool_type'] in ['WebService', 'APIService']],
+                    'estimated_time': 20,
+                    'complexity': context_analysis.get('complexity_score', 0.5),
+                    'confidence': context_analysis.get('confidence_score', 0.7)
+                })
+            
+            # If no specific subtasks were created, create a general task
+            if not subtasks:
+                subtasks.append({
+                    'id': str(uuid.uuid4()),
+                    'name': 'General Task',
+                    'description': task.description,
+                    'type': 'general',
+                    'priority': 'medium',
+                    'dependencies': [],
+                    'required_tools': required_tools,
+                    'estimated_time': 10,
+                    'complexity': context_analysis.get('complexity_score', 0.5),
+                    'confidence': context_analysis.get('confidence_score', 0.7)
+                })
+            
+            # Update dependencies between subtasks
+            for i in range(1, len(subtasks)):
+                subtasks[i]['dependencies'].append(subtasks[i-1]['id'])
+            
+            return subtasks
+            
+        except Exception as e:
+            workflow_logger.error(f"Error creating subtasks: {str(e)}", exc_info=True)
+            return []
 
     def _determine_dependencies(self, subtasks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Determine dependencies between subtasks."""
@@ -260,8 +309,8 @@ class TaskDecomposer:
         if data_prep_task:
             for pipeline_task in pipeline_tasks:
                 dependencies.append({
-                    'from_id': data_prep_task['subtask_id'],
-                    'to_id': pipeline_task['subtask_id'],
+                    'from_id': data_prep_task['id'],
+                    'to_id': pipeline_task['id'],
                     'type': 'sequential',
                     'critical': True
                 })
@@ -276,8 +325,8 @@ class TaskDecomposer:
         if validation_task:
             for pipeline_task in pipeline_tasks:
                 dependencies.append({
-                    'from_id': pipeline_task['subtask_id'],
-                    'to_id': validation_task['subtask_id'],
+                    'from_id': pipeline_task['id'],
+                    'to_id': validation_task['id'],
                     'type': 'sequential',
                     'critical': True
                 })
@@ -291,53 +340,128 @@ class TaskDecomposer:
         # Add dependencies to result compilation
         if result_task:
             for task in subtasks:
-                if task['subtask_id'] != result_task['subtask_id']:
+                if task['id'] != result_task['id']:
                     dependencies.append({
-                        'from_id': task['subtask_id'],
-                        'to_id': result_task['subtask_id'],
+                        'from_id': task['id'],
+                        'to_id': result_task['id'],
                         'type': 'sequential',
                         'critical': False
                     })
         
         return dependencies
 
-    def _create_execution_plan(self, subtasks: List[Dict[str, Any]], 
-                             dependencies: List[Dict[str, Any]]) -> List[List[str]]:
-        """Create execution plan based on dependencies."""
-        # Create dependency graph
-        graph = {}
-        for task in subtasks:
-            graph[task['subtask_id']] = set()
-        
-        for dep in dependencies:
-            if dep['from_id'] in graph and dep['to_id'] in graph:
-                graph[dep['to_id']].add(dep['from_id'])
-        
-        # Find tasks with no dependencies
-        no_deps = [
-            task_id for task_id in graph 
-            if not graph[task_id]
-        ]
-        
-        # Create execution plan
-        execution_plan = []
-        executed = set()
-        
-        while no_deps:
-            execution_plan.append(no_deps[:])
-            executed.update(no_deps)
+    def _create_execution_plan(self, subtasks: List[Dict[str, Any]], dependencies: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Create execution plan with parallel and sequential steps."""
+        try:
+            # Create dependency graph
+            graph = {}
+            for task in subtasks:
+                graph[task['id']] = set()
             
-            # Find next level of tasks
-            next_level = []
-            for task_id in graph:
-                if task_id not in executed:
-                    deps = graph[task_id]
-                    if all(dep in executed for dep in deps):
-                        next_level.append(task_id)
+            # Add dependencies to graph
+            for dep in dependencies:
+                source = dep['from_id']
+                target = dep['to_id']
+                if source in graph and target in graph:
+                    graph[source].add(target)
             
-            no_deps = next_level
-        
-        return execution_plan
+            # Find parallel execution groups
+            parallel_groups = []
+            visited = set()
+            
+            def dfs(node, current_group):
+                visited.add(node)
+                current_group.append(node)
+                
+                # Check all dependencies
+                for dep in graph[node]:
+                    if dep not in visited:
+                        dfs(dep, current_group)
+            
+            # Find all connected components
+            for node in graph:
+                if node not in visited:
+                    current_group = []
+                    dfs(node, current_group)
+                    parallel_groups.append(current_group)
+            
+            # Create execution plan
+            execution_plan = {
+                'parallel_groups': parallel_groups,
+                'dependencies': dependencies,
+                'critical_path': self._find_critical_path(graph),
+                'estimated_time': self._calculate_estimated_time(subtasks, parallel_groups)
+            }
+            
+            workflow_logger.info("[WORKFLOW] Created execution plan", extra={
+                'parallel_groups': len(parallel_groups),
+                'dependencies': len(dependencies),
+                'estimated_time': execution_plan['estimated_time']
+            })
+            
+            return execution_plan
+            
+        except Exception as e:
+            workflow_logger.error(f"Error creating execution plan: {str(e)}", exc_info=True)
+            return {
+                'parallel_groups': [],
+                'dependencies': [],
+                'critical_path': [],
+                'estimated_time': 0
+            }
+
+    def _find_critical_path(self, graph: Dict[str, set]) -> List[str]:
+        """Find critical path in the dependency graph."""
+        try:
+            # Calculate in-degree for each node
+            in_degree = {node: 0 for node in graph}
+            for node in graph:
+                for dep in graph[node]:
+                    in_degree[dep] += 1
+            
+            # Find nodes with no incoming edges
+            queue = [node for node, degree in in_degree.items() if degree == 0]
+            critical_path = []
+            
+            while queue:
+                node = queue.pop(0)
+                critical_path.append(node)
+                
+                # Update in-degree for dependencies
+                for dep in graph[node]:
+                    in_degree[dep] -= 1
+                    if in_degree[dep] == 0:
+                        queue.append(dep)
+            
+            return critical_path
+            
+        except Exception as e:
+            workflow_logger.error(f"Error finding critical path: {str(e)}", exc_info=True)
+            return []
+
+    def _calculate_estimated_time(self, subtasks: List[Dict[str, Any]], parallel_groups: List[List[str]]) -> int:
+        """Calculate estimated execution time."""
+        try:
+            # Create subtask lookup
+            subtask_lookup = {task['id']: task for task in subtasks}
+            
+            # Calculate time for each parallel group
+            group_times = []
+            for group in parallel_groups:
+                # Time for parallel group is max time of any subtask in the group
+                group_time = max(
+                    subtask_lookup[task_id]['estimated_time']
+                    for task_id in group
+                    if task_id in subtask_lookup
+                )
+                group_times.append(group_time)
+            
+            # Total time is sum of all group times
+            return sum(group_times)
+            
+        except Exception as e:
+            workflow_logger.error(f"Error calculating estimated time: {str(e)}", exc_info=True)
+            return 0
 
     def _store_decomposition(self, task: TeamTask, subtasks: List[Dict[str, Any]],
                            dependencies: List[Dict[str, Any]], 
@@ -398,4 +522,67 @@ class TaskDecomposer:
             
         finally:
             cursor.close()
-            conn.close() 
+            conn.close()
+
+    def _get_critical_path(self, dependencies: List[Dict[str, Any]]) -> List[str]:
+        """Calculate the critical path from dependencies."""
+        # Create a graph representation
+        graph = defaultdict(list)
+        in_degree = defaultdict(int)
+        
+        # Build the graph
+        for dep in dependencies:
+            source = dep['from_id']
+            target = dep['to_id']
+            graph[source].append(target)
+            in_degree[target] += 1
+            
+        # Find start nodes (nodes with no incoming edges)
+        start_nodes = [node for node in graph if in_degree[node] == 0]
+        
+        # If no start nodes found, return empty list
+        if not start_nodes:
+            return []
+            
+        # Use topological sort to find critical path
+        critical_path = []
+        queue = start_nodes
+        
+        while queue:
+            node = queue.pop(0)
+            critical_path.append(node)
+            
+            for neighbor in graph[node]:
+                in_degree[neighbor] -= 1
+                if in_degree[neighbor] == 0:
+                    queue.append(neighbor)
+                    
+        return critical_path 
+
+    def _calculate_complexity_score(self, subtasks: List[Dict[str, Any]], dependencies: List[Dict[str, Any]]) -> float:
+        """Calculate complexity score based on subtasks and dependencies."""
+        # Base complexity from number of subtasks
+        base_complexity = len(subtasks) * 0.2
+        
+        # Add complexity from dependencies
+        dependency_complexity = len(dependencies) * 0.1
+        
+        # Add complexity from critical dependencies
+        critical_deps = sum(1 for dep in dependencies if dep.get('critical', False))
+        critical_complexity = critical_deps * 0.3
+        
+        # Add complexity from task types
+        type_complexity = 0
+        for subtask in subtasks:
+            if subtask.get('estimated_complexity') == 'high':
+                type_complexity += 0.5
+            elif subtask.get('estimated_complexity') == 'medium':
+                type_complexity += 0.3
+            elif subtask.get('estimated_complexity') == 'low':
+                type_complexity += 0.1
+        
+        # Calculate total complexity score (normalized between 0 and 1)
+        total_complexity = base_complexity + dependency_complexity + critical_complexity + type_complexity
+        normalized_complexity = min(1.0, total_complexity / 5.0)  # Normalize to max of 1.0
+        
+        return round(normalized_complexity, 2) 

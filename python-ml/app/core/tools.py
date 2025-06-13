@@ -36,6 +36,19 @@ class Tool(ABC):
         self._is_connected = False
         self.logger = logging.getLogger(__name__)
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert tool to dictionary representation"""
+        return {
+            'tool_id': self.tool_id,
+            'tool_name': self.tool_name,
+            'type': self.__class__.__name__,
+            'hostname': self.hostname,
+            'username': self.username,
+            'auth_method': self.auth_method,
+            'description': self.description,
+            'is_connected': self.is_connected
+        }
+
     @property
     def is_connected(self) -> bool:
         """Check if tool is connected"""

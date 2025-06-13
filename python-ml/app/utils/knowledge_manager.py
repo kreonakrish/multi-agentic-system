@@ -1,26 +1,69 @@
 """Knowledge manager for handling agent memories and knowledge graph."""
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Tuple, Union
 from datetime import datetime
 import json
-import logging
 from app.models.task import TeamTask
 from app.utils.db import get_db_connection, safe_close_connection
 from app.utils.json_encoder import CustomJSONEncoder
 import traceback
+from app.utils.logger import (
+    knowledge_store_logger,
+    knowledge_retrieve_logger,
+    knowledge_llm_logger,
+    knowledge_metrics_logger,
+    workflow_logger,
+)
 
-# Create specialized loggers for different aspects of knowledge management
-logger = logging.getLogger(__name__)
-knowledge_store_logger = logging.getLogger('multi_agent_system.knowledge.store')
-knowledge_retrieve_logger = logging.getLogger('multi_agent_system.knowledge.retrieve')
-knowledge_llm_logger = logging.getLogger('multi_agent_system.knowledge.llm')
-knowledge_metrics_logger = logging.getLogger('multi_agent_system.knowledge.metrics')
 
 class KnowledgeManager:
     """Manages agent knowledge and memory."""
     
     def __init__(self):
         """Initialize knowledge manager."""
-        self.logger = logging.getLogger(__name__)
+        self.db_conn = None
+        self._ensure_db_connection()
+
+    def _ensure_db_connection(self):
+        """Ensure database connection is valid, reconnecting if necessary."""
+        try:
+            # First check if we need to establish a new connection
+            if self.db_conn is None:
+                self.db_conn = get_db_connection()
+                knowledge_store_logger.info("[KNOWLEDGE] New database connection established")
+                return
+
+            # If we have a connection, validate it
+            try:
+                cursor = self.db_conn.cursor()
+                cursor.execute("SELECT 1")
+                cursor.close()
+                knowledge_store_logger.debug("[KNOWLEDGE] Existing database connection is valid")
+            except Exception as e:
+                knowledge_store_logger.warning("[KNOWLEDGE] Existing connection is invalid, reconnecting", extra={
+                    'error': str(e),
+                    'error_type': type(e).__name__
+                })
+                # Close the invalid connection
+                try:
+                    self.db_conn.close()
+                except:
+                    pass
+                # Get a new connection
+                self.db_conn = get_db_connection()
+                knowledge_store_logger.info("[KNOWLEDGE] Database connection reestablished")
+
+        except Exception as e:
+            knowledge_store_logger.error("[KNOWLEDGE] Failed to establish database connection", extra={
+                'error': str(e),
+                'error_type': type(e).__name__
+            })
+            self.db_conn = None  # Reset connection on failure
+            raise
+
+    def __del__(self):
+        """Cleanup database connection."""
+        if hasattr(self, 'db_conn') and self.db_conn is not None:
+            safe_close_connection(self.db_conn)
 
     def store_task_knowledge(self, agent_id: int, task: TeamTask, 
                            execution_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -103,206 +146,88 @@ class KnowledgeManager:
                 'error': str(e)
             }
 
-    def get_relevant_knowledge(self, agent_id: int, task: TeamTask) -> Dict[str, Any]:
-        """Get relevant knowledge for an agent and task."""
-        conn = None
-        cursor = None
-        try:
-            knowledge_retrieve_logger.info("[KNOWLEDGE] Starting knowledge retrieval", extra={
-                'agent_id': agent_id,
-                'task_id': task.task_id,
-                'task_type': task.task_type,
-                'task_description': task.description,
-                'timestamp': datetime.now().isoformat()
-            })
+    def get_relevant_knowledge(self, agent_id: int, task: Union[TeamTask, Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Get relevant knowledge for a task.
+        
+        Args:
+            agent_id: The agent ID
+            task: Either a TeamTask object or a dictionary containing task details
             
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            # Get long-term memories with detailed logging
-            cursor.execute("""
-                SELECT id, memory_type, start_prompt, end_prompt, context, confidence, source_type
-                FROM agent_memory 
-                WHERE agent_id = %s AND memory_type = 'LONG_TERM_MEMORY'
-                ORDER BY confidence DESC, created_at DESC
-                LIMIT 10
-            """, (agent_id,))
-            
-            memories = cursor.fetchall()
-            
-            knowledge_retrieve_logger.info("[KNOWLEDGE] Retrieved memories from database", extra={
-                'agent_id': agent_id,
-                'memories_count': len(memories),
-                'memory_types': list(set(m[1] for m in memories)),
-                'source_types': list(set(m[6] for m in memories)),
-                'avg_confidence': sum(float(m[5] or 0) for m in memories) / len(memories) if memories else 0,
-                'task_description': task.description,
-                'full_content': f"Retrieved {len(memories)} memories"
-            })
-            
-            # Format memories into required structure
-            long_term_memories = []
-            for memory in memories:
-                try:
-                    # Enhanced context data handling with validation
-                    context_data = self._parse_and_validate_context(memory[4], memory[0])
-                    
-                    # Validate memory content
-                    if not self._validate_memory_content(memory):
-                        knowledge_retrieve_logger.warning("[KNOWLEDGE] Skipping invalid memory", extra={
-                            'agent_id': agent_id,
-                            'memory_id': memory[0],
-                            'memory_type': memory[1],
-                            'reason': 'Invalid content structure',
-                            'full_content': f"Memory ID: {memory[0]} failed validation"
-                        })
-                        continue
-                    
-                    # Log each memory being processed with full content
-                    knowledge_retrieve_logger.info("[KNOWLEDGE] Processing memory content", extra={
-                        'agent_id': agent_id,
-                        'memory_id': memory[0],
-                        'memory_type': memory[1],
-                        'source_type': memory[6],
-                        'start_prompt': memory[2],
-                        'end_prompt': memory[3],
-                        'context_data': json.dumps(context_data, default=str),
-                        'confidence': float(memory[5]) if memory[5] else 0.0,
-                        'task_matches': [
-                            word for word in task.description.lower().split() 
-                            if word in (memory[2] or "").lower()
-                        ],
-                        'full_content': f"Memory ID: {memory[0]}\nStart Prompt: {memory[2]}\nEnd Prompt: {memory[3]}\nContext: {json.dumps(context_data, indent=2)}"
-                    })
-                    
-                    memory_content = {
-                        'start_prompt': memory[2] or '',
-                        'end_prompt': memory[3] or '',
-                        'context': context_data,
-                        'confidence': float(memory[5]) if memory[5] else 0.0,
-                        'source_type': memory[6],
-                        'task_relevance': self._calculate_task_relevance(task.description, memory[2], memory[3])
-                    }
-                    
-                    # Validate memory content structure before adding
-                    if self._validate_memory_structure(memory_content):
-                        long_term_memories.append({
-                            'memory_id': memory[0],
-                            'memory_type': memory[1],
-                            'source_type': memory[6],
-                            'content': memory_content,
-                            'task_relevance': memory_content['task_relevance']
-                        })
-                        
-                        # Log successful memory processing
-                        knowledge_llm_logger.info("[LLM] Memory prepared for LLM", extra={
-                            'agent_id': agent_id,
-                            'memory_id': memory[0],
-                            'memory_type': memory[1],
-                            'source_type': memory[6],
-                            'content_length': len(str(memory_content)),
-                            'task_relevance': memory_content['task_relevance'],
-                            'full_content': json.dumps(memory_content, indent=2, default=str)
-                        })
-                    else:
-                        knowledge_retrieve_logger.warning("[KNOWLEDGE] Invalid memory structure", extra={
-                            'agent_id': agent_id,
-                            'memory_id': memory[0],
-                            'memory_type': memory[1],
-                            'reason': 'Failed structure validation',
-                            'full_content': f"Memory ID: {memory[0]} failed structure validation"
-                        })
-                    
-                except Exception as e:
-                    knowledge_retrieve_logger.error("[KNOWLEDGE] Error processing memory", extra={
-                        'agent_id': agent_id,
-                        'memory_id': memory[0] if memory else 'unknown',
-                        'error': str(e),
-                        'error_type': type(e).__name__,
-                        'full_content': f"Failed to process memory: {str(e)}\nTraceback: {traceback.format_exc()}"
-                    }, exc_info=True)
-            
-            # Sort memories by task relevance
-            long_term_memories.sort(key=lambda x: x['task_relevance'], reverse=True)
-            
-            result = {
-                'status': 'success',
+        Returns:
+            Dictionary containing relevant knowledge with the following structure:
+            {
                 'memories': {
-                    'long_term': long_term_memories,
+                    'long_term': List[Dict],
+                    'short_term': List[Dict],
+                    'graph': List[Dict],
+                    'json': List[Dict]
+                },
+                'source_counts': Dict[str, int]
+            }
+        """
+        try:
+            # Extract task details based on input type
+            if isinstance(task, TeamTask):
+                task_id = task.task_id
+                description = task.description
+                requirements = task.requirements
+            else:
+                task_id = task.get('id')
+                description = task.get('description', '')
+                requirements = task.get('requirements', {})
+            
+            workflow_logger.info("[WORKFLOW] Getting relevant knowledge", extra={
+                'agent_id': agent_id,
+                'task_id': task_id,
+                'description': description[:100] + '...' if len(description) > 100 else description
+            })
+            
+            # Get agent's memories
+            memories = self._get_agent_memories(agent_id)
+            
+            # Get relevant memories
+            relevant_memories = self._find_relevant_memories(
+                memories,
+                description,
+                requirements
+            )
+            
+            # Get source counts
+            source_counts = self._count_memory_sources(relevant_memories)
+            
+            # Store knowledge retrieval
+            self._store_knowledge_retrieval(
+                agent_id=agent_id,
+                task_id=task_id,
+                description=description,
+                requirements=requirements,
+                memory_count=len(relevant_memories),
+                source_counts=source_counts
+            )
+            
+            # Structure the response
+            return {
+                'memories': {
+                    'long_term': relevant_memories,
                     'short_term': [],
                     'graph': [],
                     'json': []
                 },
-                'source_counts': {
-                    'long_term': len(long_term_memories),
-                    'short_term': 0,
-                    'graph': 0,
-                    'json': 0
-                },
-                'task_relevance': {
-                    'high': len([m for m in long_term_memories if m['task_relevance'] > 0.7]),
-                    'medium': len([m for m in long_term_memories if 0.3 <= m['task_relevance'] <= 0.7]),
-                    'low': len([m for m in long_term_memories if m['task_relevance'] < 0.3])
-                }
+                'source_counts': source_counts
             }
             
-            # Log final retrieval metrics with full content sample
-            knowledge_metrics_logger.info("[METRICS] Knowledge retrieval metrics", extra={
-                'agent_id': agent_id,
-                'task_id': task.task_id,
-                'total_memories': len(long_term_memories),
-                'memory_types_retrieved': len(set(m['memory_type'] for m in long_term_memories)),
-                'source_types_retrieved': len(set(m['source_type'] for m in long_term_memories)),
-                'avg_confidence': sum(m['content']['confidence'] for m in long_term_memories) / len(long_term_memories) if long_term_memories else 0,
-                'avg_task_relevance': sum(m['task_relevance'] for m in long_term_memories) / len(long_term_memories) if long_term_memories else 0,
-                'task_relevance_distribution': result['task_relevance'],
-                'context_data': json.dumps({'memory_count': len(long_term_memories)}),
-                'full_content': f"Sample Memory: {json.dumps(long_term_memories[0], indent=2, default=str) if long_term_memories else 'None'}"
-            })
-            
-            # Log LLM-bound knowledge package with full content
-            knowledge_llm_logger.info("[LLM] Complete knowledge package for LLM", extra={
-                'agent_id': agent_id,
-                'task_id': task.task_id,
-                'task_description': task.description,
-                'memory_count': len(long_term_memories),
-                'total_context_size': sum(len(json.dumps(m['content']['context'], default=str)) for m in long_term_memories),
-                'memory_types': list(set(m['memory_type'] for m in long_term_memories)),
-                'source_types': list(set(m['source_type'] for m in long_term_memories)),
-                'avg_task_relevance': sum(m['task_relevance'] for m in long_term_memories) / len(long_term_memories) if long_term_memories else 0,
-                'context_data': json.dumps({'memory_types': list(set(m['memory_type'] for m in long_term_memories))}),
-                'full_content': json.dumps(long_term_memories, indent=2, default=str)
-            })
-            
-            return result
-                
         except Exception as e:
-            knowledge_retrieve_logger.error("[KNOWLEDGE] Error retrieving knowledge", extra={
-                'agent_id': agent_id,
-                'task_id': task.task_id,
-                'error': str(e),
-                'error_type': type(e).__name__,
-                'full_content': f"Error: {str(e)}\nTraceback: {traceback.format_exc()}"
-            }, exc_info=True)
-            
+            workflow_logger.error(f"Error getting relevant knowledge: {str(e)}", exc_info=True)
             return {
-                'status': 'error',
-                'error': str(e),
                 'memories': {
                     'long_term': [],
                     'short_term': [],
                     'graph': [],
                     'json': []
                 },
-                'source_counts': {
-                    'long_term': 0,
-                    'short_term': 0,
-                    'graph': 0,
-                    'json': 0
-                }
+                'source_counts': {}
             }
-        finally:
-            safe_close_connection(conn, cursor)
 
     def _calculate_task_relevance(self, task_description: str, start_prompt: Optional[str], end_prompt: Optional[str]) -> float:
         """Calculate relevance score between task and memory."""
@@ -608,7 +533,13 @@ class KnowledgeManager:
                 'confidence': data['confidence']
             })
             
-            conn = get_db_connection()
+            # Ensure we have a valid connection
+            self._ensure_db_connection()
+            conn = self.db_conn
+            
+            if conn is None:
+                raise Exception("Database connection is not available")
+                
             cursor = conn.cursor()
             
             cursor.execute("""
@@ -780,7 +711,7 @@ class KnowledgeManager:
             conn = None
             cursor = None
             try:
-                conn = get_db_connection()
+                conn = self.db_conn
                 cursor = conn.cursor()
                 
                 cursor.execute("""
@@ -829,4 +760,178 @@ class KnowledgeManager:
             return {
                 'status': 'error',
                 'error': str(e)
-            } 
+            }
+
+    def _get_agent_memories(self, agent_id: int) -> List[Dict[str, Any]]:
+        """Get agent's memories from the database."""
+        try:
+            cursor = self.db_conn.cursor(dictionary=True)
+            
+            # Get long-term memories
+            cursor.execute("""
+                SELECT 
+                    id,
+                    memory_type,
+                    start_prompt,
+                    end_prompt,
+                    context,
+                    confidence,
+                    source_type,
+                    created_at
+                FROM agent_memory 
+                WHERE agent_id = %s 
+                AND memory_type = 'LONG_TERM_MEMORY'
+                ORDER BY confidence DESC, created_at DESC
+                LIMIT 10
+            """, (agent_id,))
+            
+            memories = cursor.fetchall()
+            
+            # Process memories
+            processed_memories = []
+            for memory in memories:
+                try:
+                    # Parse context data
+                    context_data = self._parse_and_validate_context(memory['context'], memory['id'])
+                    
+                    # Create memory object
+                    processed_memory = {
+                        'memory_id': memory['id'],
+                        'memory_type': memory['memory_type'],
+                        'source_type': memory['source_type'],
+                        'content': {
+                            'start_prompt': memory['start_prompt'] or '',
+                            'end_prompt': memory['end_prompt'] or '',
+                            'context': context_data,
+                            'confidence': float(memory['confidence']) if memory['confidence'] else 0.0
+                        },
+                        'created_at': memory['created_at'].isoformat() if memory['created_at'] else None
+                    }
+                    
+                    processed_memories.append(processed_memory)
+                    
+                except Exception as e:
+                    workflow_logger.error(f"Error processing memory {memory.get('id')}: {str(e)}", exc_info=True)
+                    continue
+            
+            return processed_memories
+            
+        except Exception as e:
+            workflow_logger.error(f"Error getting agent memories: {str(e)}", exc_info=True)
+            return []
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+
+    def _parse_and_validate_context(self, context: str, memory_id: int) -> Dict[str, Any]:
+        """Parse and validate memory context data."""
+        try:
+            if not context:
+                return {}
+            
+            # Try to parse JSON context
+            try:
+                context_data = json.loads(context)
+                if not isinstance(context_data, dict):
+                    raise ValueError("Context must be a dictionary")
+                return context_data
+            except json.JSONDecodeError:
+                # If not JSON, return as plain text
+                return {'text': context}
+                
+        except Exception as e:
+            workflow_logger.error(f"Error parsing context for memory {memory_id}: {str(e)}", exc_info=True)
+            return {}
+
+    def _find_relevant_memories(self, memories: List[Dict[str, Any]], 
+                              description: str,
+                              requirements: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Find memories relevant to the task."""
+        try:
+            relevant_memories = []
+            
+            for memory in memories:
+                # Calculate relevance score
+                relevance_score = self._calculate_task_relevance(
+                    description,
+                    memory['content']['start_prompt'],
+                    memory['content']['end_prompt']
+                )
+                
+                # Add relevance score to memory
+                memory['task_relevance'] = relevance_score
+                
+                # Only include memories with sufficient relevance
+                if relevance_score >= 0.3:  # Minimum relevance threshold
+                    relevant_memories.append(memory)
+            
+            # Sort by relevance
+            relevant_memories.sort(key=lambda x: x['task_relevance'], reverse=True)
+            
+            return relevant_memories
+            
+        except Exception as e:
+            workflow_logger.error(f"Error finding relevant memories: {str(e)}", exc_info=True)
+            return []
+
+    def _count_memory_sources(self, memories: List[Dict[str, Any]]) -> Dict[str, int]:
+        """Count memory sources."""
+        try:
+            source_counts = {}
+            
+            for memory in memories:
+                source_type = memory.get('source_type', 'unknown')
+                source_counts[source_type] = source_counts.get(source_type, 0) + 1
+            
+            return source_counts
+            
+        except Exception as e:
+            workflow_logger.error(f"Error counting memory sources: {str(e)}", exc_info=True)
+            return {}
+
+    def _store_knowledge_retrieval(self, agent_id: int, task_id: Union[int, str],
+                                 description: str, requirements: Dict[str, Any],
+                                 memory_count: int, source_counts: Dict[str, int]) -> None:
+        """Store knowledge retrieval metrics."""
+        try:
+            cursor = self.db_conn.cursor()
+            
+            # Check if task exists
+            cursor.execute("""
+                SELECT task_id FROM team_tasks WHERE task_id = %s
+            """, (str(task_id),))
+            
+            if not cursor.fetchone():
+                workflow_logger.warning(f"Task {task_id} not found in team_tasks table, skipping metrics storage")
+                return
+            
+            # Store metrics if task exists
+            cursor.execute("""
+                INSERT INTO knowledge_retrieval_metrics (
+                    agent_id,
+                    task_id,
+                    description,
+                    requirements,
+                    memory_count,
+                    source_counts,
+                    created_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            """, (
+                agent_id,
+                str(task_id),  # Convert task_id to string
+                description,
+                json.dumps(requirements),
+                memory_count,
+                json.dumps(source_counts)
+            ))
+            
+            self.db_conn.commit()
+            workflow_logger.info(f"Successfully stored knowledge retrieval metrics for task {task_id}")
+            
+        except Exception as e:
+            workflow_logger.error(f"Error storing knowledge retrieval: {str(e)}", exc_info=True)
+            if 'cursor' in locals():
+                self.db_conn.rollback()
+        finally:
+            if 'cursor' in locals():
+                cursor.close() 

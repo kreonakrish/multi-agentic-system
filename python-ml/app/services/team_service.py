@@ -3,12 +3,12 @@ from app.models.team import Team, TeamMember
 from app.utils.enums import TaskPriority
 from app.utils.team_utils import get_team_agents_ordered
 from app.utils.db import get_db_connection, safe_close_connection
-import logging
-
-# Get workflow-specific loggers
-workflow_logger = logging.getLogger('multi_agent_system.workflow')
-workflow_steps_logger = logging.getLogger('multi_agent_system.workflow.steps')
-workflow_execution_logger = logging.getLogger('multi_agent_system.workflow.execution')
+from app.utils.logger import (
+    workflow_logger,
+    workflow_steps_logger,
+    workflow_execution_logger,
+    workflow_decision_logger
+)
 
 class TeamService:
     """Service for managing team operations"""
